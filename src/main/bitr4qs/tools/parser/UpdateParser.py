@@ -1,0 +1,176 @@
+from src.main.bitr4qs.namespace import BITR4QS
+import re
+from rdflib.plugins.parsers.ntriples import W3CNTriplesParser
+from .Parser import Parser, TripleSink
+from src.main.bitr4qs.term.Modification import Modification
+from rdflib.term import URIRef
+
+
+class UpdateParser(Parser):
+
+    def __init__(self):
+        self._modifications = {}
+
+    @staticmethod
+    def _graph_name(NQuad, StringOfTriple):
+        """
+
+        :param NQuad:
+        :param StringOfTriple:
+        :return:
+        """
+        # Todo program differently
+        withoutRDFStar = NQuad.replace('<< ' + StringOfTriple + ' >>', '')
+        splitWithoutRDFStar = re.findall(r'<(.*?)>', withoutRDFStar)
+        if len(splitWithoutRDFStar) > 2:
+            graph = URIRef(splitWithoutRDFStar[2])
+            return graph
+        return None
+
+    @staticmethod
+    def parse_inserts_or_deletes(sink, NQuad, deletion=False, forward=True):
+
+        NTriplesParser = W3CNTriplesParser(sink=sink)
+
+        stringOfTriple = re.search(r'<<\s(.*?)\s>>', NQuad)
+        if stringOfTriple is None:
+            pass
+
+        stringOfTriple = stringOfTriple.group(1)
+        NTriplesParser.parsestring(stringOfTriple + " .")
+        graph = UpdateParser._graph_name(NQuad, stringOfTriple)
+
+        if forward:
+            modification = sink.add_modification(graph=graph, deletion=deletion)
+        else:
+            deletion = False if deletion else True
+            modification = sink.add_modification(graph=graph, deletion=deletion)
+
+        return modification
+
+    @staticmethod
+    def _parse(identifier, NQuads, index, revision=None):
+        """
+
+        :param identifier:
+        :param NQuads:
+        :param index:
+        :param revision:
+        :return:
+        """
+        from src.main.bitr4qs.revision.Update import Update
+        if revision is None:
+            revision = Update(identifier)
+
+        NTriplesParser = W3CNTriplesParser(sink=revision)
+        for NQuad in NQuads:
+
+            splitQuad = re.findall(r'<(.*?)>', NQuad)
+            updateID = splitQuad[0]
+            index += 1
+
+            if identifier != updateID:
+                return revision, index
+
+            if splitQuad[1] == str(BITR4QS.inserts):
+                stringOfTriple = re.search(r'<<\s(.*?)\s>>', NQuad)
+                if stringOfTriple is None:
+                    pass
+
+                stringOfTriple = stringOfTriple.group(1)
+                NTriplesParser.parsestring(stringOfTriple + " .")
+                graph = UpdateParser._graph_name(NQuad, stringOfTriple)
+                revision.add_modification(graph=graph)
+
+            elif splitQuad[1] == str(BITR4QS.deletes):
+                stringOfTriple = re.search(r'<<\s(.*?)\s>>', NQuad)
+                if stringOfTriple is None:
+                    pass
+
+                stringOfTriple = stringOfTriple.group(1)
+                NTriplesParser.parsestring(stringOfTriple + " .")
+                graph = UpdateParser._graph_name(NQuad, stringOfTriple)
+                revision.add_modification(graph=graph, deletion=True)
+
+            elif splitQuad[1] == str(BITR4QS.precedingRevision):
+                revision.preceding_identifier(splitQuad[2])
+
+            elif splitQuad[1] == str(BITR4QS.startDate):
+                revision.start_date(splitQuad[2])
+
+            elif splitQuad[1] == str(BITR4QS.endDate):
+                revision.end_date(splitQuad[2])
+
+        return revision, index
+
+    def parse_aggregate(self, stringOfRevisions, forward=True):
+        """
+
+        :param stringOfRevisions:
+        :param forward:
+        :return:
+        """
+        NQuads = stringOfRevisions.split(' .\n')[:-1]
+
+        sink = TripleSink()
+        for NQuad in NQuads:
+
+            splitQuad = re.findall(r'<(.*?)>', NQuad)
+
+            if splitQuad[1] == str(BITR4QS.inserts):
+                modification = self.parse_inserts_or_deletes(sink=sink, NQuad=NQuad, forward=forward)
+            elif splitQuad[1] == str(BITR4QS.deletes):
+                modification = self.parse_inserts_or_deletes(sink=sink, NQuad=NQuad, deletion=True, forward=forward)
+            else:
+                continue
+
+            hashOfModification = modification.value.__hash__()
+            if hashOfModification in self._modifications:
+                self._modifications[hashOfModification]['counter'] += -1 if modification.deletion else 1
+            else:
+                self._modifications[hashOfModification] = {'counter': -1, 'modification': modification.value} \
+                    if modification.deletion else {'counter': 1, 'modification': modification.value}
+
+    def get_list_of_modifications(self):
+        modificationsInList = []
+        for key, value in self._modifications.items():
+            if value['counter'] > 0:
+                modificationsInList.append(Modification(value['modification']))
+            elif value['counter'] < 0:
+                modificationsInList.append(Modification(value['modification'], deletion=True))
+
+        return modificationsInList
+
+    def n_quads_to_modifications(self, stringOfNQuads):
+        pass
+
+    def modifications_to_n_quads(self):
+        n_quads = ''.join(v['modification'].n_quad() if v['counter'] > 0 else "" for _, v in self._modifications.items())
+        return n_quads
+
+    def modifications_to_sparql_update_query(self):
+        deleteString, insertString = "", ""
+
+        for _, v in self._modifications.items():
+            if v['counter'] > 0:
+                insertString += v['modification'].to_sparql() + '\n'
+            elif v['counter'] < 0:
+                deleteString += v['modification'].to_sparql() + '\n'
+
+        lengthDeleteString = len(deleteString)
+        lengthInsertString = len(insertString)
+
+        if lengthInsertString == 0 and lengthDeleteString == 0:
+            SPARQLQuery = ""
+        if len(deleteString) == 0:
+            SPARQLQuery = "INSERT DATA {{ {0} }}".format(insertString)
+        elif len(insertString) == 0:
+            SPARQLQuery = "DELETE DATA {{ {0} }}".format(deleteString)
+        else:
+            SPARQLQuery = """DELETE DATA {{ {0} }};
+            INSERT DATA {{ {1} }}""".format(deleteString, insertString)
+        print("SPARQLQuery ", SPARQLQuery)
+
+        return SPARQLQuery
+
+

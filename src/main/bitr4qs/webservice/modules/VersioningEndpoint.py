@@ -1,0 +1,72 @@
+from src.main.bitr4qs.core.BiTR4Qs import BiTR4QsSingleton
+from src.main.bitr4qs.namespace import BITR4QS
+from flask import Blueprint, request, make_response, current_app
+import src.main.bitr4qs.request as requests
+
+
+versioningEndpoint = Blueprint('versioning_endpoint', __name__)
+
+
+@versioningEndpoint.route("/update/<path:updateID>", methods=['POST'])
+def update(updateID):
+    BiTR4QsConfiguration = current_app.config['BiTR4QsConfiguration']
+    BiTR4QsCore = BiTR4QsSingleton.get(BiTR4QsConfiguration)
+
+    if BiTR4QsConfiguration.related_update_content():
+        updateRequest = requests.ModifiedRelatedUpdateRequest(request)
+    elif BiTR4QsConfiguration.repeated_update_content():
+        updateRequest = requests.ModifiedRepeatedUpdateRequest(request)
+    else:
+        return make_response('No update content strategy is given', 400)
+
+    try:
+        update = BiTR4QsCore.apply_versioning_operation(updateRequest, 'update')
+        response = make_response('', 200)
+        return response
+    except Exception as e:
+        return make_response('Error after executing the update query.', 400)
+
+
+@versioningEndpoint.route("/tag", defaults={'tagID': None}, methods=['POST'])
+@versioningEndpoint.route("/tag/<path:tagID>", methods=['POST'])
+def tag(tagID):
+    BiTR4QsConfiguration = current_app.config['BiTR4QsConfiguration']
+    BiTR4QsCore = BiTR4QsSingleton.get(BiTR4QsConfiguration)
+    tagRequest = requests.TagRequest(request)
+
+    try:
+        tag = BiTR4QsCore.apply_versioning_operation(tagRequest, 'tag')
+        response = make_response('', 200)
+        return response
+    except Exception as e:
+        return make_response('Error after executing the tag query.', 400)
+
+
+@versioningEndpoint.route("/snapshot", defaults={'snapshotID': None}, methods=['POST'])
+@versioningEndpoint.route("/snapshot/<path:snapshotID>", methods=['POST'])
+def snapshot(snapshotID):
+    BiTR4QsConfiguration = current_app.config['BiTR4QsConfiguration']
+    BiTR4QsCore = BiTR4QsSingleton.get(BiTR4QsConfiguration)
+    snapshotRequest = requests.SnapshotRequest(request)
+
+    try:
+        snapshot = BiTR4QsCore.apply_versioning_operation(snapshotRequest, 'snapshot')
+        response = make_response('', 200)
+        return response
+    except Exception as e:
+        return make_response('Error after executing the snapshot query.', 400)
+
+
+@versioningEndpoint.route("/branch", defaults={'branchID': None}, methods=['POST'])
+@versioningEndpoint.route("/branch/<path:branchID>", methods=['POST'])
+def branch(branchID):
+    BiTR4QsConfiguration = current_app.config['BiTR4QsConfiguration']
+    BiTR4QsCore = BiTR4QsSingleton.get(BiTR4QsConfiguration)
+    branchRequest = requests.BranchRequest(request)
+
+    try:
+        branch = BiTR4QsCore.apply_versioning_operation(branchRequest, 'branch')
+        response = make_response('', 200)
+        return response
+    except Exception as e:
+        return make_response('Error after executing the branch query.', 400)

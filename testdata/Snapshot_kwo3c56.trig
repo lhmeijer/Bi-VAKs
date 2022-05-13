@@ -1,0 +1,353 @@
+@prefix : <http://recipehub.nl/recipes#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+:Recipe
+  rdf:type rdfs:Class ;
+  rdfs:comment "A Recipe is a mixture of components and a way, created with the aid of a chef, that produces a food."@en-gb ;
+  rdfs:label "Recept"@nl ;
+  rdfs:label "Recipe"@en-gb ;
+  rdfs:subClassOf rdfs:Class ;
+.
+:Food
+  rdf:type rdfs:Class ;
+  rdfs:comment "A Food is some thing that may be eaten. It can be a simple food together with salt or it is able to be the extra complicated result of any other recipe, for example chicken inventory. A recipe makes use of meals as part of elements and also produces foods to be eaten."@en-gb ;
+  rdfs:label "Eten"@nl ;
+  rdfs:label "Food"@en-gb ;
+  rdfs:subClassOf rdfs:Class ;
+.
+:Meal
+  rdf:type rdfs:Class ;
+  rdfs:comment "A meal is an eating occasion that takes place at a certain time and includes prepared food."@en-gb ;
+  rdfs:label "Maaltijd"@nl ;
+  rdfs:label "Meal"@en-gb ;
+  rdfs:subClassOf rdfs:Class ;
+.
+:Cuisine
+  rdf:type rdfs:Class ;
+  rdfs:comment "A Cuisine is a specific fashion of food, often based on a vicinity. These classifications are regularly quite subjective."@en-gb ;
+  rdfs:label "Keuken"@nl ;
+  rdfs:label "Cuisine"@en-gb ;
+  rdfs:subClassOf rdfs:Class ;
+.
+:Diet
+  rdf:type rdfs:Class ;
+  rdfs:comment "A Diet is a way of choosing food that achieves a particular impact, along with eating in manner this is being pregnant-friendly or warding off meals that contain shellfish."@en-gb ;
+  rdfs:label "Dieet"@nl ;
+  rdfs:label "Diet"@en-gb ;
+  rdfs:subClassOf rdfs:Class ;
+.
+:cuisine
+  a rdf:Property ;
+  rdfs:comment "The cuisine property classifies a recipe as being an example of that cuisine."@en-gb ;
+  rdfs:domain :Recipe ;
+  rdfs:label "cuisine"@en-gb ;
+  rdfs:range :Cuisine ;
+.
+:diet
+  a rdf:Property ;
+  rdfs:comment "The diet property relates a recipe to a diet it may be suitable for."@en-gb ;
+  rdfs:domain :Recipe ;
+  rdfs:label "diet"@en-gb ;
+  rdfs:range :Diet ;
+.
+:ingredients
+  a rdf:Property ;
+  rdfs:comment "The ingredients property relates a recipe to the food its needs."@en-gb ;
+  rdfs:domain :Recipe ;
+  rdfs:label "ingredients"@en-gb ;
+  rdfs:range :Food ;
+.
+:meal
+  a rdf:Property ;
+  rdfs:comment "The meal property relates a recipe to a meal it may be suitable for."@en-gb ;
+  rdfs:domain :Recipe ;
+  rdfs:label "meal"@en-gb ;
+  rdfs:range :Meal ;
+.
+:produces
+  a rdf:Property ;
+  rdfs:comment "The produces property relates a recipe to the food it produces."@en-gb ;
+  rdfs:domain :Recipe ;
+  rdfs:label "produces"@en-gb ;
+  rdfs:range :Food ;
+.
+
+:GlutenFree
+  a :Diet ;
+  rdfs:label "Gluten-free"@en-gb ;
+  rdfs:label "Glutenvrij"@nl ;
+.
+:LactoseFree
+  a :Diet ;
+  rdfs:label "Lactose-free"@en-gb ;
+  rdfs:label "Lactosevrij"@nl ;
+.
+:NutFree
+  a :Diet ;
+  rdfs:label "Nut-free"@en-gb ;
+  rdfs:label "Notenvrij"@nl ;
+.
+:Vegan
+  a :Diet ;
+  rdfs:label "Vegan"@en-gb ;
+  rdfs:label "Veganistisch"@nl ;
+.
+:Vegetarian
+  a :Diet ;
+  rdfs:label "Vegetarian"@en-gb ;
+  rdfs:label "Vegetarisch"@nl ;
+.
+
+:ChineseCuisine
+  a :Cuisine ;
+  rdfs:label "Chinees"@nl ;
+  rdfs:label "Chinese keuken"@nl ;
+  rdfs:label "Chinese cuisine"@en-gb ;
+  rdfs:label "Chinese"@en-gb ;
+.
+:EnglishCuisine
+  a :Cuisine ;
+  rdfs:label "Engels"@nl ;
+  rdfs:label "Engelse keuken"@nl ;
+  rdfs:label "English cuisine"@en-gb ;
+  rdfs:label "English"@en-gb ;
+.
+:FrenchCuisine
+  a :Cuisine ;
+  rdfs:label "Frans"@nl ;
+  rdfs:label "Franse keuken"@nl ;
+  rdfs:label "French cuisine"@en-gb ;
+  rdfs:label "French"@en-gb ;
+.
+:IndianCuisine
+  a :Cuisine ;
+  rdfs:label "Indiaans"@nl ;
+  rdfs:label "Indiaanse keuken"@nl ;
+  rdfs:label "Indian cuisine"@en-gb ;
+  rdfs:label "Indian"@en-gb ;
+.
+:JapaneseCuisine
+  a :Cuisine ;
+  rdfs:label "Japanese cuisine"@en-gb ;
+  rdfs:label "Japanese"@en-gb ;
+  rdfs:label "Japans"@nl ;
+  rdfs:label "Japanse Keuken"@nl ;
+.
+:MexicanCuisine
+  a :Cuisine ;
+  rdfs:label "Mexican cuisine"@en-gb ;
+  rdfs:label "Mexican"@en-gb ;
+  rdfs:label "Mexicaans"@nl ;
+  rdfs:label "Mexicaanse Keuken"@nl ;
+.
+
+:Lunch
+  a :Meal ;
+  rdfs:comment "Lunch is a meal eaten around midday. It is commonly the second meal of the day, after breakfast, and varies in size by culture and region."@en-gb ;
+  rdfs:label "Lunch"@en-gb ;
+  rdfs:label "Lunch"@nl ;
+.
+:MainCourse
+  a :Meal ;
+  rdfs:comment "A main course is the featured or primary dish in a meal consisting of several courses. It usually follows the entrée course."@en-gb ;
+  rdfs:label "Hoofdgerecht"@nl ;
+  rdfs:label "Main course"@en-gb ;
+.
+:SideDish
+  a :Meal ;
+  rdfs:comment "A side dish, sometimes referred to as a side order, side item, or simply a side, is a food item that accompanies the entrée or main course at a meal."@en-gb ;
+  rdfs:label "Side dish"@en-gb ;
+  rdfs:label "Bijgerecht"@nl ;
+.
+:Snack
+  a :Meal ;
+  rdfs:comment "A snack is a small portion of food generally eaten between meals. Snacks come in a variety of forms including packaged snack foods and other processed foods, as well as items made from fresh ingredients at home."@en-gb ;
+  rdfs:label "Hapje"@nl ;
+  rdfs:label "Snack"@en-gb ;
+  rdfs:label "Tussendoortje"@nl ;
+.
+:Starter
+  a :Meal ;
+  rdfs:comment "A starter is a dish served before the main course of a meal."@en-gb ;
+  rdfs:label "Starter"@en-gb ;
+  rdfs:label "Voorgerecht"@nl ;
+.
+
+:BlackMustardSeed
+  a :Food ;
+  rdfs:label "Black mustard seed"@en-gb ;
+  rdfs:label "Zwarte mosterdzaad"@nl ;
+.
+:Butter
+  a :Food ;
+  rdfs:label "Butter"@en-gb ;
+  rdfs:label "Boter"@nl ;
+.
+:Cashewnut
+  a :Food ;
+  rdfs:label "Cashewnut"@en-gb ;
+  rdfs:label "Cashewnoot"@nl ;
+.
+:CasterSugar
+  a :Food ;
+  rdfs:label "Caster sugar"@en-gb ;
+  rdfs:label "Basterdsuiker"@nl ;
+.
+:Chicken
+  a :Food ;
+  rdfs:label "Chicken"@en-gb ;
+  rdfs:label "Kip"@nl ;
+.
+:ChickpeaFlour
+  a :Food ;
+  rdfs:label "Chickpea flour"@en-gb ;
+  rdfs:label "Kikkererwtenbloem"@nl ;
+.
+:ChilliPowder
+  a :Food ;
+  rdfs:label "Chilipoeder"@nl ;
+  rdfs:label "Chilli powder"@en-gb ;
+.
+:CorianderLeaves
+  a :Food ;
+  rdfs:label "Coriander leaves"@en-gb ;
+  rdfs:label "Koriander blaadjes"@nl ;
+.
+:Egg
+  a :Food ;
+  rdfs:label "Egg"@en-gb ;
+  rdfs:label "Ei"@nl ;
+.
+:EggNoodles
+  a :Food ;
+  rdfs:label "Egg noodles"@en-gb ;
+  rdfs:label "Eiernoedels"@nl ;
+.
+:Flour
+  a :Food ;
+  rdfs:label "Flour"@en-gb ;
+  rdfs:label "Bloem"@nl ;
+.
+:GaramMasala
+  a :Food ;
+  rdfs:label "Garam masala"@en-gb ;
+  rdfs:label "Garam masala"@nl ;
+.
+:Garlic
+  a :Food ;
+  rdfs:label "Garlic"@en-gb ;
+  rdfs:label "Knoflook"@nl ;
+.
+:Ginger
+  a :Food ;
+  rdfs:label "Ginger"@en-gb ;
+  rdfs:label "Gember"@nl ;
+.
+:Gourgette
+  a :Food ;
+  rdfs:label "Gourgette"@en-gb ;
+  rdfs:label "Gourgette"@nl ;
+.
+:GreenChilli
+  a :Food ;
+  rdfs:label "Green chilli"@en-gb ;
+  rdfs:label "Groene peper"@nl ;
+.
+:HotChilliPowder
+  a :Food ;
+  rdfs:label "Hot chilli powder"@en-gb ;
+  rdfs:label "Hete chilipoeder"@nl ;
+.
+:Lamb
+  a :Food ;
+  rdfs:label "Lamb"@en-gb ;
+  rdfs:label "Lams"@nl ;
+.
+:Lemon
+  a :Food ;
+  rdfs:label "Citroen"@nl ;
+  rdfs:label "Lemon"@en-gb ;
+.
+:Milk
+  a :Food ;
+  rdfs:label "Milk"@en-gb ;
+  rdfs:label "Melk"@nl ;
+.
+:Onion
+  a :Food ;
+  rdfs:label "Onion"@nl ;
+  rdfs:label "Ui"@en-gb ;
+.
+:Pakora
+  a :Food ;
+  rdfs:label "Pakoras"@en-gb ;
+  rdfs:label "Pakoras"@nl ;
+.
+:Potato
+  a :Food ;
+  rdfs:label "Potato"@en-gb ;
+  rdfs:label "Aardappel"@nl ;
+.
+:RedChilli
+  a :Food ;
+  rdfs:label "Red chilli"@en-gb ;
+  rdfs:label "Rode peper"@nl ;
+.
+:RedLentils
+  a :Food ;
+  rdfs:label "Red lentils"@en-gb ;
+  rdfs:label "Rode linzen"@nl ;
+.
+:RedWineVinegar
+  a :Food ;
+  rdfs:label "Red wine vinegar"@en-gb ;
+  rdfs:label "Rode wijnazijn"@nl ;
+.
+:Salt
+  a :Food ;
+  rdfs:label "Salt"@en-gb ;
+  rdfs:label "Zout"@nl ;
+.
+:SelfRaisingFlour
+  a :Food ;
+  rdfs:label "Self raising flour"@en-gb ;
+  rdfs:label "Zelfrijzend bakmeel"@nl ;
+.
+:Shallot
+  a :Food ;
+  rdfs:label "Shallot"@en-gb ;
+  rdfs:label "Sjalot"@nl ;
+.
+:StarAnise
+  a :Food ;
+  rdfs:label "StarAnise"@en-gb ;
+  rdfs:label "Steranijs"@nl ;
+.
+:SunflowerOil
+  a :Food ;
+  rdfs:label "Sunflower oil"@en-gb ;
+  rdfs:label "Zonnebloemolie"@nl ;
+.
+:TomatoPuree
+  a :Food ;
+  rdfs:label "Tomato purée"@en-gb ;
+  rdfs:label "Tomatenpuree"@nl ;
+.
+:Turmeric
+  a :Food ;
+  rdfs:label "Geelwortel"@nl ;
+  rdfs:label "Kurkuma"@nl ;
+  rdfs:label "Turmeric"@en-gb ;
+.
+:Yeast
+  a :Food ;
+  rdfs:label "Yeast"@en-gb ;
+  rdfs:label "Gist"@nl ;
+.
+:Yoghurt
+  a :Food ;
+  rdfs:label "Yoghurt"@en-gb ;
+  rdfs:label "Yoghurt"@nl ;
+.

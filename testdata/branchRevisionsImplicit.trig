@@ -1,0 +1,127 @@
+@prefix recipes: <http://recipehub.nl/recipes#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix : <http://bi-tr4qs.org/vocab/> .
+
+#################### Transaction Revisions ####################
+
+:Revision_jd25eyq
+  a :InitialRevision ;
+  rdfs:comment "Set up a new revision store." ;
+  :createdAt "2021-06-14T10:14:00+02:00"^^xsd:dateTimeStamp ;
+  :author "Jonas Mathijsen" ;
+  :hash "jd25eyq" ;
+  :revisionNumber "1"^^xsd:nonNegativeInteger ;
+.
+:Revision_3lkg1bv
+  a :BranchRevision ;
+  rdfs:comment "Added a first branch to the dataset."@en-gb ;
+  :author "Max van Dijk" ;
+  :createdAt "2021-06-24T08:00:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "2"^^xsd:nonNegativeInteger ;
+  :hash "3lkg1bv" ;
+  :branch :Branch_ksjd3lq ;
+  :precedingRevision :Revision_jd25eyq ;
+.
+:Revision_jdl28o3
+  a :BranchRevision ;
+  rdfs:comment "Added a second branch to the dataset."@en-gb ;
+  :author "Lisa Meijer" ;
+  :createdAt "2021-06-16T12:20:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "3"^^xsd:nonNegativeInteger ;
+  :hash "jdl28o3" ;
+  :branch :Branch_k301fkl ;
+  :precedingRevision :Revision_3lkg1bv ;
+.
+:Revision_dk290vw
+  a :BranchRevision ;
+  rdfs:comment "Added a third branch to the dataset."@en-gb ;
+  :author "Thomas Janssen" ;
+  :createdAt "2021-06-16T12:25:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "4"^^xsd:nonNegativeInteger ;
+  :hash "dk290vw" ;
+  :branch :Branch_dl2v30v ;
+  :precedingRevision :Revision_jdl28o3 ;
+.
+:Revision_u2d4pkm
+  a :BranchRevision ;
+  rdfs:comment "Added a fourth branch to the dataset."@en-gb ;
+  :author "Floris Steenhuis" ;
+  :createdAt "2021-06-16T12:29:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "5"^^xsd:nonNegativeInteger ;
+  :hash "u2d4pkm" ;
+  :branch :Branch_3ijvuiq ;
+  :precedingRevision :Revision_dk290vw ;
+.
+:Revision_d92ghv9
+  a :BranchRevision ;
+  rdfs:comment "Added a fifth branch to the dataset."@en-gb ;
+  :author "Julia Broekmans" ;
+  :createdAt "2021-06-17T15:40:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "6"^^xsd:nonNegativeInteger ;
+  :hash "d92ghv9" ;
+  :branch :Branch_lwpv35q ;
+  :precedingRevision :Revision_u2d4pkm ;
+.
+:Revision_o301vhg
+  a :BranchRevision ;
+  rdfs:comment "Added a sixth branch to the dataset."@en-gb ;
+  :author "Lisa Meijer" ;
+  :createdAt "2021-06-17T17:55:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "7"^^xsd:nonNegativeInteger ;
+  :hash "o301vhg" ;
+  :branch :Branch_pqc89qs ;
+  :precedingRevision :Revision_d92ghv9 ;
+.
+
+#################### Branches ####################
+
+:Branch_ksjd3lq
+  a :Branch ;
+  :branchedOffAt :Revision_jd25eyq ;
+  :branchName "SugaryRecipes"@en-gb ;
+  :hash "ksjd3lq" ;
+  :revisionNumber "2"^^xsd:nonNegativeInteger ;
+  :branchIndex "1"^^xsd:nonNegativeInteger ;
+.
+:Branch_k301fkl
+  a :Branch ;
+  :branchedOffAt :Revision_3lkg1bv ;
+  :branchName "SweetRecipes" ;
+  :hash "k301fkl" ;
+  :revisionNumber "3"^^xsd:nonNegativeInteger ;
+  :branchIndex "2"^^xsd:nonNegativeInteger ;
+.
+:Branch_dl2v30v
+  a :Branch ;
+  :branchedOffAt :Revision_jdl28o3 ;
+  :branchName "FishRecipes" ;
+  :hash "dl2v30v" ;
+  :revisionNumber "4"^^xsd:nonNegativeInteger ;
+  :branchIndex "3"^^xsd:nonNegativeInteger ;
+.
+:Branch_3ijvuiq
+  a :Branch ;
+  :branchedOffAt :Revision_dk290vw ;
+  :branchName "ChickenRecipes" ;
+  :hash "3ijvuiq" ;
+  :revisionNumber "5"^^xsd:nonNegativeInteger ;
+  :branchIndex "4"^^xsd:nonNegativeInteger ;
+.
+:Branch_lwpv35q
+  a :Branch ;
+  :branchedOffAt :Revision_u2d4pkm ;
+  :branchName "ChocolateRecipes" ;
+  :hash "lwpv35q" ;
+  :revisionNumber "6"^^xsd:nonNegativeInteger ;
+  :branchIndex "5"^^xsd:nonNegativeInteger ;
+.
+:Branch_pqc89qs
+  a :Branch ;
+  :branchedOffAt :Revision_d92ghv9 ;
+  :branchName "VegetableRecipes" ;
+  :hash "pqc89qs" ;
+  :revisionNumber "7"^^xsd:nonNegativeInteger ;
+  :branchIndex "6"^^xsd:nonNegativeInteger ;
+.
