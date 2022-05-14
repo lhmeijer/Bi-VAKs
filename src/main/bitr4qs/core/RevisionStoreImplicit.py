@@ -2,9 +2,30 @@ from .RevisionStore import RevisionStore
 from rdflib.term import URIRef, Literal
 from src.main.bitr4qs.namespace import BITR4QS
 import src.main.bitr4qs.tools.parser as parser
+from rdflib.namespace import XSD
 
 
 class RevisionStoreImplicit(RevisionStore):
+
+    def get_new_branch_index(self):
+        SPARQLQuery = """PREFIX : <{0}>
+        SELECT ?branchIndex
+        WHERE {{
+          ?branch rdf:type :Branch .
+          ?branch :branchIndex ?branchIndex .
+        }}
+        ORDER BY DESC(?branchIndex)
+        LIMIT 1
+        """.format(str(BITR4QS))
+        # Execute the SELECT query on the revision store
+        result = self._revisionStore.execute_select_query(SPARQLQuery, 'json')
+
+        if 'branchIndex' in result['results']['bindings'][0]:
+            branchIndex = result['results']['bindings'][0]['branchIndex']['value'] + 1
+        else:
+            branchIndex = 1
+
+        return Literal(branchIndex, datatype=XSD.nonNegativeInteger)
 
     def _get_pairs_of_revision_numbers_and_branch_indices(self, revisionA: URIRef, revisionB: URIRef = None):
         """

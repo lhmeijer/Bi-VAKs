@@ -112,31 +112,48 @@ class ModifiedUpdateRequest(UpdateRequest):
 
     def __init__(self, request):
         super().__init__(request)
-        self._precedingUpdateIdentifier = None
+
         self._precedingUpdates = None
-        self._precedingUpdate = None
+
+    @property
+    def preceding_updates(self):
+        return self._precedingUpdates
+
+    @preceding_updates.setter
+    def preceding_updates(self, precedingUpdates):
+        self._precedingUpdates = precedingUpdates
 
     def evaluate_request(self, revisionStore):
+
         super().evaluate_request(revisionStore)
 
-        self._precedingUpdateIdentifier = self._request.view_args.get('updateID', None) or None
-        self.preceding_valid_revision = self._precedingUpdateIdentifier
-        self._precedingUpdates = revisionStore.preceding_update(self._precedingUpdateIdentifier)
-        self._precedingUpdate = self._precedingUpdates[self._precedingUpdateIdentifier]
+        precedingUpdateID = self._request.view_args.get('updateID', None) or None
+        precedingUpdate = None
+        if precedingUpdateID is not None:
+            self.preceding_updates = revisionStore.valid_revision(URIRef(precedingUpdateID), 'update')
+            precedingUpdate = self._precedingUpdates[precedingUpdateID]
+            self.preceding_valid_revision = precedingUpdate.identifier
+            self.branch_index = precedingUpdate.branch_index
 
         # Obtain start date
         startDate = self._request.values.get('startDate', None) or None
         if startDate is not None:
             self.start_date = Literal(startDate, XSD.dateTimeStamp)
+        elif precedingUpdate is not None:
+            self.start_date = precedingUpdate.start_date
         else:
-            self.start_date = self._precedingUpdate.start_date
+            # TODO no start date is known, return an error
+            pass
 
         # Obtain end date
         endDate = self._request.values.get('endDate', None) or None
         if endDate is not None:
             self.end_date = Literal(endDate, XSD.dateTimeStamp)
+        elif precedingUpdate is not None:
+            self.end_date = precedingUpdate.end_date
         else:
-            self.end_date = self._precedingUpdate.end_date
+            # TODO no end date is known, return an error
+            pass
 
 
 class ModifiedRepeatedUpdateRequest(ModifiedUpdateRequest):
@@ -150,7 +167,7 @@ class ModifiedRepeatedUpdateRequest(ModifiedUpdateRequest):
             self._modifications = []
         else:
             # modifications = []
-            self._modifications = self._precedingUpdate.modifications
+            self._modifications = self._precedingUpdates[self.preceding_valid_revision].modifications
         # compare the modifications from the preceding update
 
 
@@ -163,7 +180,7 @@ class ModifiedRelatedUpdateRequest(ModifiedUpdateRequest):
         modifications = self._request.values.get('modifications', None) or None
         if modifications is None:  # Revert update
             self._modifications = []
-            for precedingUpdate in self._precedingUpdates:
+            for _, precedingUpdate in self._precedingUpdates.items():
                 for modification in precedingUpdate.modifications:
                     modification.invert()
                 self._modifications.extend(precedingUpdate.modifications)

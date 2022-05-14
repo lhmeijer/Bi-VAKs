@@ -3,6 +3,7 @@ from .RevisionStore import RevisionStore
 from src.main.bitr4qs.namespace import BITR4QS
 from .RevisionStoreExplicit import RevisionStoreExplicit
 from .RevisionStoreImplicit import RevisionStoreImplicit
+from rdflib.term import Literal
 
 
 class BiTR4QsSingleton(object):
@@ -32,6 +33,10 @@ class BiTR4Qs(object):
     def revision_store(self):
         return RevisionStore(self._config)
 
+    @staticmethod
+    def _get_new_revision_number(revisionNumber):
+        return revisionNumber
+
     def apply_versioning_operation(self, request, requestType):
         request.evaluate_request(self._revisionStore)
 
@@ -42,6 +47,11 @@ class BiTR4Qs(object):
 
         validRevision.add_to_revision_store(self._revisionStore)
         transactionRevision.add_to_revision_store(self._revisionStore)
+
+        self._revisionStore.update_head_revision(
+            precedingRevision=transactionRevision.preceding_revision, currentRevision=transactionRevision.identifier,
+            branch=transactionRevision.branch, revisionNumber=self._get_new_revision_number(
+                transactionRevision.revision_number))
 
     @staticmethod
     def _branch_revision(branchRequest):
@@ -79,6 +89,11 @@ class BiTR4QsImplicit(BiTR4Qs):
 
     def revision_store(self):
         return RevisionStoreImplicit(self._config)
+
+    @staticmethod
+    def _get_new_revision_number(revisionNumber):
+        assert isinstance(revisionNumber, Literal)
+        return Literal(revisionNumber.value + 1, datatype=revisionNumber.datatype)
 
 
 class BiTR4QsExplicit(BiTR4Qs):

@@ -53,7 +53,7 @@ class TransactionRevision(Revision):
     @branch.setter
     def branch(self, branch):
         if branch is not None:
-            self._RDFPatterns.append(Triple((self._identifier, RDFS.branch, branch)))
+            self._RDFPatterns.append(Triple((self._identifier, BITR4QS.branch, branch)))
         self._branch = branch
 
     @property

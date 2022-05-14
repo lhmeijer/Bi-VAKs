@@ -17,7 +17,6 @@ class UpdateQuery(Query):
         self._parse_query_request()
 
         if self._query is None:
-            # changes only start, or end date -> self._translated_update = [] -> obtain the updates from previous revision
             pass
         else:
             try:

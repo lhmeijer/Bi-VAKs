@@ -4,6 +4,7 @@ import src.main.bitr4qs.tools.parser as parser
 from src.main.bitr4qs.namespace import BITR4QS
 from rdflib.namespace import XSD
 from datetime import datetime
+from src.main.bitr4qs.revision.HeadRevision import HeadRevision
 
 
 class RevisionStore(object):
@@ -58,23 +59,75 @@ class RevisionStore(object):
                                      datatype=XSD.nonNegativeInteger)
         return revision, revisionNumber
 
-    def preceding_update(self, updateIdentifier: URIRef):
-        WHEREClause = ""
-        if self._config.repeated_update_content:
-            WHEREClause = "WHERE {{ {0} :precedingRevision ?update }}".format(updateIdentifier)
-        elif self._config.related_update_content:
-            WHEREClause = "WHERE {{ {0} :precedingRevision* ?update }}".format(updateIdentifier)
-        SPARQLQuery = """DESCRIBE ?update
-        {0}""".format(WHEREClause)
-        NQuads = ...
-        updates = parser.UpdateParser.parse(NQuads)
-        return updates
+    def get_new_branch_index(self):
+        return None
 
-    def branch(self, branchIdentifier: URIRef):
-        SPARQL = "DESCRIBE {0}".format(branchIdentifier)
-        NQuads = self._revisionStore.execute_describe_query(SPARQL, 'nquads')
-        branch = parser.BranchParser.parse(NQuads)
+    def update_head_revision(self, precedingRevision, currentRevision, revisionNumber=None, branch=None):
+
+        headRevision = self.head_revision(branch=branch)
+        if headRevision is None:
+            revision = HeadRevision.revision(branch=branch, precedingRevision=currentRevision,
+                                             revisionNumber=revisionNumber)
+
+
+        branchString = ""
+        if branch is not None:
+            branchString = '\n?headRevision :branch {0}'.format(branch.n3())
+
+        revisionNumberString = ""
+        if revisionNumber is not None:
+            revisionNumberString = '\n?headRevision :revisionNumber {0}'.format(revisionNumber.n3())
+
+        SPARQLQuery = """PREFIX <{0}>
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        DELETE {{ 
+            ?headRevision :precedingRevision {1} . 
+            ?headRevision :revisionNumber ?revisionNumber .
+            ?headRevision :branch ?branch . 
+        }}
+        INSERT {{ ?headRevision :precedingRevision {2} .{3}{4} }}
+        WHERE {{ ?headRevision rdf:type :HeadRevision .
+            ?headRevision :precedingRevision {1} .
+            OPTIONAL {{ ?headRevision :revisionNumber ?revisionNumber }}
+            OPTIONAL {{ ?headRevision :branch ?branch }}
+        }}
+        """.format(str(BITR4QS), precedingRevision.n3(), currentRevision.n3(), branchString, revisionNumberString)
+
+        result = self._revisionStore.execute_update_query(SPARQLQuery, 'json')
+
+    def valid_revision(self, validRevisionIdentifier: URIRef, validRevisionType: str):
+
+        SPARQLQuery = "DESCRIBE {0}".format(validRevisionIdentifier)
+
+        if validRevisionType == 'update':
+            if self._config.related_update_content:
+                SPARQLQuery = """PREFIX <{0}>
+                DESCRIBE ?update
+                WHERE {{ {1} :precedingUpdate* ?update }}""".format(str(BITR4QS), validRevisionIdentifier)
+
+        stringOfValidRevision = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
+        func = getattr(self, '_' + validRevisionType)
+        return func(stringOfValidRevision)
+
+    @staticmethod
+    def _branch(stringOfBranch: str):
+        branch = parser.BranchParser.parse_revisions(stringOfBranch, revisionName='valid')
         return branch
+
+    @staticmethod
+    def _snapshot(stringOfSnapshot: str):
+        snapshot = parser.SnapshotParser.parse_revisions(stringOfSnapshot, revisionName='valid')
+        return snapshot
+
+    @staticmethod
+    def _tag(stringOfTag: str):
+        tag = parser.TagParser.parse_revisions(stringOfTag, revisionName='valid')
+        return tag
+
+    @staticmethod
+    def _update(stringOfUpdate: str):
+        update = parser.UpdateParser.parse_revisions(stringOfUpdate, revisionName='valid')
+        return update
 
     def check_existence(self, revisionIdentifier, revisionType):
         SPARQLQuery = "ASK {{ {0} rdf:type {1} }}".format(revisionIdentifier, revisionType)

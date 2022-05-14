@@ -52,18 +52,22 @@ class DMQuery(Query):
         super().evaluate_query(revisionStore)
 
         revisionA = self._request.view_args.get('revisionA', None) or None
+        # TODO RevisionA does not exist or is not given.
         if revisionA is not None:
             self.transaction_time_a = URIRef(revisionA)
 
         revisionB = self._request.view_args.get('revisionB', None) or None
+        # TODO RevisionB does not exist or is not given.
         if revisionB is not None:
             self.transaction_time_b = URIRef(revisionB)
 
         validDateA = self._request.view_args.get('dateA', None) or None
+        # TODO no valid date A is given.
         if validDateA is not None:
             self.valid_time_a = Literal(validDateA, datatype=XSD.dateTimeStamp)
 
         validDateB = self._request.view_args.get('dateB', None) or None
+        # TODO no valid date B is given.
         if validDateB is not None:
             self.valid_time_b = Literal(validDateB, datatype=XSD.dateTimeStamp)
 
@@ -74,7 +78,20 @@ class DMQuery(Query):
                                                  revisionStore=revisionStore, updateParser=updateParser,
                                                  quadPattern=self._quadPattern)
         modifications = updateParser.get_list_of_modifications()
-        # What do I return for this update
+
+        # TODO check which queryType -> return a result for each queryType
+        if self._queryType == 'SelectQuery':
+            return self._apply_select_query(modifications)
+        elif self._queryType == 'ConstructQuery':
+            pass
+        elif self._queryType == 'AskQuery':
+            pass
+        elif self._queryType == 'DescribeQuery':
+            pass
+        else:
+            pass
+
+    def _apply_select_query(self, modifications):
         # Check the variables in the SPARQL query, and returns these and separate them based on insertions and deletions
         variables = self._quadPattern.get_variables()
         results = {'head': {'vars': [var for var, _ in variables]}, 'result': {'insertions': [], 'deletions': []}}

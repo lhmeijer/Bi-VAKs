@@ -9,6 +9,7 @@ class Revision(object):
 
     typeOfRevision = 'Revision'
     nameOfRevision = 'Revision'
+    predicateOfPrecedingRevision = 'precedingRevision'
 
     def __init__(self, identifier=None,
                  precedingRevision=None,
@@ -42,7 +43,7 @@ class Revision(object):
     @preceding_revision.setter
     def preceding_revision(self, precedingRevision):
         if precedingRevision is not None:
-            self._RDFPatterns.append(Triple((self._identifier, BITR4QS.precedingRevision, precedingRevision)))
+            self._RDFPatterns.append(Triple((self._identifier, self.predicateOfPrecedingRevision, precedingRevision)))
         self._precedingRevision = precedingRevision
 
     @property
@@ -90,6 +91,20 @@ class Revision(object):
     @classmethod
     def revision_from_request(cls, request):
         revision = cls._revision_from_request(request)
+        hashOfRevision = str(revision.compute_hash_of_revision())
+        identifierOfRevision = revision.nameOfRevision + '_' + hashOfRevision
+        revision.identifier = URIRef(str(BITR4QS) + identifierOfRevision)
+        revision.reset_RDFPatterns()
+        revision.hexadecimal_of_hash = Literal(hashOfRevision)
+        return revision
+
+    @classmethod
+    def _revision(cls, **data):
+        return cls(data)
+
+    @classmethod
+    def revision(cls, **data):
+        revision = cls._revision(**data)
         hashOfRevision = str(revision.compute_hash_of_revision())
         identifierOfRevision = revision.nameOfRevision + '_' + hashOfRevision
         revision.identifier = URIRef(str(BITR4QS) + identifierOfRevision)

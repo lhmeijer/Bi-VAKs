@@ -36,16 +36,20 @@ class VQuery(Query):
         branchIdentifier = None
         if branchName is not None:
             branch = revisionStore.branch_from_name(Literal(branchName))
+            # TODO Branch does not exist
             branchIdentifier = branch.identifier
 
         # Obtain the head of the transaction revisions
         headRevision, revisionNumber = revisionStore.head_revision(branchIdentifier)
+        # TODO HEAD Revision does not exist.
         if headRevision is not None:
             headRevision = URIRef(headRevision)
 
         # Get all tags from the revision graph also specified from a branch (ordered on transaction time)
         self._tags = revisionStore.tags_in_revision_line(revisionA=headRevision)
+        # TODO check whether we obtain a list of tags
 
+        # Set a specific effective date for all tags
         effectiveDate = self._request.values.get('date', None) or None
         if effectiveDate is not None:
             self.valid_time = Literal(str(effectiveDate), datatype=XSD.dateTimeStamp)
@@ -53,9 +57,12 @@ class VQuery(Query):
     def apply_query(self, revisionStore):
         # effective date of query is leading compare to tag effective date
         responses = {}
+        # Initialise the version
         version = Version(None, None)
+
         previousTransactionTime = None
         previousValidTime = None
+
         for tag in self._tags:
 
             version.transaction_time = tag.transaction_revision

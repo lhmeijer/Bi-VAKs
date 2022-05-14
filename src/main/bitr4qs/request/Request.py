@@ -97,19 +97,24 @@ class Request(object):
         author = self._request.values.get('author', None) or None
         if author is not None:
             self.author = Literal(author)
-            print("author ", self._author)
+        else:
+            # TODO author is not given return an error
+            pass
 
         # Obtain the description
         description = self._request.values.get('description', None) or None
         if description is not None:
             self.description = Literal(description)
-            print("description ", self._description)
+        else:
+            # TODO description is not given return an error
+            pass
 
         # Obtain the branch based on the branch name
         branchName = self._request.values.get('branch', None) or None
         print("branchName ", branchName)
         if branchName is not None:
             branch = revisionStore.branch_from_name(Literal(branchName))
+            # TODO check existence otherwise return an error
             self.branch = branch.identifier
             self.branch_index = branch.branch_index
 
@@ -118,10 +123,11 @@ class Request(object):
         print("precedingTransactionRevision ", precedingTransactionRevision)
         if precedingTransactionRevision is not None:
             self.preceding_transaction_revision = precedingTransactionRevision
-
-        if revisionNumber is not None:
             self.revision_number = revisionNumber
+        else:
+            # TODO precedingTransactionRevision is not given return an error
+            pass
 
         # Obtain the creation date of the transaction revision
         time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02.00")
-        self.creation_date = Literal(time, datatype=XSD.dateTimeStamp)
+        self.creation_date = Literal(str(time), datatype=XSD.dateTimeStamp)

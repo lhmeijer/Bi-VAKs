@@ -48,6 +48,7 @@ class VMQuery(Query):
         tagName = self._request.view_args.get('tag', None) or None
         if tagName is not None:
             tag = revisionStore.tag_from_name(Literal(tagName))
+            # TODO Tag does not exist
             self.transaction_time = tag.transaction_revision
             self.valid_time = tag.effective_date
 
@@ -56,6 +57,7 @@ class VMQuery(Query):
         branchIdentifier = None
         if branchName is not None:
             branch = revisionStore.branch_from_name(Literal(branchName))
+            # TODO Branch does not exist
             branchIdentifier = branch.identifier
 
         # Obtain the valid time given by the user
@@ -65,9 +67,11 @@ class VMQuery(Query):
 
         # Obtain the head of the transaction revisions
         latestTransactionRevision, revisionNumber = revisionStore.head_revision(branchIdentifier)
+        # TODO HEAD Revision does not exist
         if latestTransactionRevision is not None:
             self.head_revision = URIRef(latestTransactionRevision)
 
+        # Set the transaction time to the HEAD of the transaction revisions if no other transaction time is given.
         if self._transactionTime is None:
             self.transaction_time = self._headRevision
 

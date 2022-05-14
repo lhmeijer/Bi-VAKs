@@ -8,40 +8,41 @@ class Branch(ValidRevision):
 
     typeOfRevision = BITR4QS.Branch
     nameOfRevision = 'Branch'
+    predicateOfPrecedingRevision = BITR4QS.precedingBranch
 
     def __init__(self, identifier: URIRef = None,
                  precedingRevision: URIRef = None,
                  hexadecimalOfHash: Literal = None,
-                 name: Literal = None,
-                 transactionRevision: URIRef = None,
+                 branchName: Literal = None,
+                 branchedOffRevision: URIRef = None,
                  revisionNumber: Literal = None,
                  branchIndex: Literal = None):
         super().__init__(identifier, precedingRevision, hexadecimalOfHash, revisionNumber, branchIndex)
-        self.name = name
-        self.transaction_revision = transactionRevision
+        self.branch_name = branchName
+        self.branched_off_revision = branchedOffRevision
 
     @property
-    def name(self) -> Literal:
-        return self._name
+    def branch_name(self) -> Literal:
+        return self._branchName
 
-    @name.setter
-    def name(self, name: Literal):
-        if name is not None:
-            self._RDFPatterns.append(Triple((self._identifier, BITR4QS.name, name)))
-        self._name = name
+    @branch_name.setter
+    def branch_name(self, branchName: Literal):
+        if branchName is not None:
+            self._RDFPatterns.append(Triple((self._identifier, BITR4QS.branchName, branchName)))
+        self._branchName = branchName
 
     @property
-    def transaction_revision(self):
-        return self._transactionRevision
+    def branched_off_revision(self):
+        return self._branchedOffRevision
 
-    @transaction_revision.setter
-    def transaction_revision(self, transactionRevision: URIRef):
-        if transactionRevision is not None:
-            self._RDFPatterns.append(Triple((self._identifier, BITR4QS.transactedAt, transactionRevision)))
-        self._transactionRevision = transactionRevision
+    @branched_off_revision.setter
+    def branched_off_revision(self, branchedOffRevision: URIRef):
+        if branchedOffRevision is not None:
+            self._RDFPatterns.append(Triple((self._identifier, BITR4QS.branchedOffAt, branchedOffRevision)))
+        self._branchedOffRevision = branchedOffRevision
 
     @classmethod
     def _revision_from_request(cls, request):
-        return cls(name=request.branch_name, transactionRevision=request.preceding_transaction_revision,
+        return cls(branchName=request.branch_name, branchedOffRevision=request.branched_off_revision,
                    precedingRevision=request.preceding_valid_revision, revisionNumber=request.revision_number,
                    branchIndex=request.branch_index)
