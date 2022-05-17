@@ -4,6 +4,8 @@ from rdflib.term import URIRef, Literal
 
 class BranchRequest(Request):
 
+    type = 'branch'
+
     def __init__(self, request):
         super().__init__(request)
 
@@ -34,7 +36,7 @@ class BranchRequest(Request):
         precedingBranchID = self._request.view_args.get('branchID', None) or None
         precedingBranch = None
         if precedingBranchID is not None:
-            precedingBranches = revisionStore.valid_revision(URIRef(precedingBranchID), 'branch')
+            precedingBranches = revisionStore.revision(URIRef(precedingBranchID), 'branch', validRevision=True)
             precedingBranch = precedingBranches[precedingBranchID]
             self.preceding_valid_revision = precedingBranch.identifier
             self.branch_index = precedingBranch.branch_index
@@ -50,17 +52,28 @@ class BranchRequest(Request):
             pass
 
         # Obtain the branch from which the branch branches off.
-        transactionRevision = self._request.values.get('transactionRevision', None) or None
+        revisionID = self._request.values.get('revision', None) or None
+        transactionRevision = None
+        if revisionID is not None:
+            transactionRevision = revisionStore.revision(revisionID=URIRef(revisionID), transactionRevision=True)
+
+        # Both the transaction revision as the preceding branch is not None, so the user would like to change the
+        # transaction revision it branches off from.
         if transactionRevision is not None and precedingBranch is not None:
+            # Check whether new transaction revision is older than the transaction revision of the preceding branch.
+            # Otherwise it is not allowed to make this change
             # TODO check whether the updates can be moved to another place in the revision graph
             # Obtain all updates in the current branch.
+            updates = ...
             # Check whether we can add these updates to the new place where the branch branches off.
             # Create these new updates and add them to the branch request
-            self.branched_off_revision = URIRef(transactionRevision)
+            self.branched_off_revision = transactionRevision.identifier
         elif transactionRevision is not None and precedingBranch is None:
-            # TODO check existence of transactionRevision
-            self.branched_off_revision = URIRef(transactionRevision)
-        elif precedingBranch is not None:
+            self.branched_off_revision = transactionRevision.identifier
+            self.preceding_transaction_revision = transactionRevision.identifier
+            self.revision_number = revisionStore.get_new_revision_number(transactionRevision.revision_number)
+            self.head_revision = None
+        elif precedingBranch is not None and transactionRevision is None:
             self.branched_off_revision = precedingBranch.transaction_revision
         elif precedingBranch is None and self._precedingTransactionRevision is not None:
             self.branched_off_revision = self._precedingTransactionRevision
@@ -69,5 +82,4 @@ class BranchRequest(Request):
             pass
 
         if precedingBranch is None:
-            branchIndex = revisionStore.get_new_branch_index()
-            self.branch_index = branchIndex
+            self.branch_index = revisionStore.get_new_branch_index()

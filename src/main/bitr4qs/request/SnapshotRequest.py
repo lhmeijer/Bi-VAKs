@@ -5,6 +5,8 @@ from rdflib.namespace import XSD
 
 class SnapshotRequest(Request):
 
+    type = 'snapshot'
+
     def __init__(self, request):
         super().__init__(request)
 
@@ -61,33 +63,30 @@ class SnapshotRequest(Request):
         precedingSnapshotID = self._request.view_args.get('snapshotID', None) or None
         precedingSnapshot = None
         if precedingSnapshotID is not None:
-            precedingSnapshots = revisionStore.valid_revision(URIRef(precedingSnapshotID), 'snapshot')
+            precedingSnapshots = revisionStore.revision(URIRef(precedingSnapshotID), 'snapshot', validRevision=True)
             precedingSnapshot = precedingSnapshots[precedingSnapshotID]
             self.preceding_valid_revision = precedingSnapshot.identifier
             self.branch_index = precedingSnapshot.branch_index
 
         # Obtain effective date of the Snapshot
-        effectiveDate = self._request.values.get('effectiveDate', None) or None
+        effectiveDate = self._request.values.get('date', None) or None
         if effectiveDate is not None:
             self.effective_date = Literal(effectiveDate, datatype=XSD.dateTimeStamp)
         elif precedingSnapshot is not None:
             self.effective_date = precedingSnapshot.effective_date
         else:
-            # TODO no effective date is known, return an error
-            pass
+            self.effective_date = self.creation_date
 
-        # Obtain the transaction time based on the transaction revision
-        transactionRevision = self._request.values.get('transactionRevision', None) or None
+        # Obtain the transaction time based on a given transaction revision
+        revisionID = self._request.values.get('revision', None) or None
+        transactionRevision = None
+        if revisionID is not None:
+            transactionRevision = revisionStore.revision(revisionID=URIRef(revisionID), transactionRevision=True)
+
         if transactionRevision is not None:
-            # TODO check existence
-            self.transaction_revision = URIRef(transactionRevision)
+            self.transaction_revision = transactionRevision.identifier
         elif precedingSnapshot is not None:
             self.transaction_revision = precedingSnapshot.transaction_revision
-        elif self._precedingTransactionRevision is not None:
-            self.transaction_revision = self._precedingTransactionRevision
-        else:
-            # TODO no transaction time is known, return an error
-            pass
 
         # Obtain the name of the dataset
         nameDataset = self._request.values.get('nameDataset', None) or None

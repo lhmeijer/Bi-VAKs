@@ -12,6 +12,7 @@ class Update(ValidRevision):
 
     typeOfRevision = BITR4QS.Update
     nameOfRevision = 'Update'
+    predicateOfPrecedingRevision = BITR4QS.precedingUpdate
 
     def __init__(self, identifier=None,
                  precedingRevision=None,
@@ -87,6 +88,17 @@ class Update(ValidRevision):
             else:
                 pass
         return value
+
+    @classmethod
+    def _revision_from_data(cls, **data):
+
+        assert 'revisionNumber' in data, "revisionNumber should be in the data of the revision"
+        assert 'modifications' in data, "modifications should be in the data of the revision"
+        assert 'startDate' in data, "startDate should be in the data of the revision"
+        assert 'endDate' in data, "endDate should be in the data of the revision"
+        assert 'branchIndex' in data, "branchIndex should be in the data of the revision"
+
+        return cls(**data)
 
     @classmethod
     def _revision_from_request(cls, request):

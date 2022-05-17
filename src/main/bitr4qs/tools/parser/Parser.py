@@ -5,6 +5,7 @@ from src.main.bitr4qs.term.Modification import Modification
 from src.main.bitr4qs.namespace import BITR4QS
 from rdflib.plugins.parsers.ntriples import W3CNTriplesParser
 from rdflib.term import URIRef
+from rdflib.namespace import RDF, RDFS
 
 
 class TripleSink(object):
@@ -99,7 +100,7 @@ class Parser(object):
         """
         revisions = {}
 
-        functionName = '_' + "parse_" + revisionName + '_revision'
+        functionName = "parse_" + revisionName + '_revision'
         func = getattr(cls, functionName)
 
         NQuads = stringOfRevisions.split('\n')[:-1]
@@ -115,9 +116,116 @@ class Parser(object):
         return revisions
 
     @staticmethod
-    def _parse_valid_revision(identifier, NTriples, index, revision=None):
+    def _get_valid_revision(identifier):
+        from src.main.bitr4qs.revision.ValidRevision import ValidRevision
+        return ValidRevision(URIRef(identifier))
+
+    @staticmethod
+    def _parse_valid_revision(revision, p, o):
+        pass
+
+    @classmethod
+    def parse_valid_revision(cls, identifier, NTriples, index, revision=None):
+        """
+
+        :param identifier:
+        :param NTriples:
+        :param index:
+        :param revision:
+        :return:
+        """
+        if revision is None:
+            revision = cls._get_valid_revision(identifier)
+
+        sink = TripleSink()
+        NTriplesParser = W3CNTriplesParser(sink=sink)
+
+        for NTriple in NTriples:
+
+            NTriplesParser.parsestring(NTriple)
+
+            if identifier != str(sink.subject):
+                return revision, index
+
+            index += 1
+
+            if str(sink.predicate) == str(RDF.type):
+                revision.identifier = sink.subject
+
+            elif str(sink.predicate) == str(BITR4QS.hash):
+                revision.hexadecimal_of_hash = sink.object
+
+            elif str(sink.predicate) == str(BITR4QS.branchIndex):
+                revision.branch_index = sink.object
+
+            elif str(sink.predicate) == str(BITR4QS.revisionNumber):
+                revision.revision_number = sink.object
+
+            cls._parse_valid_revision(revision, sink.predicate, sink.object)
+
         return revision, index
 
     @staticmethod
-    def _parse_transaction_revision(identifier, NTriples, index, revision=None):
+    def _get_transaction_revision(identifier):
+        from src.main.bitr4qs.revision.TransactionRevision import TransactionRevision
+        return TransactionRevision(URIRef(identifier))
+
+    @staticmethod
+    def _parse_transaction_revision(revision, p, o):
+        predicates = [str(BITR4QS.branch), str(BITR4QS.snapshot), str(BITR4QS.tag), str(BITR4QS.update)]
+        if str(p) in predicates:
+            revision.valid_revision = o
+
+    @classmethod
+    def parse_transaction_revision(cls, identifier, NTriples, index, revision=None):
+        """
+        Function that parses a general transaction revision
+        :param identifier: The identifier of the transaction revision
+        :param NTriples:
+        :param index:
+        :param revision:
+        :return:
+        """
+        if revision is None:
+            revision = cls._get_transaction_revision(URIRef(identifier))
+
+        sink = TripleSink()
+        NTriplesParser = W3CNTriplesParser(sink=sink)
+
+        for NTriple in NTriples:
+
+            NTriplesParser.parsestring(NTriple)
+
+            if identifier != str(sink.subject):
+                return revision, index
+
+            index += 1
+
+            if str(sink.predicate) == str(RDF.type):
+                revision.identifier = sink.subject
+                # TODO set up own type for headRevision
+
+            elif str(sink.predicate) == str(BITR4QS.hash):
+                revision.hexadecimal_of_hash = sink.object
+
+            elif str(sink.predicate) == str(BITR4QS.precedingRevision):
+                revision.preceding_revision = sink.object
+
+            elif str(sink.predicate) == str(BITR4QS.revisionNumber):
+                revision.revision_number = sink.object
+
+            elif str(sink.predicate) == str(BITR4QS.branch):
+                revision.branch = sink.object
+
+            elif str(sink.predicate) == str(BITR4QS.createdAt):
+                revision.creation_date = sink.object
+
+            elif str(sink.predicate) == str(BITR4QS.author):
+                revision.author = sink.object
+
+            elif str(sink.predicate) == str(RDFS.comment):
+                revision.description = sink.object
+
+            cls._parse_transaction_revision(revision, sink.predicate, sink.object)
+
         return revision, index

@@ -5,6 +5,8 @@ from rdflib.namespace import XSD
 
 class TagRequest(Request):
 
+    type = 'tag'
+
     def __init__(self, request):
         super().__init__(request)
 
@@ -44,33 +46,30 @@ class TagRequest(Request):
         precedingTagID = self._request.view_args.get('tagID', None) or None
         precedingTag = None
         if precedingTagID is not None:
-            precedingTags = revisionStore.valid_revision(URIRef(precedingTagID), 'tag')
+            precedingTags = revisionStore.revision(URIRef(precedingTagID), 'tag', validRevision=True)
             precedingTag = precedingTags[precedingTagID]
             self.preceding_valid_revision = precedingTag.identifier
             self.branch_index = precedingTag.branch_index
 
         # Obtain effective date
-        effectiveDate = self._request.values.get('effectiveDate', None) or None
+        effectiveDate = self._request.values.get('date', None) or None
         if effectiveDate is not None:
             self.effective_date = Literal(effectiveDate, datatype=XSD.dateTimeStamp)
         elif precedingTag is not None:
             self.effective_date = precedingTag.effective_date
         else:
-            # TODO no effective date is known, return an error
-            pass
+            self.effective_date = self.creation_date
 
-        # Obtain the transaction revision
-        transactionRevision = self._request.view_args.get('transactionRevision', None) or None
+        # Obtain the transaction time based on a given transaction revision
+        revisionID = self._request.values.get('revision', None) or None
+        transactionRevision = None
+        if revisionID is not None:
+            transactionRevision = revisionStore.revision(revisionID=URIRef(revisionID), transactionRevision=True)
+
         if transactionRevision is not None:
-            # TODO check existence
-            self.transaction_revision = URIRef(transactionRevision)
+            self.transaction_revision = transactionRevision.identifier
         elif precedingTag is not None:
             self.transaction_revision = precedingTag.transaction_revision
-        elif self._precedingTransactionRevision is not None:
-            self.transaction_revision = self._precedingTransactionRevision
-        else:
-            # TODO no transaction revision is known, return an error
-            pass
 
         # Obtain the name of the tag
         name = self._request.values.get('name', None) or None

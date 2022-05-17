@@ -1,48 +1,34 @@
-from .Parser import Parser, TripleSink
+from .Parser import Parser
 from src.main.bitr4qs.namespace import BITR4QS
-from rdflib.plugins.parsers.ntriples import W3CNTriplesParser
+from rdflib.term import URIRef
 
 
 class BranchParser(Parser):
 
     @staticmethod
-    def _parse(identifier, NTriples, index, revision=None):
-        """
-
-        :param identifier:
-        :param NTriples:
-        :param index:
-        :param revision:
-        :return:
-        """
+    def _get_valid_revision(identifier):
         from src.main.bitr4qs.revision.Branch import Branch
-        if revision is None:
-            revision = Branch(identifier)
+        return Branch(URIRef(identifier))
 
-        sink = TripleSink()
-        NTriplesParser = W3CNTriplesParser(sink=sink)
+    @staticmethod
+    def _parse_valid_revision(revision, p, o):
 
-        for NTriple in NTriples:
+        if str(p) == str(BITR4QS.branchName):
+            revision.branch_name = o
 
-            NTriplesParser.parsestring(NTriple)
-            index += 1
+        elif str(p) == str(BITR4QS.branchedOffAt):
+            revision.branched_off_at = o
 
-            if identifier != sink.subject:
-                return revision, index
+        elif str(p) == str(BITR4QS.precedingBranch):
+            revision.preceding_revision = o
 
-            if sink.predicate == str(BITR4QS.inserts):
-                revision.preceding_identifier(sink.object)
+    @staticmethod
+    def _get_transaction_revision(identifier):
+        from src.main.bitr4qs.revision.BranchRevision import BranchRevision
+        return BranchRevision(URIRef(identifier))
 
-            elif sink.predicate == str(BITR4QS.branchedOffAt):
-                revision.branched_off_at(sink.object)
+    @staticmethod
+    def _parse_transaction_revision(revision, p, o):
 
-            elif sink.predicate == str(BITR4QS.precedingRevision):
-                revision.preceding_identifier(sink.object)
-
-            elif sink.predicate == str(BITR4QS.branchIndex):
-                revision.branch_index(sink.object)
-
-            elif sink.predicate == str(BITR4QS.revisionNumber):
-                revision.revision_number(sink.object)
-
-        return revision, index
+        if str(p) == str(BITR4QS.branch):
+            revision.valid_revision = o

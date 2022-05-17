@@ -2,9 +2,7 @@ from rdflib.term import URIRef, Literal
 from src.main.bitr4qs.store.QuadStoreSingleton import HttpRevisionStoreSingleton
 import src.main.bitr4qs.tools.parser as parser
 from src.main.bitr4qs.namespace import BITR4QS
-from rdflib.namespace import XSD
 from datetime import datetime
-from src.main.bitr4qs.revision.HeadRevision import HeadRevision
 
 
 class RevisionStore(object):
@@ -27,106 +25,96 @@ class RevisionStore(object):
 
     def head_revision(self, branch: URIRef = None):
         """
-
-        :param branch:
-        :return:
+        Function that returns the HEAD of the transaction revisions based on the given branch.
+        :param branch: the given branch for which one would like to have the HEAD Revision.
+        :return: an HEAD revision object containing all data of the HEAD Revision.
         """
-        if branch is not None:
-            branchString = "?headRevision :branch {0} .".format(branch.n3())
-        else:
-            branchString = "NOT EXISTS { ?headRevision :branch ?branch . }"
+        branchString = "?revision :branch {0} .".format(branch.n3()) if branch is not None else \
+            "NOT EXISTS { ?revision :branch ?branch . }"
 
         SPARQLQuery = """
         PREFIX : <{0}>
         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        SELECT ?revision ?revisionNumber
+        DESCRIBE ?revision
         WHERE {{ 
-            ?headRevision rdf:type :HeadRevision . 
-            ?headRevision :precedingRevision ?revision .
-            OPTIONAL {{ ?headRevision :revisionNumber ?revisionNumber . }}
+            ?revision rdf:type :HeadRevision . 
             {1} 
         }}""".format(str(BITR4QS), branchString)
 
-        result = self._revisionStore.execute_select_query(SPARQLQuery, 'json')
+        result = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
+        headRevision = parser.Parser.parse_revisions(result, 'transaction')
 
-        revision = None
-        if 'revision' in result['results']['bindings'][0]:
-            revision = URIRef(result['results']['bindings'][0]['revision']['value'])
-
-        revisionNumber = None
-        if 'revisionNumber' in result['results']['bindings'][0]:
-            revisionNumber = Literal(result['results']['bindings'][0]['revisionNumber']['value'],
-                                     datatype=XSD.nonNegativeInteger)
-        return revision, revisionNumber
+        return headRevision
 
     def get_new_branch_index(self):
         return None
 
-    def update_head_revision(self, precedingRevision, currentRevision, revisionNumber=None, branch=None):
+    @staticmethod
+    def get_new_revision_number(revisionNumber=None):
+        return None
 
-        headRevision = self.head_revision(branch=branch)
-        if headRevision is None:
-            revision = HeadRevision.revision(branch=branch, precedingRevision=currentRevision,
-                                             revisionNumber=revisionNumber)
+    def revision(self, revisionID: URIRef, revisionType: str = 'unknown', validRevision=False, transactionRevision=False):
 
+        SPARQLQuery = "DESCRIBE {0}".format(revisionID)
 
-        branchString = ""
-        if branch is not None:
-            branchString = '\n?headRevision :branch {0}'.format(branch.n3())
-
-        revisionNumberString = ""
-        if revisionNumber is not None:
-            revisionNumberString = '\n?headRevision :revisionNumber {0}'.format(revisionNumber.n3())
-
-        SPARQLQuery = """PREFIX <{0}>
-        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        DELETE {{ 
-            ?headRevision :precedingRevision {1} . 
-            ?headRevision :revisionNumber ?revisionNumber .
-            ?headRevision :branch ?branch . 
-        }}
-        INSERT {{ ?headRevision :precedingRevision {2} .{3}{4} }}
-        WHERE {{ ?headRevision rdf:type :HeadRevision .
-            ?headRevision :precedingRevision {1} .
-            OPTIONAL {{ ?headRevision :revisionNumber ?revisionNumber }}
-            OPTIONAL {{ ?headRevision :branch ?branch }}
-        }}
-        """.format(str(BITR4QS), precedingRevision.n3(), currentRevision.n3(), branchString, revisionNumberString)
-
-        result = self._revisionStore.execute_update_query(SPARQLQuery, 'json')
-
-    def valid_revision(self, validRevisionIdentifier: URIRef, validRevisionType: str):
-
-        SPARQLQuery = "DESCRIBE {0}".format(validRevisionIdentifier)
-
-        if validRevisionType == 'update':
+        if revisionID == 'update' and validRevision:
             if self._config.related_update_content:
                 SPARQLQuery = """PREFIX <{0}>
                 DESCRIBE ?update
-                WHERE {{ {1} :precedingUpdate* ?update }}""".format(str(BITR4QS), validRevisionIdentifier)
+                WHERE {{ {1} :precedingUpdate* ?update }}""".format(str(BITR4QS), revisionID)
 
         stringOfValidRevision = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
-        func = getattr(self, '_' + validRevisionType)
-        return func(stringOfValidRevision)
+        func = getattr(self, '_' + revisionType)
+        return func(stringOfValidRevision, validRevision, transactionRevision)
 
     @staticmethod
-    def _branch(stringOfBranch: str):
-        branch = parser.BranchParser.parse_revisions(stringOfBranch, revisionName='valid')
+    def _unknown(stringOfBranch: str, validRevision: bool, transactionRevision: bool):
+        if validRevision:
+            revision = parser.Parser.parse_revisions(stringOfBranch, revisionName='valid')
+        elif transactionRevision:
+            revision = parser.Parser.parse_revisions(stringOfBranch, revisionName='transaction')
+        else:
+            revision = None
+        return revision
+
+    @staticmethod
+    def _branch(stringOfBranch: str, validRevision: bool, transactionRevision: bool):
+        if validRevision:
+            branch = parser.BranchParser.parse_revisions(stringOfBranch, revisionName='valid')
+        elif transactionRevision:
+            branch = parser.BranchParser.parse_revisions(stringOfBranch, revisionName='transaction')
+        else:
+            branch = None
         return branch
 
     @staticmethod
-    def _snapshot(stringOfSnapshot: str):
-        snapshot = parser.SnapshotParser.parse_revisions(stringOfSnapshot, revisionName='valid')
+    def _snapshot(stringOfSnapshot: str, validRevision: bool, transactionRevision: bool):
+        if validRevision:
+            snapshot = parser.SnapshotParser.parse_revisions(stringOfSnapshot, revisionName='valid')
+        elif transactionRevision:
+            snapshot = parser.SnapshotParser.parse_revisions(stringOfSnapshot, revisionName='transaction')
+        else:
+            snapshot = None
         return snapshot
 
     @staticmethod
-    def _tag(stringOfTag: str):
-        tag = parser.TagParser.parse_revisions(stringOfTag, revisionName='valid')
+    def _tag(stringOfTag: str, validRevision: bool, transactionRevision: bool):
+        if validRevision:
+            tag = parser.TagParser.parse_revisions(stringOfTag, revisionName='valid')
+        elif transactionRevision:
+            tag = parser.TagParser.parse_revisions(stringOfTag, revisionName='transaction')
+        else:
+            tag = None
         return tag
 
     @staticmethod
-    def _update(stringOfUpdate: str):
-        update = parser.UpdateParser.parse_revisions(stringOfUpdate, revisionName='valid')
+    def _update(stringOfUpdate: str, validRevision: bool, transactionRevision: bool):
+        if validRevision:
+            update = parser.UpdateParser.parse_revisions(stringOfUpdate, revisionName='valid')
+        elif transactionRevision:
+            update = parser.UpdateParser.parse_revisions(stringOfUpdate, revisionName='transaction')
+        else:
+            update = None
         return update
 
     def check_existence(self, revisionIdentifier, revisionType):

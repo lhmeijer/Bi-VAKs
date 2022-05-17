@@ -82,7 +82,7 @@ def sparql_update():
 
     updateRequest = UpdateQueryRequest(updateQuery=updateQuery)
     try:
-        update = BiTR4QsCore.apply_versioning_operation(updateRequest, 'update')
+        update = BiTR4QsCore.apply_versioning_operation(updateRequest)
         response = make_response('', 200)
         return response
     except Exception as e:

@@ -6,3 +6,5 @@ from .Snapshot import Snapshot
 from .SnapshotRevision import SnapshotRevision
 from .Tag import Tag
 from .TagRevision import TagRevision
+from .HeadRevision import HeadRevision
+from .InitialRevision import InitialRevision

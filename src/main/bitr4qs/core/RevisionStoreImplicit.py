@@ -7,6 +7,14 @@ from rdflib.namespace import XSD
 
 class RevisionStoreImplicit(RevisionStore):
 
+    @staticmethod
+    def get_new_revision_number(revisionNumber=None):
+        if revisionNumber is not None:
+            assert isinstance(revisionNumber, Literal)
+            return Literal(revisionNumber.value + 1, datatype=revisionNumber.datatype)
+        else:
+            return Literal(1, datatype=XSD.nonNegativeInteger)
+
     def get_new_branch_index(self):
         SPARQLQuery = """PREFIX : <{0}>
         SELECT ?branchIndex

@@ -22,3 +22,12 @@ class HeadRevision(Revision):
         if branch is not None:
             self._RDFPatterns.append(Triple((self._identifier, BITR4QS.branch, branch)))
         self._branch = branch
+
+    @classmethod
+    def _revision_from_data(cls, **data):
+
+        assert 'revisionNumber' in data, "revisionNumber should be in the data of the revision"
+        assert 'precedingRevision' in data, "precedingRevision should be in the data of the revision"
+        assert 'branch' in data, "branch should be in the data of the revision"
+
+        return cls(data)

@@ -5,6 +5,8 @@ from rdflib.namespace import XSD
 
 class Request(object):
 
+    type = 'request'
+
     def __init__(self, request):
         self._request = request
         self._branch = None
@@ -15,10 +17,12 @@ class Request(object):
         self._precedingTransactionRevision = None
         self._precedingValidRevision = None
 
-        self._validRevision = None
+        self._validRevisions = []
 
         self._revisionNumber = None
         self._branchIndex = None
+
+        self._headRevision = None
 
     @property
     def branch(self) -> URIRef:
@@ -69,12 +73,15 @@ class Request(object):
         self._precedingValidRevision = precedingValidRevision
 
     @property
-    def valid_revision(self) -> URIRef:
-        return self._validRevision
+    def valid_revisions(self) -> list:
+        return self._validRevisions
 
-    @valid_revision.setter
-    def valid_revision(self, validRevision: URIRef):
-        self._validRevision = validRevision
+    @valid_revisions.setter
+    def valid_revisions(self, validRevisions: list):
+        self._validRevisions = validRevisions
+
+    def add_valid_revision(self, validRevision):
+        self._validRevisions.append(validRevision)
 
     @property
     def revision_number(self) -> Literal:
@@ -91,6 +98,14 @@ class Request(object):
     @branch_index.setter
     def branch_index(self, branchIndex: Literal):
         self._branchIndex = branchIndex
+
+    @property
+    def head_revision(self):
+        return self._headRevision
+
+    @head_revision.setter
+    def head_revision(self, headRevision):
+        self._headRevision = headRevision
 
     def evaluate_request(self, revisionStore):
         # Obtain the author
@@ -119,13 +134,14 @@ class Request(object):
             self.branch_index = branch.branch_index
 
         # Obtain the head of the transaction revisions and its revision number
-        precedingTransactionRevision, revisionNumber = revisionStore.head_revision(self._branch)
-        print("precedingTransactionRevision ", precedingTransactionRevision)
-        if precedingTransactionRevision is not None:
-            self.preceding_transaction_revision = precedingTransactionRevision
-            self.revision_number = revisionNumber
+        headRevision = revisionStore.head_revision(self._branch)
+        print("headRevision ", headRevision)
+        if headRevision is not None:
+            self.head_revision = headRevision
+            self.preceding_transaction_revision = headRevision.preceding_revision
+            self.revision_number = revisionStore.get_new_revision_number(headRevision.revision_number)
         else:
-            # TODO precedingTransactionRevision is not given return an error
+            # TODO headRevision is not given return an error
             pass
 
         # Obtain the creation date of the transaction revision

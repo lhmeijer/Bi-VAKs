@@ -84,6 +84,11 @@ class Revision(object):
         """.format('\n'.join(triple.to_sparql() for triple in self._RDFPatterns))
         print(SPARQLUpdateQuery)
 
+    def delete_to_revision_store(self, revisionStore):
+        SPARQLUpdateQuery = """DELETE DATA {{ {0} }}
+        """.format('\n'.join(triple.to_sparql() for triple in self._RDFPatterns))
+        print(SPARQLUpdateQuery)
+
     @classmethod
     def _revision_from_request(cls, request):
         return cls(revisionNumber=request.revision_number)
@@ -99,12 +104,15 @@ class Revision(object):
         return revision
 
     @classmethod
-    def _revision(cls, **data):
+    def _revision_from_data(cls, **data):
+        assert 'revisionNumber' in data, "revisionNumber should be in the data of the revision"
+        assert 'precedingRevision' in data, "precedingRevision should be in the data of the revision"
+
         return cls(data)
 
     @classmethod
-    def revision(cls, **data):
-        revision = cls._revision(**data)
+    def revision_from_data(cls, **data):
+        revision = cls._revision_from_data(**data)
         hashOfRevision = str(revision.compute_hash_of_revision())
         identifierOfRevision = revision.nameOfRevision + '_' + hashOfRevision
         revision.identifier = URIRef(str(BITR4QS) + identifierOfRevision)

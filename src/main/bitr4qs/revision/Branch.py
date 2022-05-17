@@ -22,11 +22,11 @@ class Branch(ValidRevision):
         self.branched_off_revision = branchedOffRevision
 
     @property
-    def branch_name(self) -> Literal:
+    def branch_name(self):
         return self._branchName
 
     @branch_name.setter
-    def branch_name(self, branchName: Literal):
+    def branch_name(self, branchName):
         if branchName is not None:
             self._RDFPatterns.append(Triple((self._identifier, BITR4QS.branchName, branchName)))
         self._branchName = branchName

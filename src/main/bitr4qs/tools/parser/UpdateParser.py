@@ -48,8 +48,8 @@ class UpdateParser(Parser):
 
         return modification
 
-    @staticmethod
-    def _parse(identifier, NQuads, index, revision=None):
+    @classmethod
+    def parse_valid_revision(cls, identifier, NQuads, index, revision=None):
         """
 
         :param identifier:
@@ -92,16 +92,27 @@ class UpdateParser(Parser):
                 graph = UpdateParser._graph_name(NQuad, stringOfTriple)
                 revision.add_modification(graph=graph, deletion=True)
 
-            elif splitQuad[1] == str(BITR4QS.precedingRevision):
-                revision.preceding_identifier(splitQuad[2])
+            elif splitQuad[1] == str(BITR4QS.precedingUpdate):
+                revision.preceding_identifier = splitQuad[2]
 
-            elif splitQuad[1] == str(BITR4QS.startDate):
-                revision.start_date(splitQuad[2])
+            elif splitQuad[1] == str(BITR4QS.startedAt):
+                revision.start_date = splitQuad[2]
 
-            elif splitQuad[1] == str(BITR4QS.endDate):
-                revision.end_date(splitQuad[2])
+            elif splitQuad[1] == str(BITR4QS.endedAt):
+                revision.end_date = splitQuad[2]
 
         return revision, index
+
+    @staticmethod
+    def _get_transaction_revision(identifier):
+        from src.main.bitr4qs.revision.UpdateRevision import UpdateRevision
+        return UpdateRevision(URIRef(identifier))
+
+    @staticmethod
+    def _parse_transaction_revision(revision, p, o):
+
+        if str(p) == str(BITR4QS.update):
+            revision.valid_revision = o
 
     def parse_aggregate(self, stringOfRevisions, forward=True):
         """

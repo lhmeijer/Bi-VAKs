@@ -20,12 +20,25 @@ def update(updateID):
         return make_response('No update content strategy is given', 400)
 
     try:
-        update = BiTR4QsCore.apply_versioning_operation(updateRequest, 'update')
+        update = BiTR4QsCore.apply_versioning_operation(updateRequest)
         response = make_response('', 200)
         return response
     except Exception as e:
         return make_response('Error after executing the update query.', 400)
 
+
+@versioningEndpoint.route("/initialise", methods=['POST'])
+def initialise():
+    BiTR4QsConfiguration = current_app.config['BiTR4QsConfiguration']
+    BiTR4QsCore = BiTR4QsSingleton.get(BiTR4QsConfiguration)
+    initialRequest = requests.InitialRequest(request)
+
+    try:
+        initial = BiTR4QsCore.apply_versioning_operation(initialRequest)
+        response = make_response('', 200)
+        return response
+    except Exception as e:
+        return make_response('Error after executing the tag query.', 400)
 
 @versioningEndpoint.route("/tag", defaults={'tagID': None}, methods=['POST'])
 @versioningEndpoint.route("/tag/<path:tagID>", methods=['POST'])
@@ -35,7 +48,7 @@ def tag(tagID):
     tagRequest = requests.TagRequest(request)
 
     try:
-        tag = BiTR4QsCore.apply_versioning_operation(tagRequest, 'tag')
+        tag = BiTR4QsCore.apply_versioning_operation(tagRequest)
         response = make_response('', 200)
         return response
     except Exception as e:
@@ -50,7 +63,7 @@ def snapshot(snapshotID):
     snapshotRequest = requests.SnapshotRequest(request)
 
     try:
-        snapshot = BiTR4QsCore.apply_versioning_operation(snapshotRequest, 'snapshot')
+        snapshot = BiTR4QsCore.apply_versioning_operation(snapshotRequest)
         response = make_response('', 200)
         return response
     except Exception as e:
@@ -65,7 +78,7 @@ def branch(branchID):
     branchRequest = requests.BranchRequest(request)
 
     try:
-        branch = BiTR4QsCore.apply_versioning_operation(branchRequest, 'branch')
+        branch = BiTR4QsCore.apply_versioning_operation(branchRequest)
         response = make_response('', 200)
         return response
     except Exception as e:

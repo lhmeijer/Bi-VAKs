@@ -8,6 +8,8 @@ from rdflib.namespace import XSD
 
 class UpdateRequest(Request):
 
+    type = 'update'
+
     def __init__(self, request):
         super().__init__(request)
         self._startDate = None
@@ -130,7 +132,7 @@ class ModifiedUpdateRequest(UpdateRequest):
         precedingUpdateID = self._request.view_args.get('updateID', None) or None
         precedingUpdate = None
         if precedingUpdateID is not None:
-            self.preceding_updates = revisionStore.valid_revision(URIRef(precedingUpdateID), 'update')
+            self.preceding_updates = revisionStore.revision(URIRef(precedingUpdateID), 'update', validRevision=True)
             precedingUpdate = self._precedingUpdates[precedingUpdateID]
             self.preceding_valid_revision = precedingUpdate.identifier
             self.branch_index = precedingUpdate.branch_index

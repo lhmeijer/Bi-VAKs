@@ -8,13 +8,13 @@ from rdflib.namespace import RDFS
 class TransactionRevision(Revision):
 
     def __init__(self, identifier=None, precedingRevision=None, hexadecimalOfHash=None, creationDate=None, author=None,
-                 description=None, branch=None, revisionNumber=None, validRevision: URIRef = None):
+                 description=None, branch=None, revisionNumber=None, validRevisions: list = None):
         super().__init__(identifier, precedingRevision, hexadecimalOfHash, revisionNumber)
         self.creation_date = creationDate
         self.author = author
         self.description = description
         self.branch = branch
-        self.valid_revision = validRevision
+        self.valid_revisions = validRevisions
 
     @property
     def creation_date(self):
@@ -57,15 +57,23 @@ class TransactionRevision(Revision):
         self._branch = branch
 
     @property
-    def valid_revision(self):
-        return self._validRevision
+    def valid_revisions(self):
+        return self._validRevisions
 
-    @valid_revision.setter
-    def valid_revision(self, validRevision: URIRef):
-        self._validRevision = validRevision
+    @valid_revisions.setter
+    def valid_revisions(self, validRevisions: list):
+        if validRevisions is not None:
+            for validRevision in validRevisions:
+                if 'Snapshot' in str(validRevision):
+                    self._RDFPatterns.append(Triple((self._identifier, BITR4QS.snapshot, validRevision)))
+                elif 'Tag' in str(validRevision):
+                    self._RDFPatterns.append(Triple((self._identifier, BITR4QS.tag, validRevision)))
+                elif 'Update' in str(validRevision):
+                    self._RDFPatterns.append(Triple((self._identifier, BITR4QS.update, validRevision)))
+        self._validRevisions = validRevisions
 
     @classmethod
     def _revision_from_request(cls, request):
         return cls(creationDate=request.creation_date, author=request.author, description=request.description,
-                   branch=request.branch, revisionNumber=request.revision_number, validRevision=request.valid_revision,
+                   branch=request.branch, revisionNumber=request.revision_number,
                    precedingRevision=request.preceding_transaction_revision)

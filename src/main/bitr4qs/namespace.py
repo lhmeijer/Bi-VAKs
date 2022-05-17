@@ -48,5 +48,6 @@ class BITR4QS(DefinedNamespace):
     TransactionRevision: URIRef
     ValidRevision: URIRef
     HeadRevision: URIRef
+    InitialRevision: URIRef
 
     _NS = Namespace("http://bi-tr4qs.org/vocab/")
