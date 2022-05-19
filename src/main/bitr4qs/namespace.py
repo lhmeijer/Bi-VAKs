@@ -24,16 +24,19 @@ class BITR4QS(DefinedNamespace):
     merge: URIRef
     snapshot: URIRef
     update: URIRef
+    revert: URIRef
     hash: URIRef
     precedingSnapshot: URIRef
     precedingUpdate: URIRef
     precedingTag: URIRef
     precedingBranch: URIRef
+    precedingRevert: URIRef
     nameDataset: URIRef
     urlDataset: URIRef
     tagName: URIRef
     branchName: URIRef
     branchedOffAt: URIRef
+    branchIndexedAt: URIRef
 
     # http://www.w3.org/2000/01/rdf-schema#Class
     UpdateRevision: URIRef
@@ -49,5 +52,7 @@ class BITR4QS(DefinedNamespace):
     ValidRevision: URIRef
     HeadRevision: URIRef
     InitialRevision: URIRef
+    RevertRevision: URIRef
+    Revert: URIRef
 
     _NS = Namespace("http://bi-tr4qs.org/vocab/")

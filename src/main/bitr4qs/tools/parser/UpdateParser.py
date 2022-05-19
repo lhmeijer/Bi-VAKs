@@ -105,14 +105,14 @@ class UpdateParser(Parser):
 
     @staticmethod
     def _get_transaction_revision(identifier):
-        from src.main.bitr4qs.revision.UpdateRevision import UpdateRevision
+        from src.main.bitr4qs.revision.Update import UpdateRevision
         return UpdateRevision(URIRef(identifier))
 
     @staticmethod
     def _parse_transaction_revision(revision, p, o):
 
         if str(p) == str(BITR4QS.update):
-            revision.valid_revision = o
+            revision.add_valid_revision(o)
 
     def parse_aggregate(self, stringOfRevisions, forward=True):
         """

@@ -27,8 +27,8 @@ class Quad(Triple):
     def __hash__(self):
         return hash((self._subject, self._predicate, self._object, self._graph))
 
-    def to_query_update(self, predicate):
-        queryString = "GRAPH {0} {{ ?update {1} {2} }}".format(self._graph.n3(), predicate, self.rdf_star())
+    def to_query_via_update(self, predicate, construct=True, subjectName='?update'):
+        queryString = "GRAPH {0} {{ {3} {1} {2} }}".format(self._graph.n3(), predicate, self.rdf_star(), subjectName)
         return queryString
 
     def to_sparql(self):

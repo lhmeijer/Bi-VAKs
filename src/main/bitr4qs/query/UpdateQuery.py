@@ -30,8 +30,20 @@ class UpdateQuery(Query):
         if self._base is not None and not self._is_absolute_uri(self._base):
             raise NonAbsoluteBaseError()
 
-        if not self._is_valid_query_base(self._parsedQuery):
+        if not self._is_valid_update_base(self._parsedQuery):
             raise NonAbsoluteBaseError()
+
+    def _is_valid_update_base(self, parsedUpdate):
+        """Check if an update contains an absolute base if base is given.
+        Args: parsed_update: the parsed update
+        Returns: True - if Base URI is given and abolute or if no Base is given
+                 False - if Base URI is given an not absolute
+        """
+        for value in parsedUpdate.prologue[0]:
+            if value.name == 'Base' and not self._is_absolute_uri(value.iri):
+                return False
+
+        return True
 
     def _configure_query_dataset(self):
         if not isinstance(self._defaultGraph, list) or not isinstance(self._namedGraph, list):

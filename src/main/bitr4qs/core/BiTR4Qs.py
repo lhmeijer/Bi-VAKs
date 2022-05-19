@@ -1,9 +1,9 @@
-import src.main.bitr4qs.revision as revisions
 from .RevisionStore import RevisionStore
 from src.main.bitr4qs.namespace import BITR4QS
 from .RevisionStoreExplicit import RevisionStoreExplicit
 from .RevisionStoreImplicit import RevisionStoreImplicit
 from rdflib.term import Literal
+from src.main.bitr4qs.revision.HeadRevision import HeadRevision
 
 
 class BiTR4QsSingleton(object):
@@ -37,90 +37,97 @@ class BiTR4Qs(object):
     def _valid_revisions_to_transaction_revision(transactionRevision, validRevisions):
         pass
 
-    def apply_versioning_operation(self, request):
+    def _to_revision_store(self, revisions):
         """
-        Function that applies a versioning operations based on a request such as update, snapshot, tag, and branch
-        :param request: BranchRequest, UpdateRequest, TagRequest, or SnapshotRequest
+
+        :param revisions:
+        :return:
+        """
+        for revision in revisions:
+            revision.add_to_revision_store(self._revisionStore)
+
+    def _head_revision(self, precedingHeadRevision, transactionRevision):
+        """
+
+        :param precedingHeadRevision:
+        :param transactionRevision:
+        :return:
+        """
+        # Check whether there is a head revision. If yes -> remove entirely from the revision store.
+        if precedingHeadRevision is not None:
+            precedingHeadRevision.delete_to_revision_store(self._revisionStore)
+
+        # Create new head revision and add it to the revision store.
+        headRevision = HeadRevision.revision_from_data(branch=transactionRevision.branch,
+                                                       precedingRevision=transactionRevision.identifier,
+                                                       revisionNumber=transactionRevision.revision_number)
+        headRevision.add_to_revision_store(self._revisionStore)
+
+    def modify_versioning_operation(self, revisionID, request):
+        """
+
+        :param revisionID:
+        :param request:
         :return:
         """
         request.evaluate_request(self._revisionStore)
 
-        functionName = '_' + request.type + '_revision'
-        func = getattr(self, functionName)
+        transactionRevision = request.transaction_revision_from_request()
 
-        # Extract transaction revision from the given request.
-        transactionRevision = func(request)
-        self._valid_revisions_to_transaction_revision(transactionRevision, request.valid_revisions)
+        revision = self._revisionStore.revision(revisionID, revisionType=request.type, validRevision=True)
+        modifiedRevisions = request.modifications_from_request(revision, self._revisionStore)
 
-        # Add the valid and transaction revisions to the revision store.
-        if request.valid_revisions is not None:
-            for validRevision in request.valid_revisions:
-                validRevision.add_to_revision_store(self._revisionStore)
+        self._valid_revisions_to_transaction_revision(transactionRevision, modifiedRevisions)
+        self._to_revision_store(modifiedRevisions.append(transactionRevision))
+        self._head_revision(request.head_revision, transactionRevision)
 
-        if transactionRevision is not None:
-            transactionRevision.add_to_revision_store(self._revisionStore)
+    def revert_versioning_operation(self, revisionID, request):
+        """
 
-        # Check whether there is a head revision. If yes -> remove entirely from the revision store.
-        if request.head_revision is not None:
-            request.head_revision.delete_to_revision_store(self._revisionStore)
+        :param revisionID:
+        :param request:
+        :return:
+        """
+        # Evaluate request
+        request.evaluate_request(self._revisionStore)
 
-        # Create new head revision and add it to the revision store.
-        headRevision = revisions.HeadRevision.revision_from_data(branch=transactionRevision.branch,
-                                                                 precedingRevision=transactionRevision.identifier,
-                                                                 revisionNumber=transactionRevision.revision_number)
-        headRevision.add_to_revision_store(self._revisionStore)
+        # Create a RevertRevision
+        transactionRevision = request.transaction_revision_from_request()
 
-    @staticmethod
-    def _initial_revision(initialRequest):
-        initialRevision = revisions.BranchRevision.revision_from_request(initialRequest)
+        validRevisions = []
+        revisions = self._revisionStore.valid_revisions_from_transaction_revision(revisionID, revisionType=None)
+        for revision in revisions:
+            revertedRevisions = request.reversions_from_request(revision, revisionStore=self._revisionStore)
+            validRevisions.extend(revertedRevisions)
 
-        # Check whether the user already uses an existing dataset, and create a snapshot and update from it.
-        if initialRequest.name_dataset is not None and initialRequest.url_dataset is not None:
-            snapshot = revisions.Snapshot.revision_from_data(
-                revisionNumber=initialRequest.revision_number, branchIndex=initialRequest.branch_index,
-                nameDataset=initialRequest.name_dataset, urlDataset=initialRequest.url_dataset,
-                effectiveDate=initialRequest.effective_date, transactionRevision=initialRevision.identifier)
-            update = snapshot.update_from_snapshot()
+        validRevision = request.valid_revisions_from_request()
+        validRevisions.append(validRevision)
 
-            initialRequest.add_valid_revision(snapshot)
-            initialRequest.add_valid_revision(update)
-        return None, initialRevision
+        self._valid_revisions_to_transaction_revision(transactionRevision, validRevisions)
+        self._to_revision_store(validRevisions + transactionRevision)
+        self._head_revision(request.head_revision, transactionRevision)
 
-    @staticmethod
-    def _branch_revision(branchRequest):
-        branchRevision = revisions.BranchRevision.revision_from_request(branchRequest)
-        branch = revisions.Branch.revision_from_request(branchRequest)
-        branchRequest.add_valid_revision(branch)
-        return branch, branchRevision
+    def apply_versioning_operation(self, request):
+        """
 
-    @staticmethod
-    def _update_revision(updateRequest):
-        updateRevision = revisions.UpdateRevision.revision_from_request(updateRequest)
-        update = revisions.Update.revision_from_request(updateRequest)
-        updateRequest.add_valid_revision(update)
-        return update, updateRevision
+        :param request:
+        :return:
+        """
+        try:
+            request.evaluate_request(self._revisionStore)
+        except Exception as e:
+            print("e ", e)
+            raise e
 
-    @staticmethod
-    def _snapshot_revision(snapshotRequest):
-        snapshotRevision = revisions.SnapshotRevision.revision_from_request(snapshotRequest)
+        try:
+            transactionRevision = request.transaction_revision_from_request()
+            validRevisions = request.valid_revisions_from_request()
+        except AssertionError:
+            raise Exception
 
-        if snapshotRequest.transaction_revision is None:
-            snapshotRequest.transaction_revision = snapshotRevision.identifier
-
-        snapshot = revisions.Snapshot.revision_from_request(snapshotRequest)
-        snapshotRequest.add_valid_revision(snapshot)
-        return snapshot, snapshotRevision
-
-    @staticmethod
-    def _tag_revision(tagRequest):
-        tagRevision = revisions.TagRevision.revision_from_request(tagRequest)
-
-        if tagRequest.transaction_revision is None:
-            tagRequest.transaction_revision = tagRevision.identifier
-
-        tag = revisions.Tag.revision_from_request(tagRequest)
-        tagRequest.add_valid_revision(tag)
-        return tag, tagRevision
+        self._valid_revisions_to_transaction_revision(transactionRevision, validRevisions)
+        self._to_revision_store([transactionRevision] + validRevisions)
+        self._head_revision(request.head_revision, transactionRevision)
 
     def apply_query(self, query):
         query.evaluate_query(self._revisionStore)
@@ -143,5 +150,6 @@ class BiTR4QsExplicit(BiTR4Qs):
 
     @staticmethod
     def _valid_revisions_to_transaction_revision(transactionRevision, validRevisions):
-        transactionRevision.valid_revisions([validRevision.identifier for validRevision in validRevisions])
+        for validRevision in validRevisions:
+            transactionRevision.add_valid_revision(validRevision.identifier)
 

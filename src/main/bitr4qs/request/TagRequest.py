@@ -1,6 +1,7 @@
 from .Request import Request
 from rdflib.term import URIRef, Literal
 from rdflib.namespace import XSD
+from src.main.bitr4qs.revision.Tag import Tag, TagRevision
 
 
 class TagRequest(Request):
@@ -42,41 +43,47 @@ class TagRequest(Request):
 
         super().evaluate_request(revisionStore)
 
-        # Obtain the preceding Tag
-        precedingTagID = self._request.view_args.get('tagID', None) or None
-        precedingTag = None
-        if precedingTagID is not None:
-            precedingTags = revisionStore.revision(URIRef(precedingTagID), 'tag', validRevision=True)
-            precedingTag = precedingTags[precedingTagID]
-            self.preceding_valid_revision = precedingTag.identifier
-            self.branch_index = precedingTag.branch_index
-
         # Obtain effective date
         effectiveDate = self._request.values.get('date', None) or None
         if effectiveDate is not None:
             self.effective_date = Literal(effectiveDate, datatype=XSD.dateTimeStamp)
-        elif precedingTag is not None:
-            self.effective_date = precedingTag.effective_date
         else:
             self.effective_date = self.creation_date
 
         # Obtain the transaction time based on a given transaction revision
         revisionID = self._request.values.get('revision', None) or None
-        transactionRevision = None
         if revisionID is not None:
             transactionRevision = revisionStore.revision(revisionID=URIRef(revisionID), transactionRevision=True)
-
-        if transactionRevision is not None:
             self.transaction_revision = transactionRevision.identifier
-        elif precedingTag is not None:
-            self.transaction_revision = precedingTag.transaction_revision
 
         # Obtain the name of the tag
         name = self._request.values.get('name', None) or None
         if name is not None:
             self.tag_name = Literal(name)
-        elif precedingTag is not None:
-            self.tag_name = precedingTag.tag_name
-        else:
-            # TODO no tag name is known, return an error
-            pass
+
+    def transaction_revision_from_request(self):
+        revision = TagRevision.revision_from_data(
+            precedingRevision=self._precedingTransactionRevision, creationDate=self._creationDate, author=self._author,
+            description=self._description, branch=self._branch, revisionNumber=self._revisionNumber)
+
+        if self._transactionRevision is None:
+            self.transaction_revision = revision.identifier
+
+        return revision
+
+    def valid_revisions_from_request(self):
+        revision = Tag.revision_from_data(
+            tagName=self._tagName, revisionNumber=self._revisionNumber, effectiveDate=self._effectiveDate,
+            transactionRevision=self._transactionRevision, branchIndex=self._branchIndex)
+        return [revision]
+
+    def modifications_from_request(self, revision, revisionStore):
+
+        assert isinstance(revision, Tag), "Valid Revision should be a Tag"
+        # AssertionError
+
+        modifiedRevision = revision.modify(
+            otherTagName=self._tagName, branchIndex=self._branchIndex, otherEffectiveDate=self._effectiveDate,
+            otherTransactionRevision=self._transactionRevision, revisionNumber=self._revisionNumber,
+            revisionStore=revisionStore)
+        return [modifiedRevision]

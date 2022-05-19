@@ -1,7 +1,14 @@
 from .Revision import Revision
+from .TransactionRevision import TransactionRevision
 from rdflib.term import URIRef, Literal
 from src.main.bitr4qs.term.Triple import Triple
 from src.main.bitr4qs.namespace import BITR4QS
+
+
+class TagRevision(TransactionRevision):
+
+    typeOfRevision = BITR4QS.TagRevision
+    nameOfRevision = 'TagRevision'
 
 
 class Tag(Revision):
@@ -50,7 +57,35 @@ class Tag(Revision):
             self._RDFPatterns.append(Triple((self._identifier, BITR4QS.transactedAt, transactionRevision)))
         self._transactionRevision = transactionRevision
 
+    def modify(self, revisionStore, otherTagName=None, otherEffectiveDate=None, otherTransactionRevision=None, revisionNumber=None,
+               branchIndex=None):
+
+        tagName = otherTagName if otherTagName is not None else self._tagName
+        effectiveDate = otherEffectiveDate if otherEffectiveDate is not None else self._effectiveDate
+        transactionRevision = otherTransactionRevision if otherTransactionRevision is not None else self._transactionRevision
+
+        modifiedTag = Tag.revision_from_data(
+            effectiveDate=effectiveDate, branchIndex=branchIndex, tagName=tagName, revisionNumber=revisionNumber,
+            transactionRevision=transactionRevision, precedingRevision=self._identifier)
+        return modifiedTag
+
+    def revert(self, revisionStore, revisionNumber=None, branchIndex=None):
+        # Check whether there exists a preceding snapshot
+        if self._precedingRevision is not None:
+            # Get the preceding tag
+            otherTag = ...
+            revertedTag = self.modify()
+        else:
+            # Remove this snapshot from Jena
+            revertedTag = Tag.revision_from_data(revisionNumber=revisionNumber, branchIndex=branchIndex, tagName=None,
+                                                 transactionRevision=None, effectiveDate=None,
+                                                 precedingRevision=self._identifier)
+        return revertedTag
+
     @classmethod
     def _revision_from_request(cls, request):
         return cls(tagName=request.tag_name, effectiveDate=request.effective_date, transactionRevision=request.transaction_revision,
                    precedingRevision=request.preceding_revision)
+
+    def reversion(self):
+        pass

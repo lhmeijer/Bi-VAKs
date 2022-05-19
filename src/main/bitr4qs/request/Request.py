@@ -1,6 +1,7 @@
 from rdflib.term import Literal, URIRef
 import datetime
 from rdflib.namespace import XSD
+from src.main.bitr4qs.revision.TransactionRevision import TransactionRevision
 
 
 class Request(object):
@@ -128,10 +129,16 @@ class Request(object):
         branchName = self._request.values.get('branch', None) or None
         print("branchName ", branchName)
         if branchName is not None:
-            branch = revisionStore.branch_from_name(Literal(branchName))
+            branches = revisionStore.branch_from_name(Literal(branchName))
             # TODO check existence otherwise return an error
-            self.branch = branch.identifier
-            self.branch_index = branch.branch_index
+            if len(branches) == 1:
+                for branchID, branch in branches.items():
+                    self.branch = branch.identifier
+                    self.branch_index = branch.branch_index
+            else:
+                raise Exception("For this branch there exist multiple branches or no branch")
+        else:
+            self.branch_index = revisionStore.main_branch_index()
 
         # Obtain the head of the transaction revisions and its revision number
         headRevision = revisionStore.head_revision(self._branch)
@@ -147,3 +154,21 @@ class Request(object):
         # Obtain the creation date of the transaction revision
         time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02.00")
         self.creation_date = Literal(str(time), datatype=XSD.dateTimeStamp)
+        print("creation date ", self.creation_date)
+
+    def transaction_revision_from_request(self):
+        revision = TransactionRevision.revision_from_data(
+            precedingRevision=self._precedingTransactionRevision, creationDate=self._creationDate, author=self._author,
+            description=self._description, branch=self._branch, revisionNumber=self._revisionNumber)
+        return revision
+
+    def valid_revisions_from_request(self):
+        pass
+
+    def modifications_from_request(self, revision, revisionStore):
+        pass
+
+    def reversions_from_request(self, revision, revisionStore):
+        revertedRevision = revision.revert(revisionStore=revisionStore, revisionNumber=self._revisionNumber,
+                                           branchIndex=self._branchIndex)
+        return revertedRevision

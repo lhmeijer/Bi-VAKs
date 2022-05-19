@@ -7,6 +7,7 @@ from src.main.bitr4qs.namespace import BITR4QS
 class HeadRevision(Revision):
 
     typeOfRevision = BITR4QS.HeadRevision
+    nameOfRevision = 'HeadRevision'
 
     def __init__(self, identifier=None, precedingRevision=None, hexadecimalOfHash=None, revisionNumber=None,
                  branch=None):
@@ -30,4 +31,4 @@ class HeadRevision(Revision):
         assert 'precedingRevision' in data, "precedingRevision should be in the data of the revision"
         assert 'branch' in data, "branch should be in the data of the revision"
 
-        return cls(data)
+        return cls(**data)

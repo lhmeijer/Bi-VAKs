@@ -606,7 +606,6 @@ recipes:VegetableBible {
                    :inserts << recipes:RecipeCourgetteGratin rdfs:comment "This simple courgette gratin makes a great side dish as it’s creamy and flavoursome without being too rich. Serve with a salad for a light supper."@en-gb >> ;
                    :inserts << recipes:RecipeCourgetteGratin recipes:ingredients recipes:Courgette >> ;
                    :inserts << recipes:RecipeCourgetteGratin recipes:produces recipes:CourgetteGratin >> ;
-
 . }
 recipes:GreatCurries {
   :Update_dk2b0o   :inserts << recipes:RecipeKingPrawnPakoras a recipes:Recipe >> ;
@@ -1074,17 +1073,17 @@ recipes:GreatCurries {
 :HeadRevision_0
   a :HeadRevision ;
   :precedingRevision :Revision_38gh2vh ;
-  :revisionNumber "17"^^xsd:nonNegativeInteger ;
+  :revisionNumber "16"^^xsd:nonNegativeInteger ;
 .
 :HeadRevision_1
   a :HeadRevision ;
   :precedingRevision :Revision_20vqzxp ;
   :branch :Branch_k301fkl ;
-  :revisionNumber "14"^^xsd:nonNegativeInteger ;
+  :revisionNumber "13"^^xsd:nonNegativeInteger ;
 .
 :HeadRevision_2
   a :HeadRevision ;
   :precedingRevision :Revision_dk1lbv3 ;
   :branch :Branch_38ld2gh ;
-  :revisionNumber "17"^^xsd:nonNegativeInteger ;
+  :revisionNumber "16"^^xsd:nonNegativeInteger ;
 .

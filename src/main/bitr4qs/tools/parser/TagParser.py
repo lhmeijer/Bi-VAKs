@@ -27,11 +27,11 @@ class TagParser(Parser):
 
     @staticmethod
     def _get_transaction_revision(identifier):
-        from src.main.bitr4qs.revision.TagRevision import TagRevision
+        from src.main.bitr4qs.revision.Tag import TagRevision
         return TagRevision(URIRef(identifier))
 
     @staticmethod
     def _parse_transaction_revision(revision, p, o):
 
         if str(p) == str(BITR4QS.tag):
-            revision.valid_revision = o
+            revision.add_valid_revision(o)

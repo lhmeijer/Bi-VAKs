@@ -1,6 +1,7 @@
 from .Request import Request
 from rdflib.term import URIRef, Literal
 from rdflib.namespace import XSD
+from src.main.bitr4qs.revision.InitialRevision import InitialRevision
 from src.main.bitr4qs.revision.Snapshot import Snapshot
 
 
@@ -14,6 +15,7 @@ class InitialRequest(Request):
         self._nameDataset = None
         self._urlDataset = None
         self._effectiveDate = None
+        self._transactionRevision = None
 
     @property
     def effective_date(self) -> Literal:
@@ -65,3 +67,23 @@ class InitialRequest(Request):
 
         self.revision_number = revisionStore.get_new_revision_number()
         self.branch_index = revisionStore.get_new_branch_index()
+
+    def transaction_revision_from_request(self):
+        revision = InitialRevision.revision_from_data(creationDate=self._creationDate, author=self._author,
+                                                      description=self._description, branch=self._branch,
+                                                      revisionNumber=self._revisionNumber)
+        self._transactionRevision = revision.identifier
+
+        return revision
+
+    def valid_revisions_from_request(self):
+        # Check whether the user already uses an existing dataset, and create a snapshot and update from it.
+        if self._nameDataset is not None and self._urlDataset is not None:
+            snapshot = Snapshot.revision_from_data(
+                revisionNumber=self._revisionNumber, branchIndex=self._branchIndex, nameDataset=self._nameDataset,
+                urlDataset=self._urlDataset, effectiveDate=self._effectiveDate,
+                transactionRevision=self._transactionRevision)
+            update = snapshot.update_from_snapshot()
+            return [snapshot, update]
+        else:
+            return []

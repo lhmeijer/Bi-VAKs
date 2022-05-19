@@ -30,11 +30,11 @@ class SnapshotParser(Parser):
 
     @staticmethod
     def _get_transaction_revision(identifier):
-        from src.main.bitr4qs.revision.SnapshotRevision import SnapshotRevision
+        from src.main.bitr4qs.revision.Snapshot import SnapshotRevision
         return SnapshotRevision(URIRef(identifier))
 
     @staticmethod
     def _parse_transaction_revision(revision, p, o):
 
         if str(p) == str(BITR4QS.snapshot):
-            revision.valid_revision = o
+            revision.add_valid_revision(o)

@@ -40,6 +40,7 @@ def initialise():
     except Exception as e:
         return make_response('Error after executing the tag query.', 400)
 
+
 @versioningEndpoint.route("/tag", defaults={'tagID': None}, methods=['POST'])
 @versioningEndpoint.route("/tag/<path:tagID>", methods=['POST'])
 def tag(tagID):
@@ -47,12 +48,20 @@ def tag(tagID):
     BiTR4QsCore = BiTR4QsSingleton.get(BiTR4QsConfiguration)
     tagRequest = requests.TagRequest(request)
 
-    try:
-        tag = BiTR4QsCore.apply_versioning_operation(tagRequest)
-        response = make_response('', 200)
-        return response
-    except Exception as e:
-        return make_response('Error after executing the tag query.', 400)
+    if tagID is not None:
+        try:
+            tag = BiTR4QsCore.modify_versioning_operation(tagID, tagRequest)
+            response = make_response('', 200)
+            return response
+        except Exception as e:
+            return make_response('Error after executing the tag query.', 400)
+    else:
+        try:
+            tag = BiTR4QsCore.apply_versioning_operation(tagRequest)
+            response = make_response('', 200)
+            return response
+        except Exception as e:
+            return make_response('Error after executing the tag query.', 400)
 
 
 @versioningEndpoint.route("/snapshot", defaults={'snapshotID': None}, methods=['POST'])
@@ -79,6 +88,21 @@ def branch(branchID):
 
     try:
         branch = BiTR4QsCore.apply_versioning_operation(branchRequest)
+        response = make_response('', 200)
+        return response
+    except Exception as e:
+        return make_response('Error after executing the branch query.', 400)
+
+
+@versioningEndpoint.route("/revert", defaults={'revisionID': None}, methods=['POST'])
+@versioningEndpoint.route("/revert/<path:revisionID>", methods=['POST'])
+def revert(revisionID):
+    BiTR4QsConfiguration = current_app.config['BiTR4QsConfiguration']
+    BiTR4QsCore = BiTR4QsSingleton.get(BiTR4QsConfiguration)
+    revertRequest = requests.RevertRequest(request)
+
+    try:
+        revert = BiTR4QsCore.revert_versioning_operation(revisionID, revertRequest)
         response = make_response('', 200)
         return response
     except Exception as e:

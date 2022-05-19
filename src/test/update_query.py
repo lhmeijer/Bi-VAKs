@@ -234,10 +234,10 @@ class UpdateQueryTest(unittest.TestCase):
             :Strawberry rdfs:label "Strawberry"@en-gb .
         }
         """
-        response = app.post('/update/', data=dict(update=update, author='Reinier van Beek', branch='Branch_k301fkl',
-                                                  startDate="2021-07-01T00:00:00+02:00",
-                                                  endDate="2021-07-30T00:00:00+02:00",
-                                                  description='Add strawberry and delete cashew nut .'))
+        response = app.post('/update', data=dict(update=update, author='Reinier van Beek', branch='SweetRecipes',
+                                                 startDate="2021-07-01T00:00:00+02:00",
+                                                 endDate="2021-07-30T00:00:00+02:00",
+                                                 description='Add strawberry and delete cashew nut .'))
 
     def test_insert_multiple_triples_implicit(self):
         args = get_default_configuration()
@@ -272,7 +272,29 @@ class UpdateQueryTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_delete_multiple_quads_implicit(self):
-        pass
+        args = get_default_configuration()
+        args['referenceStrategy'] = {'explicit': False, 'implicit': True}
+        app = create_app(args).test_client()
+        update = """
+        PREFIX :  <http://recipehub.nl/recipes#>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        DELETE DATA {
+          :RecipeChocolateFudgeBrownies a :Recipe .
+          :RecipeChocolateFudgeBrownies :cuisine :EnglishCuisine .
+          :RecipeChocolateFudgeBrownies :ingredients :CasterSugar .
+          :RecipeChocolateFudgeBrownies :ingredients :Butter .
+          :RecipeChocolateFudgeBrownies :ingredients :SelfRaisingFlour .
+          :RecipeChocolateFudgeBrownies :meal :Snack .
+          :RecipeChocolateFudgeBrownies :produces :ChocolateFudgeBrownie .
+          :RecipeChocolateFudgeBrownies rdfs:comment "A genuine brownie should first and foremost taste of chocolate. There should be undertones of coffee and vanilla and it should be dark and nutty, with a fudge-like centre and a firm, slightly crispy outer surface."@en-gb .
+          :RecipeChocolateFudgeBrownies rdfs:label "Chocolate fudge brownies"@en-gb .
+        }
+        """
+        response = app.post('/update', data=dict(update=update, author='Peter Schouten',
+                                                 startDate="2021-06-24T00:00:00+02:00",
+                                                 endDate="2021-07-06T00:00:00+02:00",
+                                                 description='Delete recipe of chocolate fudge brownies.'))
+        self.assertEqual(response.status_code, 200)
 
     def test_insert_and_delete_multiple_triples_implicit(self):
         pass
@@ -284,4 +306,24 @@ class UpdateQueryTest(unittest.TestCase):
         pass
 
     def test_insert_and_delete_triples_to_branch_implicit(self):
-        pass
+        args = get_default_configuration()
+        args['referenceStrategy'] = {'explicit': True, 'implicit': False}
+        app = create_app(args).test_client()
+        update = """
+        PREFIX :  <http://recipehub.nl/recipes#>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        DELETE DATA {
+            :Cashewnut a :Food .
+            :Cashewnut rdfs:label "Cashewnoot"@nl .
+            :Cashewnut rdfs:label "Cashewnut"@en-gb .
+        };
+        INSERT DATA {
+            :Strawberry a :Food .
+            :Strawberry rdfs:label "Aardbei"@nl .
+            :Strawberry rdfs:label "Strawberry"@en-gb .
+        }
+        """
+        response = app.post('/update', data=dict(update=update, author='Reinier van Beek', branch='SweetRecipes',
+                                                 startDate="2021-07-01T00:00:00+02:00",
+                                                 endDate="2021-07-30T00:00:00+02:00",
+                                                 description='Add strawberry and delete cashew nut .'))

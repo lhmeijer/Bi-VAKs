@@ -59,11 +59,11 @@ class TriplePattern(object):
     def to_sparql(self):
         return ' '.join(element.n3() for element in self.get_triple()) + ' .'
 
-    def to_query_insert_update(self, construct=True, subjectName='?update'):
-        return self.to_query_via_update(':inserts')
+    def to_query_via_insert_update(self, construct=True, subjectName='?update'):
+        return self.to_query_via_update(':inserts', construct, subjectName)
 
-    def to_query_delete_update(self, construct=True, subjectName='?update'):
-        return self.to_query_via_update(':deletes')
+    def to_query_via_delete_update(self, construct=True, subjectName='?update'):
+        return self.to_query_via_update(':deletes', construct, subjectName)
 
     def to_query_via_update(self, predicate, construct=True, subjectName='?update'):
         queryString = "{2} {0} {1} .".format(predicate, self.rdf_star(), subjectName)

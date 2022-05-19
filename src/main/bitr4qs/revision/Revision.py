@@ -9,16 +9,16 @@ class Revision(object):
 
     typeOfRevision = 'Revision'
     nameOfRevision = 'Revision'
-    predicateOfPrecedingRevision = 'precedingRevision'
+    predicateOfPrecedingRevision = BITR4QS.precedingRevision
 
     def __init__(self, identifier=None,
                  precedingRevision=None,
                  hexadecimalOfHash=None,
                  revisionNumber=None):
 
-        self._RDFPatterns = []
-
         self.identifier = identifier
+        self._RDFPatterns = [Triple((self._identifier, RDF.type, self.typeOfRevision))]
+
         self.preceding_revision = precedingRevision
         self._hexadecimalOfHash = hexadecimalOfHash
         self.revision_number = revisionNumber
@@ -31,10 +31,9 @@ class Revision(object):
     def identifier(self, identifier):
         if identifier is None:
             self._identifier = BITR4QS.TemporalRevision
-            self._RDFPatterns.append(Triple((self._identifier, RDF.type, self.typeOfRevision)))
+            # self._RDFPatterns.append(Triple((self._identifier, RDF.type, self.typeOfRevision)))
         else:
             self._identifier = identifier
-        print(self._identifier)
 
     @property
     def preceding_revision(self):
@@ -83,11 +82,13 @@ class Revision(object):
         SPARQLUpdateQuery = """INSERT DATA {{ {0} }}
         """.format('\n'.join(triple.to_sparql() for triple in self._RDFPatterns))
         print(SPARQLUpdateQuery)
+        revisionStore.revision_store.execute_update_query(SPARQLUpdateQuery)
 
     def delete_to_revision_store(self, revisionStore):
         SPARQLUpdateQuery = """DELETE DATA {{ {0} }}
         """.format('\n'.join(triple.to_sparql() for triple in self._RDFPatterns))
         print(SPARQLUpdateQuery)
+        revisionStore.revision_store.execute_update_query(SPARQLUpdateQuery)
 
     @classmethod
     def _revision_from_request(cls, request):
@@ -108,13 +109,14 @@ class Revision(object):
         assert 'revisionNumber' in data, "revisionNumber should be in the data of the revision"
         assert 'precedingRevision' in data, "precedingRevision should be in the data of the revision"
 
-        return cls(data)
+        return cls(**data)
 
     @classmethod
     def revision_from_data(cls, **data):
         revision = cls._revision_from_data(**data)
         hashOfRevision = str(revision.compute_hash_of_revision())
         identifierOfRevision = revision.nameOfRevision + '_' + hashOfRevision
+        print("identifierOfRevision ", identifierOfRevision)
         revision.identifier = URIRef(str(BITR4QS) + identifierOfRevision)
         revision.reset_RDFPatterns()
         revision.hexadecimal_of_hash = Literal(hashOfRevision)

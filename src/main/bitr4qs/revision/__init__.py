@@ -1,10 +1,7 @@
-from .Branch import Branch
-from .BranchRevision import BranchRevision
-from .Update import Update
-from .UpdateRevision import UpdateRevision
-from .Snapshot import Snapshot
-from .SnapshotRevision import SnapshotRevision
-from .Tag import Tag
-from .TagRevision import TagRevision
+from .Branch import Branch, BranchRevision
+from .Update import Update, UpdateRevision
+from .Snapshot import Snapshot, SnapshotRevision
+from .Tag import Tag, TagRevision
+from .Revert import Revert, RevertRevision
 from .HeadRevision import HeadRevision
 from .InitialRevision import InitialRevision

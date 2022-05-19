@@ -34,8 +34,10 @@ class QuadPattern(TriplePattern):
             queryString = "GRAPH {0} {{ {3} {1}1 {2} }}\n?update {1}2 {2} .".format(self._graph.n3(), predicate,
                                                                                       self.rdf_star(), subjectName)
         elif isinstance(self._graph, Variable) and not construct:
-            queryString = """OPTIONAL {{ GRAPH {0} {{ {3} {1}1 {2} }} }}
-            OPTIONAL {{ ?update {1}2 {2} }}""".format(self._graph.n3(), predicate, self.rdf_star(), subjectName)
+            # queryString = """OPTIONAL {{ GRAPH {0} {{ {3} {1}1 {2} }} }}
+            # OPTIONAL {{ ?update {1}2 {2} }}""".format(self._graph.n3(), predicate, self.rdf_star(), subjectName)
+            queryString = """{{ GRAPH {0} {{ {3} {1}1 {2} }} }} UNION {{ ?update {1}2 {2} }}""".format(
+                self._graph.n3(), predicate, self.rdf_star(), subjectName)
         else:
             queryString = "GRAPH {0} {{ {3} {1} {2} }}".format(self._graph.n3(), predicate, self.rdf_star(), subjectName)
         return queryString

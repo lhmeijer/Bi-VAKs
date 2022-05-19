@@ -128,6 +128,35 @@ class RevisionStoreExplicit(RevisionStore):
             }}
         }}""".format(prefixString, validRevisionType.lower(), revisionA.n3(), earlyStopA, earlyStopB, validRevisionType,
                      queryString, timeConstrain)
-        stringOfValidRevisions = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
-        return stringOfValidRevisions
+
+        if prefix and queryType == 'DescribeQuery':
+            stringOfValidRevisions = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
+            return stringOfValidRevisions
+        else:
+            return SPARQLQuery
+
+    def _valid_revisions_from_transaction_revision(self, transactionRevisionID, revisionType):
+        if revisionType == 'update':
+            where = "{0} :update ?revision .".format(transactionRevisionID.n3())
+        elif revisionType == 'snapshot':
+            where = "{0} :snapshot ?revision .".format(transactionRevisionID.n3())
+        elif revisionType == 'tag':
+            where = "{0} :tag ?revision .".format(transactionRevisionID.n3())
+        elif revisionType == 'branch':
+            where = "{0} :branch ?revision .\nOPTIONAL {{ {0} :update ?revision }}".format(transactionRevisionID.n3())
+        elif revisionType == 'revert':
+            where = """
+            {0} :revert ?revision .
+            OPTIONAL {{ {0} :update ?revision }}
+            OPTIONAL {{ {0} :tag ?revision }}
+            OPTIONAL {{ {0} :snapshot ?revision }}
+            OPTIONAL {{ {0} :branch ?revision }}""".format(transactionRevisionID.n3())
+        else:
+            where = ""
+
+        SPARQLQuery = """PREFIX : <{0}>
+        DESCRIBE ?revision
+        WHERE {{ {1} }} 
+        }}""".format(str(BITR4QS), where)
+        return SPARQLQuery
 

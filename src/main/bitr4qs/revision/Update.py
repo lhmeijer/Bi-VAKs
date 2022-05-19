@@ -6,6 +6,13 @@ from src.main.bitr4qs.term.RDFStarTriple import RDFStarTriple
 from src.main.bitr4qs.namespace import BITR4QS
 from src.main.bitr4qs.term.RDFStarQuad import RDFStarQuad
 from src.main.bitr4qs.term.Quad import Quad
+from .TransactionRevision import TransactionRevision
+
+
+class UpdateRevision(TransactionRevision):
+
+    typeOfRevision = BITR4QS.UpdateRevision
+    nameOfRevision = 'UpdateRevision'
 
 
 class Update(ValidRevision):
@@ -105,3 +112,41 @@ class Update(ValidRevision):
         return cls(modifications=request.modifications, startDate=request.start_date, endDate=request.end_date,
                    precedingRevision=request.preceding_valid_revision, revisionNumber=request.revision_number,
                    branchIndex=request.branch_index)
+
+    def modify(self, revisionStore, otherModifications=None, otherStartDate=None, otherEndDate=None,
+               revisionNumber=None, branchIndex=None, relatedContent=True):
+
+        startDate = otherStartDate if otherStartDate is not None else self._startDate
+        endDate = otherEndDate if otherEndDate is not None else self._endDate
+
+        if otherModifications is not None:
+            updates = ...
+            # Add and delete these updates from the snapshot
+            modifications = ...
+        else:
+            if relatedContent:
+                modifications = None
+            else:
+                modifications = self._modifications
+
+        modifiedUpdate = Update.revision_from_data(
+            modifications=modifications, branchIndex=branchIndex, startDate=startDate, endDate=endDate,
+            revisionNumber=revisionNumber, precedingRevision=self._identifier)
+        return modifiedUpdate
+
+    def revert(self, revisionStore, revisionNumber=None, branchIndex=None, relatedContent=True):
+        # Check whether there exists a preceding snapshot
+        if self._precedingRevision is not None:
+            # Get the preceding snapshot
+            otherUpdate = ...
+            revertedUpdate = self.modify()
+        else:
+            if relatedContent:
+                for modification in self._modifications:
+                    modification.invert()
+            else:
+                self._modifications = None
+            revertedUpdate = Update.revision_from_data(revisionNumber=revisionNumber, branchIndex=branchIndex,
+                                                       startDate=None, endDate=None, modifications=self._modifications,
+                                                       precedingRevision=self._identifier)
+        return revertedUpdate

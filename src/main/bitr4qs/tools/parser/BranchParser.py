@@ -24,11 +24,5 @@ class BranchParser(Parser):
 
     @staticmethod
     def _get_transaction_revision(identifier):
-        from src.main.bitr4qs.revision.BranchRevision import BranchRevision
+        from src.main.bitr4qs.revision.Branch import BranchRevision
         return BranchRevision(URIRef(identifier))
-
-    @staticmethod
-    def _parse_transaction_revision(revision, p, o):
-
-        if str(p) == str(BITR4QS.branch):
-            revision.valid_revision = o

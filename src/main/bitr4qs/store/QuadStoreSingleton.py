@@ -14,7 +14,8 @@ class HttpRevisionStoreSingleton(object):
         else:
             revisionStoreConfig = config.revision_store
             cls.store = HttpQuadStore("{0}/{1}/query".format(revisionStoreConfig['url'], revisionStoreConfig['name']),
-                                      "{0}/{1}/update".format(revisionStoreConfig['url'], revisionStoreConfig['name']))
+                                      "{0}/{1}/update".format(revisionStoreConfig['url'], revisionStoreConfig['name']),
+                                      "{0}/{1}/data".format(revisionStoreConfig['url'], revisionStoreConfig['name']))
             return cls.store
 
     @classmethod
@@ -50,7 +51,8 @@ class HttpDataStoreSingleton(object):
         if cls.store is not None:
             return cls.store
         else:
-            cls.store = HttpQuadStore("{0}/{1}/query".format(dbURL, dbName), "{0}/{1}/update".format(dbURL, dbName))
+            cls.store = HttpQuadStore("{0}/{1}/query".format(dbURL, dbName), "{0}/{1}/update".format(dbURL, dbName),
+                                      "{0}/{1}/data".format(dbURL, dbName))
             return cls.store
 
     @classmethod

@@ -22,9 +22,10 @@ _response_mime_types = {
 
 class HttpQuadStore(object):
 
-    def __init__(self, queryEndpoint, updateEndpoint):
+    def __init__(self, queryEndpoint, updateEndpoint, dataEndpoint):
         self._queryEndpoint = queryEndpoint
         self._updateEndpoint = updateEndpoint
+        self._dataEndpoint = dataEndpoint
 
     def _execute_query(self, queryString, returnFormat):
         request = self._create_query_request(queryString, returnFormat)
@@ -125,4 +126,17 @@ class HttpQuadStore(object):
                 return True
             return False
         return result
+
+    def n_quads_to_store(self, nquads):
+        print('nquads ', nquads)
+        headers = {'Content-Type': 'application/n-quads'}
+        nquads = nquads.encode(encoding='utf-8', errors='strict')
+        request = Request(self._dataEndpoint, data=nquads, headers=headers)
+        try:
+            response = urlopen(request)
+            print("response ", response.read())
+        except HTTPError as e:
+            print(e)
+            raise HTTPError
+        return response
 
