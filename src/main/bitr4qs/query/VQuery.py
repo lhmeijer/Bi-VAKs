@@ -33,17 +33,19 @@ class VQuery(Query):
 
         # Obtain the branch based on the branch name
         branchName = self._request.values.get('branch', None) or None
-        branchIdentifier = None
         if branchName is not None:
-            branch = revisionStore.branch_from_name(Literal(branchName))
-            # TODO Branch does not exist
-            branchIdentifier = branch.identifier
+            try:
+                branch = revisionStore.branch_from_name(Literal(branchName)).identifier
+            except Exception as e:
+                raise e
+        else:
+            branch = None
 
         # Obtain the head of the transaction revisions
-        headRevision, revisionNumber = revisionStore.head_revision(branchIdentifier)
-        # TODO HEAD Revision does not exist.
-        if headRevision is not None:
-            headRevision = URIRef(headRevision)
+        try:
+            headRevision = revisionStore.head_revision(branch)
+        except Exception as e:
+            raise e
 
         # Get all tags from the revision graph also specified from a branch (ordered on transaction time)
         self._tags = revisionStore.tags_in_revision_line(revisionA=headRevision)
@@ -52,7 +54,7 @@ class VQuery(Query):
         # Set a specific effective date for all tags
         effectiveDate = self._request.values.get('date', None) or None
         if effectiveDate is not None:
-            self.valid_time = Literal(str(effectiveDate), datatype=XSD.dateTimeStamp)
+            self._validTime = Literal(str(effectiveDate), datatype=XSD.dateTimeStamp)
 
     def apply_query(self, revisionStore):
         # effective date of query is leading compare to tag effective date
@@ -74,7 +76,7 @@ class VQuery(Query):
 
             version.retrieve_version(revisionStore=revisionStore, previousTransactionTime=previousTransactionTime,
                                      previousValidTime=previousValidTime, quadPattern=self._quadPattern)
-            response = version.query_version(self._query, self._queryType, self._returnFormat)
+            response = version.query_version(self._query, self._returnFormat)
             responses[tag.tag_name] = response
 
             previousTransactionTime = version.transaction_time

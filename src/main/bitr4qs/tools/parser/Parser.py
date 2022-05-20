@@ -22,9 +22,6 @@ class TripleSink(object):
             return Modification(Quad((self._subject, self._predicate, self._object), graph), deletion)
 
     def triple(self, s, p, o):
-        print("s ", s)
-        print("p ", p)
-        print("o ", o)
         self._subject = s
         self._predicate = p
         self._object = o

@@ -51,25 +51,50 @@ class DMQuery(Query):
     def evaluate_query(self, revisionStore):
         super().evaluate_query(revisionStore)
 
-        revisionA = self._request.view_args.get('revisionA', None) or None
-        # TODO RevisionA does not exist or is not given.
-        if revisionA is not None:
-            self.transaction_time_a = URIRef(revisionA)
+        tagNameA = self._request.values.get('tagA', None) or None
+        if tagNameA is not None:
+            try:
+                tagA = revisionStore.tag_from_name(Literal(tagNameA))
+                self._transactionTimeA = tagA.transaction_revision
+                self._validTimeA = tagA.effective_date
+            except Exception as e:
+                raise e
+            # TODO Tag does not exist
 
-        revisionB = self._request.view_args.get('revisionB', None) or None
+        tagNameB = self._request.values.get('tagB', None) or None
+        if tagNameB is not None:
+            try:
+                tagB = revisionStore.tag_from_name(Literal(tagNameA))
+                self._transactionTimeB = tagB.transaction_revision
+                self._validTimeB = tagB.effective_date
+            except Exception as e:
+                raise e
+            # TODO Tag does not exist
+
+        revisionIDB = self._request.view_args.get('revisionB', None) or None
         # TODO RevisionB does not exist or is not given.
-        if revisionB is not None:
-            self.transaction_time_b = URIRef(revisionB)
+        if revisionIDB is not None:
+            self._transactionTimeB = URIRef(revisionIDB)
+
+        revisionIDA = self._request.view_args.get('revisionA', None) or None
+        # TODO RevisionA does not exist or is not given.
+        if revisionIDA is not None:
+            try:
+                revisionA = revisionStore.revision(revisionID=URIRef(revisionIDA), isValidRevision=False,
+                                                   transactionRevisionA=self._transactionTimeB)
+                self._transactionTimeA = revisionA.identifier
+            except Exception as e:
+                raise e
 
         validDateA = self._request.view_args.get('dateA', None) or None
         # TODO no valid date A is given.
         if validDateA is not None:
-            self.valid_time_a = Literal(validDateA, datatype=XSD.dateTimeStamp)
+            self._validTimeA = Literal(validDateA, datatype=XSD.dateTimeStamp)
 
         validDateB = self._request.view_args.get('dateB', None) or None
         # TODO no valid date B is given.
         if validDateB is not None:
-            self.valid_time_b = Literal(validDateB, datatype=XSD.dateTimeStamp)
+            self._validTimeB = Literal(validDateB, datatype=XSD.dateTimeStamp)
 
     def apply_query(self, revisionStore):
         updateParser = UpdateParser()

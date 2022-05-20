@@ -43,23 +43,23 @@ class Version(object):
 
         if validTimeA < validTimeB:
             # Get the modification to fastforward
-            revisionStore.get_updates_in_revision_line(
+            revisionStore.get_updates_in_revision_graph(
                 leftOfInterval=validA, rightOfInterval=validB, startTimeInBetween=True, quadPattern=quadPattern,
                 updateParser=updateParser, revisionA=transactionTime)
 
             # Get the modification to rewind
-            revisionStore.get_updates_in_revision_line(
+            revisionStore.get_updates_in_revision_graph(
                 leftOfInterval=validA, rightOfInterval=validB, forward=False, endTimeInBetween=True,
                 quadPattern=quadPattern, updateParser=updateParser, revisionA=transactionTime)
 
         elif validTimeA > validTimeB:
             # Get the modifications to rewind
-            revisionStore.get_updates_in_revision_line(
+            revisionStore.get_updates_in_revision_graph(
                 leftOfInterval=validB, rightOfInterval=validA, forward=False, startTimeInBetween=True,
                 quadPattern=quadPattern, updateParser=updateParser, revisionA=transactionTime)
 
             # Get the modifications to fastforward
-            revisionStore.get_updates_in_revision_line(
+            revisionStore.get_updates_in_revision_graph(
                 leftOfInterval=validB, rightOfInterval=validA, endTimeInBetween=True, quadPattern=quadPattern,
                 updateParser=updateParser, revisionA=transactionTime)
 
@@ -97,7 +97,7 @@ class Version(object):
             revisionStore.get_modifications_of_updates_between_revisions(transactionB, transactionA, validA,
                                                                          updateParser, quadPattern, forward=False)
             # Fastforward the updates within the transaction revisions
-            revisionStore.get_updates_in_revision_line(
+            revisionStore.get_updates_in_revision_graph(
                 date=validB, forward=True, quadPattern=quadPattern, updateParser=updateParser, revisionA=transactionB,
                 revisionB=transactionA)
 
@@ -105,7 +105,7 @@ class Version(object):
             # [b] <- [] <- [] <- [] <- [a]
             print('[b] <- [] <- [] <- [] <- [a]')
             # Rewind the updates within the transaction revisions
-            revisionStore.get_updates_in_revision_line(
+            revisionStore.get_updates_in_revision_graph(
                 date=validA, forward=False, quadPattern=quadPattern, updateParser=updateParser, revisionA=transactionA,
                 revisionB=transactionB)
 
@@ -139,6 +139,7 @@ class Version(object):
         # Get the closest snapshot
         snapshot = None
         if previousTransactionTime is None or previousValidTime is None:
+            print("Determine the closest snapshot.")
             snapshot = revisionStore.closest_snapshot(self._validTime, headRevision)
             print('snapshot ', snapshot)
 
@@ -150,10 +151,10 @@ class Version(object):
             SPARQLUpdateQuery = updateParser.modifications_to_sparql_update_query()
             self._temporalStore.execute_update_query(SPARQLUpdateQuery)
         elif snapshot is None:
-            # get all updates
-            revisionStore.get_updates_in_revision_line(revisionA=self._transactionTime, date=self._validTime,
-                                                       revisionB=previousTransactionTime, quadPattern=quadPattern,
-                                                       updateParser=updateParser)
+            # get all updates from initial revision to given revision A
+            revisionStore.get_updates_in_revision_graph(revisionA=self._transactionTime, date=self._validTime,
+                                                        revisionB=previousTransactionTime, quadPattern=quadPattern,
+                                                        updateParser=updateParser)
             modifications_in_n_quad = updateParser.modifications_to_n_quads()
             self._temporalStore.n_quads_to_store(modifications_in_n_quad)
         else:
@@ -174,13 +175,5 @@ class Version(object):
     def clear_version(self):
         self._temporalStore.reset_store()
 
-    def query_version(self, queryString, queryType, returnFormat):
-        queryType = 'SelectQuery'
-        if queryType == 'SelectQuery':
-            return self._temporalStore.execute_select_query(queryString, returnFormat)
-        elif queryType == 'AskQuery':
-            return self._temporalStore.execute_ask_query(queryString, returnFormat)
-        elif queryType == 'ConstructQuery':
-            return self._temporalStore.execute_construct_query(queryString, returnFormat)
-        elif queryType == 'DescribeQuery':
-            return self._temporalStore.execute_describe_query(queryString, returnFormat)
+    def query_version(self, queryString, returnFormat):
+        return self._temporalStore.execute_query(queryString, returnFormat)

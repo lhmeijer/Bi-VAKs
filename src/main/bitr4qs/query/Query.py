@@ -11,6 +11,21 @@ from src.main.bitr4qs.term.QuadPattern import QuadPattern
 from src.main.bitr4qs.exception import UnsupportedQuery, NonAbsoluteBaseError
 
 
+resultSetMimetypesDefault = 'application/sparql-results+json'
+askMimetypesDefault = 'application/sparql-results+json'
+rdfMimetypesDefault = 'text/turtle'
+
+resultSetMimetypes = ['application/sparql-results+xml', 'application/xml',
+                      'application/sparql-results+json', 'application/json', 'text/csv',
+                      'text/html', 'application/xhtml+xml']
+askMimetypes = ['application/sparql-results+xml', 'application/xml',
+                'application/sparql-results+json', 'application/json', 'text/html',
+                'application/xhtml+xml']
+rdfMimetypes = ['text/turtle', 'application/x-turtle', 'application/rdf+xml', 'application/xml',
+                'application/n-triples', 'application/trig', 'application/ld+json',
+                'application/json']
+
+
 class Query(object):
 
     def __init__(self, request, base=None):
@@ -35,6 +50,10 @@ class Query(object):
         return self._base
 
     @property
+    def return_format(self):
+        return self._queryType
+
+    @property
     def translated_query(self):
         return self._translatedQuery
 
@@ -55,6 +74,7 @@ class Query(object):
                 self._extract_quad_pattern(part.graph, part.term)
 
     def evaluate_query(self, revisionStore):
+        self._returnFormat = self._get_best_matching_mime_type()
         # Extract the quad pattern from SPARQL query
         self._extract_quad_pattern(self.translated_query.where)
 
@@ -94,7 +114,8 @@ class Query(object):
                 print("self._parsedQuery ", self._parsedQuery)
                 self._configure_query_dataset()
                 self._translatedQuery = translate_query(self._parsedQuery, base=self._base)
-                print("self._translatedQuery ", self._translatedQuery)
+                self._queryType = self._translatedQuery.name
+                print("self._translatedQuery ", self._translatedQuery.name)
             except ParseException:
                 print("ParseException")
                 raise UnsupportedQuery()
@@ -142,3 +163,25 @@ class Query(object):
                     self._defaultGraph = self._request.args.getlist('default-graph-uri')
                     self._namedGraph = self._request.args.getlist('named-graph-uri')
                     self._query = self._request.data.decode("utf-8")
+
+    def _get_best_matching_mime_type(self):
+        if self._queryType == 'SelectQuery':
+            mimetype_default = resultSetMimetypesDefault
+            mimetype_list = resultSetMimetypes
+        elif self._queryType == 'AskQuery':
+            mimetype_default = askMimetypesDefault
+            mimetype_list = askMimetypes
+        elif self._queryType in ['ConstructQuery', 'DescribeQuery']:
+            mimetype_default = rdfMimetypesDefault
+            mimetype_list = rdfMimetypes
+        else:
+            mimetype_default = ''
+            mimetype_list = []
+
+        match_list = [mimetype_default] + mimetype_list
+        if 'Accept' in self._request.headers:
+            mimetype = self._request.accept_mimetypes.best_match(match_list, None)
+        else:
+            mimetype = mimetype_default
+
+        return mimetype

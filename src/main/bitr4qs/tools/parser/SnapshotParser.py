@@ -7,8 +7,8 @@ class SnapshotParser(Parser):
 
     @staticmethod
     def _get_valid_revision(identifier):
-        from src.main.bitr4qs.revision.Tag import Tag
-        return Tag(URIRef(identifier))
+        from src.main.bitr4qs.revision.Snapshot import Snapshot
+        return Snapshot(URIRef(identifier))
 
     @staticmethod
     def _parse_valid_revision(revision, p, o):

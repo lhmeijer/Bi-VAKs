@@ -333,13 +333,15 @@ class RevisionStore(object):
                             startTimeInBetween=False, endTimeInBetween=False, variableName='?update'):
         timeConstrains = ""
         if date is not None:
-            timeConstrains = """OPTIONAL {{ {1} :startedAt ?startDate . }} 
+            timeConstrains = """
+            OPTIONAL {{ {1} :startedAt ?startDate . }} 
             FILTER ( !bound(?startDate) || ?startDate <= {0} )
             OPTIONAL {{ {1} :endedAt ?endDate . }}
             FILTER ( !bound(?endDate) || ?endDate >= {0} )
             """.format(date.n3(), variableName)
         elif date is None and startTimeInBetween and not endTimeInBetween:
-            timeConstrains = """{{  {2} :startedAt ?startDate .
+            timeConstrains = """
+            {{  {2} :startedAt ?startDate .
                 {2} :endedAt ?endDate .
                 FILTER (  ?startDate > {0} && ?startDate <= {1} && ?endDate > {1} )
             }} UNION {{
@@ -348,7 +350,8 @@ class RevisionStore(object):
                 FILTER (  ?startDate > {0} && ?startDate <= {1} ) }}
                 """.format(leftOfInterval.n3(), rightOfInterval.n3(), variableName)
         elif date is None and endTimeInBetween and not startTimeInBetween:
-            timeConstrains = """{{  {2} :startedAt ?startDate .
+            timeConstrains = """
+            {{  {2} :startedAt ?startDate .
                 {2} :endedAt ?endDate .
                 FILTER ( ?endDate >= {0} && ?endDate < {1} && ?startDate < {0} )
             }} UNION {{
@@ -392,8 +395,7 @@ class RevisionStore(object):
         timeConstrain = self._update_time_string(date, leftOfInterval, rightOfInterval, startTimeInBetween,
                                                  endTimeInBetween)
         updateWhere = self._valid_revisions_in_graph(revisionA=revisionA, revisionB=revisionB, queryType='SelectQuery',
-                                                     validRevisionType='Update', prefix=False,
-                                                     timeConstrain=timeConstrain)
+                                                     revisionType='update', prefix=False, timeConstrain=timeConstrain)
         construct, where = self._construct_where_for_update(quadPattern=quadPattern)
 
         content = ""
@@ -415,7 +417,7 @@ class RevisionStore(object):
         print("stringOfUpdates ", stringOfUpdates)
         updateParser.parse_aggregate(stringOfUpdates, forward)
 
-    def _valid_revisions_in_graph(self, revisionA: URIRef, validRevisionType: str, queryType: str,
+    def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str,
                                   revisionB: URIRef = None, prefix=True, timeConstrain=""):
         """
 
@@ -437,10 +439,9 @@ class RevisionStore(object):
         :return:
         """
         stringOfSnapshots = self._valid_revisions_in_graph(revisionA=headRevision, queryType='DescribeQuery',
-                                                           validRevisionType='Snapshot')
+                                                           revisionType='snapshot')
 
         snapshots = parser.SnapshotParser.parse_revisions(stringOfSnapshots, 'valid')
-        print(snapshots)
 
         referenceTime = datetime.strptime(str(validTime), "%Y-%m-%dT%H:%M:%S+02:00")
 
