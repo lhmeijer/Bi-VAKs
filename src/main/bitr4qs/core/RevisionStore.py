@@ -30,7 +30,7 @@ class RevisionStore(object):
         :return: an HEAD revision object containing all data of the HEAD Revision.
         """
         branchString = "?revision :branch {0} .".format(branch.n3()) if branch is not None else \
-            "NOT EXISTS { ?revision :branch ?branch . }"
+            "FILTER NOT EXISTS { ?revision :branch ?branch . }"
 
         SPARQLQuery = """
         PREFIX : <{0}>
@@ -83,85 +83,103 @@ class RevisionStore(object):
     def _valid_revisions_from_transaction_revision(self, transactionRevisionID, revisionType):
         return ""
 
-    def revision(self, revisionID: URIRef, revisionType: str = 'unknown', validRevision=False, transactionRevision=False):
+    def revision(self, revisionID: URIRef, transactionRevisionA, revisionType: str = 'unknown', isValidRevision=True,
+                 transactionRevisionB=None):
         """
 
         :param revisionID:
         :param revisionType:
-        :param validRevision:
-        :param transactionRevision:
+        :param isValidRevision:
+        :param transactionRevisionA:
+        :param transactionRevisionB:
         :return:
         """
-        if revisionID == 'update' and validRevision and self._config.related_update_content:
-            SPARQLQuery = """PREFIX <{0}>
-            DESCRIBE ?update
-            WHERE {{ {1} :precedingUpdate* ?update }}""".format(str(BITR4QS), revisionID.n3())
-            stringOfUpdates = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
-            return self._update(stringOfUpdates, validRevision=True, transactionRevision=False)
+        if revisionID == 'update' and isValidRevision and self._config.related_update_content:
+            pass
+            # SPARQLQuery = """PREFIX <{0}>
+            # DESCRIBE ?update
+            # WHERE {{ {1} :precedingUpdate* ?update }}""".format(str(BITR4QS), revisionID.n3())
+            # stringOfUpdates = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
+            # return self._update(stringOfUpdates, validRevision=True, transactionRevision=False)
         else:
-            SPARQLQuery = "DESCRIBE {0}".format(revisionID.n3())
+            if isValidRevision:
+                SPARQLQuery = self._valid_revision(transactionRevisionA, revisionID, revisionType, transactionRevisionB)
+            else:
+                SPARQLQuery = self._transaction_revision(transactionRevisionA, revisionID, transactionRevisionB)
             print("SPARQLQuery ", SPARQLQuery)
             stringOfRevision = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
             print("stringOfValidRevision ", stringOfRevision)
             func = getattr(self, '_' + revisionType)
-            revisions = func(stringOfRevision, validRevision, transactionRevision)
+            revisions = func(stringOfRevision, isValidRevision)
             if len(revisions) == 1:
                 for revisionID, revision in revisions.items():
                     return revision
-            elif len(revisions) == 0:
-                return Exception('revision does not exist')
             else:
                 return Exception('Not an unique identifier')
 
+    def _transaction_revision(self, transactionRevisionA, transactionRevision, transactionRevisionB=None):
+        return ""
+
+    def _valid_revision(self, transactionRevisionA, validRevision, revisionType, transactionRevisionB=None):
+
+        subQuery = self._valid_revisions_in_graph(transactionRevisionA, revisionType, queryType='SelectQuery',
+                                                  revisionB=transactionRevisionB, prefix=False)
+
+        if revisionType == 'update':
+            startQuery = "CONSTRUCT { GRAPH ?g { ?update ?p1 ?o1 }\n?update ?p2 ?o2 }"
+            extra = "{ GRAPH ?g { ?update ?p1 ?o1 } } UNION { ?update ?p2 ?o2 }"
+        else:
+            startQuery = "DESCRIBE ?{0}".format(revisionType)
+            extra = ""
+
+        SPARQLQuery = """PREFIX : <{0}>
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        {1}
+        WHERE {{ {{ {2} }}
+        FILTER ( {3} = ?{4} ) 
+        {5} }}""".format(str(BITR4QS), startQuery, subQuery, validRevision.n3(), revisionType, extra)
+        return SPARQLQuery
+
     @staticmethod
-    def _unknown(stringOfRevision: str, validRevision: bool, transactionRevision: bool):
-        if validRevision:
+    def _unknown(stringOfRevision: str, isValidRevision: bool):
+        if isValidRevision:
             revision = parser.Parser.parse_revisions(stringOfRevision, revisionName='valid')
-        elif transactionRevision:
+        else:
             revision = parser.Parser.parse_revisions(stringOfRevision, revisionName='transaction')
             print("revision ", revision)
-        else:
-            revision = None
         return revision
 
     @staticmethod
-    def _branch(stringOfBranch: str, validRevision: bool, transactionRevision: bool):
-        if validRevision:
+    def _branch(stringOfBranch: str, isValidRevision: bool):
+        if isValidRevision:
             branch = parser.BranchParser.parse_revisions(stringOfBranch, revisionName='valid')
-        elif transactionRevision:
-            branch = parser.BranchParser.parse_revisions(stringOfBranch, revisionName='transaction')
         else:
-            branch = None
+            branch = parser.BranchParser.parse_revisions(stringOfBranch, revisionName='transaction')
         return branch
 
     @staticmethod
-    def _snapshot(stringOfSnapshot: str, validRevision: bool, transactionRevision: bool):
-        if validRevision:
+    def _snapshot(stringOfSnapshot: str, isValidRevision: bool):
+        if isValidRevision:
             snapshot = parser.SnapshotParser.parse_revisions(stringOfSnapshot, revisionName='valid')
-        elif transactionRevision:
-            snapshot = parser.SnapshotParser.parse_revisions(stringOfSnapshot, revisionName='transaction')
         else:
-            snapshot = None
+            snapshot = parser.SnapshotParser.parse_revisions(stringOfSnapshot, revisionName='transaction')
         return snapshot
 
     @staticmethod
-    def _tag(stringOfTag: str, validRevision: bool, transactionRevision: bool):
-        if validRevision:
+    def _tag(stringOfTag: str, isValidRevision: bool):
+        if isValidRevision:
             tag = parser.TagParser.parse_revisions(stringOfTag, revisionName='valid')
-        elif transactionRevision:
-            tag = parser.TagParser.parse_revisions(stringOfTag, revisionName='transaction')
         else:
-            tag = None
+            tag = parser.TagParser.parse_revisions(stringOfTag, revisionName='transaction')
         return tag
 
     @staticmethod
-    def _update(stringOfUpdate: str, validRevision: bool, transactionRevision: bool):
-        if validRevision:
+    def _update(stringOfUpdate: str, isValidRevision: bool):
+        if isValidRevision:
+            print("ik kom hier in ")
             update = parser.UpdateParser.parse_revisions(stringOfUpdate, revisionName='valid')
-        elif transactionRevision:
-            update = parser.UpdateParser.parse_revisions(stringOfUpdate, revisionName='transaction')
         else:
-            update = None
+            update = parser.UpdateParser.parse_revisions(stringOfUpdate, revisionName='transaction')
         return update
 
     def check_existence(self, revisionIdentifier, revisionType):
@@ -174,16 +192,24 @@ class RevisionStore(object):
         DESCRIBE ?branch
         WHERE {{ ?branch :branchName {1} }}""".format(str(BITR4QS), branchName.n3())
         stringOfBranch = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
-        branch = parser.BranchParser.parse_revisions(stringOfBranch, revisionName='valid')
-        return branch
+        branches = parser.BranchParser.parse_revisions(stringOfBranch, revisionName='valid')
+        if len(branches) == 1:
+            for _, branch in branches.items():
+                return branch
+        else:
+            return Exception('Not an unique name')
 
     def tag_from_name(self, tagName: Literal):
         SPARQLQuery = """PREFIX : <{0}>
         DESCRIBE ?tag
         WHERE {{ ?tag :tagName {0} }}""".format(str(BITR4QS), tagName.n3())
         stringOfTag = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
-        branch = parser.TagParser.parse_revisions(stringOfTag, revisionName='valid')
-        return branch
+        tags = parser.TagParser.parse_revisions(stringOfTag, revisionName='valid')
+        if len(tags) == 1:
+            for _, tag in tags.items():
+                return tag
+        else:
+            return Exception('Not an unique name')
 
     def can_quad_be_added_or_deleted(self, quad, headRevision: URIRef, startDate: Literal = None,
                                      endDate: Literal = None, deletion=False):

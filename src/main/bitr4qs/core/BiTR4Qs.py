@@ -2,7 +2,7 @@ from .RevisionStore import RevisionStore
 from src.main.bitr4qs.namespace import BITR4QS
 from .RevisionStoreExplicit import RevisionStoreExplicit
 from .RevisionStoreImplicit import RevisionStoreImplicit
-from rdflib.term import Literal
+from rdflib.term import Literal, URIRef
 from src.main.bitr4qs.revision.HeadRevision import HeadRevision
 
 
@@ -70,15 +70,19 @@ class BiTR4Qs(object):
         :param request:
         :return:
         """
-        request.evaluate_request(self._revisionStore)
-
-        transactionRevision = request.transaction_revision_from_request()
-
-        revision = self._revisionStore.revision(revisionID, revisionType=request.type, validRevision=True)
-        modifiedRevisions = request.modifications_from_request(revision, self._revisionStore)
+        try:
+            request.evaluate_request_to_modify(self._revisionStore)
+            transactionRevision = request.transaction_revision_from_request()
+            revision = self._revisionStore.revision(revisionID, revisionType=request.type, isValidRevision=True,
+                                                    transactionRevisionA=transactionRevision.preceding_revision)
+            print("revision ", revision)
+            modifiedRevisions = request.modifications_from_request(revision, self._revisionStore)
+        except Exception as e:
+            print("e ", e)
+            raise e
 
         self._valid_revisions_to_transaction_revision(transactionRevision, modifiedRevisions)
-        self._to_revision_store(modifiedRevisions.append(transactionRevision))
+        self._to_revision_store([transactionRevision] + modifiedRevisions)
         self._head_revision(request.head_revision, transactionRevision)
 
     def revert_versioning_operation(self, revisionID, request):
@@ -88,7 +92,7 @@ class BiTR4Qs(object):
         :param request:
         :return:
         """
-        # Evaluate request
+        # Evaluate revert request
         request.evaluate_request(self._revisionStore)
 
         # Create a RevertRevision
@@ -104,7 +108,7 @@ class BiTR4Qs(object):
         validRevisions.append(validRevision)
 
         self._valid_revisions_to_transaction_revision(transactionRevision, validRevisions)
-        self._to_revision_store(validRevisions + transactionRevision)
+        self._to_revision_store([transactionRevision] + validRevisions)
         self._head_revision(request.head_revision, transactionRevision)
 
     def apply_versioning_operation(self, request):
@@ -121,6 +125,7 @@ class BiTR4Qs(object):
 
         try:
             transactionRevision = request.transaction_revision_from_request()
+            print("transactionRevision ", transactionRevision)
             validRevisions = request.valid_revisions_from_request()
         except AssertionError:
             raise Exception

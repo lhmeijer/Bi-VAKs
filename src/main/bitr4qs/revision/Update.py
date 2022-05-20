@@ -78,6 +78,7 @@ class Update(ValidRevision):
             self._modifications = []
 
         self._modifications.append(modification)
+        return None
 
     def _to_rdf_star(self, modification):
         if modification.deletion:
@@ -98,7 +99,7 @@ class Update(ValidRevision):
 
     @classmethod
     def _revision_from_data(cls, **data):
-
+        print("data ", data)
         assert 'revisionNumber' in data, "revisionNumber should be in the data of the revision"
         assert 'modifications' in data, "modifications should be in the data of the revision"
         assert 'startDate' in data, "startDate should be in the data of the revision"

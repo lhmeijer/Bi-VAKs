@@ -155,10 +155,7 @@ class Parser(object):
 
             index += 1
 
-            if str(sink.predicate) == str(RDF.type):
-                revision.identifier = sink.subject
-
-            elif str(sink.predicate) == str(BITR4QS.hash):
+            if str(sink.predicate) == str(BITR4QS.hash):
                 revision.hexadecimal_of_hash = sink.object
 
             elif str(sink.predicate) == str(BITR4QS.branchIndex):
@@ -206,10 +203,7 @@ class Parser(object):
 
             index += 1
 
-            if str(sink.predicate) == str(RDF.type):
-                revision.identifier = sink.subject
-
-            elif str(sink.predicate) == str(BITR4QS.hash):
+            if str(sink.predicate) == str(BITR4QS.hash):
                 revision.hexadecimal_of_hash = sink.object
 
             elif str(sink.predicate) == str(BITR4QS.precedingRevision):

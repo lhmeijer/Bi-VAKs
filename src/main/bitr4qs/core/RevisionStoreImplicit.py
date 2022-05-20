@@ -57,7 +57,7 @@ class RevisionStoreImplicit(RevisionStore):
                     {1} :revisionNumber ?revisionNumberA .
                     OPTIONAL {{ 
                         {1} :branch ?branch .
-                        ?branch :branchOffAt ?revision .
+                        ?branch :branchedOffAt ?revision .
                         ?branch :branchIndex ?branchIndex. 
                     }}
                     {2} :revisionNumber ?revisionNumberB .
@@ -76,7 +76,7 @@ class RevisionStoreImplicit(RevisionStore):
                     {1} :revisionNumber ?revisionNumber .
                     OPTIONAL {{ 
                         {1} :branch ?branch .
-                        ?branch :branchOffAt ?revision .
+                        ?branch :branchedOffAt ?revision .
                         ?branch :branchIndex ?branchIndex. 
                     }}
                 }}
@@ -113,7 +113,43 @@ class RevisionStoreImplicit(RevisionStore):
         {1}""".format(pair[1].n3(), filterString, variableName)
         return SPARQLString
 
-    def _valid_revisions_in_graph(self, revisionA: URIRef, validRevisionType: str, queryType: str,
+    @staticmethod
+    def _select_transaction_revision(pair, variableName='?update'):
+        if len(pair) == 3:
+            filterString = "FILTER ( ?revisionNumber <= {0} && ?revisionNumber >= {1} )".format(pair[0].n3(),
+                                                                                                pair[2].n3())
+        else:
+            filterString = "FILTER ( ?revisionNumber <= {0} )".format(pair[0].n3())
+
+        if pair[1].value == 0:
+            SPARQLString = """{0} :revisionNumber ?revisionNumber .
+            {1}
+            FILTER NOT EXISTS {{ {0} :branch ?branch }}""".format(variableName, filterString)
+        else:
+            SPARQLString = """{2} :revisionNumber ?revisionNumber .
+            {1}
+            {2} :branch ?branch .
+            ?branch :branchIndex {0} .""".format(pair[1].n3(), filterString, variableName)
+        return SPARQLString
+
+    def _transaction_revision(self, transactionRevisionA, transactionRevision, transactionRevisionB=None):
+
+        pairs = self._get_pairs_of_revision_numbers_and_branch_indices(transactionRevisionA, transactionRevisionB)
+        variable = '?revision'
+        if len(pairs) == 1:
+            unions = self._select_transaction_revision(pairs[0], variable)
+        else:
+            unions = "\nUNION\n".join("{{ {0} }}".format(self._select_transaction_revision(pair, variable)) for pair in pairs)
+
+        SPARQLQuery = """PREFIX : <{0}>
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        DESCRIBE {1}
+        WHERE {{ {2}
+        FILTER ( {3} = {1} )
+        }}""".format(str(BITR4QS), variable, unions, transactionRevision.n3())
+        return SPARQLQuery
+
+    def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str,
                                   revisionB: URIRef = None, prefix=True, timeConstrain=""):
         """
 
@@ -123,7 +159,7 @@ class RevisionStoreImplicit(RevisionStore):
         :return:
         """
         pairs = self._get_pairs_of_revision_numbers_and_branch_indices(revisionA, revisionB)
-        variable = '?{0}'.format(validRevisionType.lower())
+        variable = '?{0}'.format(revisionType)
 
         if len(pairs) == 1:
             unions = self._select_valid_revision(pairs[0], variable)
@@ -144,7 +180,7 @@ class RevisionStoreImplicit(RevisionStore):
                 ?other :preceding{3} {2}.
                 {6}
             }}
-        }}""".format(prefixString, queryString, variable, validRevisionType, unions, timeConstrain, otherUnions)
+        }}""".format(prefixString, queryString, variable, revisionType.title(), unions, timeConstrain, otherUnions)
         if prefix and queryType == 'DescribeQuery':
             stringOfValidRevisions = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
             return stringOfValidRevisions

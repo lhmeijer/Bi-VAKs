@@ -9,7 +9,7 @@ class BranchTest(unittest.TestCase):
         args = get_default_configuration()
         args['referenceStrategy'] = {'explicit': True, 'implicit': False}
         app = create_app(args).test_client()
-        response = app.post('/branch', data=dict(branchName='ChocolateRecipes', author='Yvette Post',
+        response = app.post('/branch', data=dict(name='ChocolateRecipes', author='Yvette Post',
                                                  description='Add a new branch called ChocolateRecipes.'))
         self.assertEqual(response.status_code, 200)
 
@@ -17,7 +17,7 @@ class BranchTest(unittest.TestCase):
         args = get_default_configuration()
         args['referenceStrategy'] = {'explicit': True, 'implicit': False}
         app = create_app(args).test_client()
-        response = app.post('/branch', data=dict(branchName='ChocolateRecipes', author='Veerle Groot',
+        response = app.post('/branch', data=dict(name='ChocolateRecipes', author='Veerle Groot',
                                                  branch='SweetRecipes',
                                                  description='Add a new branch called ChocolateRecipes.'))
         self.assertEqual(response.status_code, 200)
@@ -26,7 +26,7 @@ class BranchTest(unittest.TestCase):
         args = get_default_configuration()
         args['referenceStrategy'] = {'explicit': True, 'implicit': False}
         app = create_app(args).test_client()
-        response = app.post('/branch', data=dict(branchName='ChocolateRecipes', author='Marijn Bosch',
+        response = app.post('/branch', data=dict(name='ChocolateRecipes', author='Marijn Bosch',
                                                  revision='http://bi-tr4qs.org/vocab/Revision_49bvls3',
                                                  description='Add a new branch called ChocolateRecipes.'))
         self.assertEqual(response.status_code, 200)
@@ -35,7 +35,7 @@ class BranchTest(unittest.TestCase):
         args = get_default_configuration()
         args['referenceStrategy'] = {'explicit': False, 'implicit': True}
         app = create_app(args).test_client()
-        response = app.post('/branch', data=dict(branchName='ChocolateRecipes', author='Yvette Post',
+        response = app.post('/branch', data=dict(name='ChocolateRecipes', author='Yvette Post',
                                                  description='Add a new branch called ChocolateRecipes.'))
         self.assertEqual(response.status_code, 200)
 
@@ -43,7 +43,7 @@ class BranchTest(unittest.TestCase):
         args = get_default_configuration()
         args['referenceStrategy'] = {'explicit': False, 'implicit': True}
         app = create_app(args).test_client()
-        response = app.post('/branch', data=dict(branchName='ChocolateRecipes', author='Veerle Groot',
+        response = app.post('/branch', data=dict(name='ChocolateRecipes', author='Veerle Groot',
                                                  branch='SweetRecipes',
                                                  description='Add a new branch called ChocolateRecipes.'))
         self.assertEqual(response.status_code, 200)
@@ -52,7 +52,7 @@ class BranchTest(unittest.TestCase):
         args = get_default_configuration()
         args['referenceStrategy'] = {'explicit': False, 'implicit': True}
         app = create_app(args).test_client()
-        response = app.post('/branch', data=dict(branchName='ChocolateRecipes', author='Marijn Bosch',
+        response = app.post('/branch', data=dict(name='ChocolateRecipes', author='Marijn Bosch',
                                                  revision='http://bi-tr4qs.org/vocab/Revision_49bvls3',
                                                  description='Add a new branch called ChocolateRecipes.'))
         self.assertEqual(response.status_code, 200)

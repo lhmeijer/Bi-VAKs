@@ -7,6 +7,7 @@ from src.main.bitr4qs.term.Triple import Triple
 class InitialRevision(TransactionRevision):
 
     typeOfRevision = BITR4QS.InitialRevision
+    nameOfRevision = 'InitialRevision'
 
     @classmethod
     def _revision_from_data(cls, **data):

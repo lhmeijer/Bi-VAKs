@@ -100,7 +100,19 @@ class RevisionStoreExplicit(RevisionStore):
         result = self._revisionStore.execute_ask_query(SPARQLString)
         return result
 
-    def _valid_revisions_in_graph(self, revisionA: URIRef, validRevisionType: str, queryType: str,
+    def _transaction_revision(self, transactionRevisionA, transactionRevision, transactionRevisionB=None):
+        earlyStop = ""
+        if transactionRevisionB is not None:
+            earlyStop = "\n?revision :precedingRevision+ {0} .".format(transactionRevisionB.n3())
+
+        SPARQLQuery = """PREFIX : <{0}>
+        DESCRIBE ?revision
+        {{ {1} :precedingRevision* ?revision .{2}
+        FILTER ( {3} = ?revision ) }}""".format(str(BITR4QS), transactionRevisionA.n3(), earlyStop,
+                                                transactionRevision.n3())
+        return SPARQLQuery
+
+    def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str,
                                   revisionB: URIRef = None, prefix=True, timeConstrain=""):
         """
 
@@ -126,7 +138,7 @@ class RevisionStoreExplicit(RevisionStore):
                 ?otherRevision :{1} ?other .
                 ?other :preceding{5} ?{1} . 
             }}
-        }}""".format(prefixString, validRevisionType.lower(), revisionA.n3(), earlyStopA, earlyStopB, validRevisionType,
+        }}""".format(prefixString, revisionType, revisionA.n3(), earlyStopA, earlyStopB, revisionType.title(),
                      queryString, timeConstrain)
 
         if prefix and queryType == 'DescribeQuery':

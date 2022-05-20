@@ -17,30 +17,6 @@ class InitialRequest(Request):
         self._effectiveDate = None
         self._transactionRevision = None
 
-    @property
-    def effective_date(self) -> Literal:
-        return self._effectiveDate
-
-    @effective_date.setter
-    def effective_date(self, effectiveDate: Literal):
-        self._effectiveDate = effectiveDate
-
-    @property
-    def name_dataset(self) -> Literal:
-        return self._nameDataset
-
-    @name_dataset.setter
-    def name_dataset(self, nameDataset: Literal):
-        self._nameDataset = nameDataset
-
-    @property
-    def url_dataset(self) -> Literal:
-        return self._urlDataset
-
-    @url_dataset.setter
-    def url_dataset(self, urlDataset: Literal):
-        self._urlDataset = urlDataset
-
     def evaluate_request(self, revisionStore):
 
         super().evaluate_request(revisionStore)
@@ -51,22 +27,22 @@ class InitialRequest(Request):
         # Obtain the name of an already existing dataset
         nameDataset = self._request.values.get('nameDataset', None) or None
         if nameDataset is not None:
-            self.name_dataset = Literal(nameDataset)
+            self._nameDataset = Literal(nameDataset)
 
         # Obtain the url of an already existing dataset
         urlDataset = self._request.values.get('urlDataset', None) or None
         if urlDataset is not None:
-            self.url_dataset = Literal(urlDataset)
+            self._urlDataset = Literal(urlDataset)
 
         # Obtain effective date of the Snapshot
         effectiveDate = self._request.values.get('effectiveDate', None) or None
         if effectiveDate is not None:
-            self.effective_date = Literal(effectiveDate, datatype=XSD.dateTimeStamp)
+            self._effectiveDate = Literal(effectiveDate, datatype=XSD.dateTimeStamp)
         else:
-            self.effective_date = self.creation_date
+            self._effectiveDate = self._creationDate
 
-        self.revision_number = revisionStore.get_new_revision_number()
-        self.branch_index = revisionStore.get_new_branch_index()
+        self._revisionNumber = revisionStore.get_new_revision_number()
+        self._branchIndex = revisionStore.get_new_branch_index()
 
     def transaction_revision_from_request(self):
         revision = InitialRevision.revision_from_data(creationDate=self._creationDate, author=self._author,

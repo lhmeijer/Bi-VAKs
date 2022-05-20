@@ -3,7 +3,8 @@ import re
 from rdflib.plugins.parsers.ntriples import W3CNTriplesParser
 from .Parser import Parser, TripleSink
 from src.main.bitr4qs.term.Modification import Modification
-from rdflib.term import URIRef
+from rdflib.term import URIRef, Literal
+from rdflib.namespace import XSD
 
 
 class UpdateParser(Parser):
@@ -40,11 +41,10 @@ class UpdateParser(Parser):
         NTriplesParser.parsestring(stringOfTriple + " .")
         graph = UpdateParser._graph_name(NQuad, stringOfTriple)
 
-        if forward:
-            modification = sink.add_modification(graph=graph, deletion=deletion)
-        else:
+        if not forward:
             deletion = False if deletion else True
-            modification = sink.add_modification(graph=graph, deletion=deletion)
+
+        modification = sink.add_modification(graph=graph, deletion=deletion)
 
         return modification
 
@@ -60,9 +60,12 @@ class UpdateParser(Parser):
         """
         from src.main.bitr4qs.revision.Update import Update
         if revision is None:
-            revision = Update(identifier)
+            revision = Update(URIRef(identifier))
 
-        NTriplesParser = W3CNTriplesParser(sink=revision)
+        RevisionNTriplesParser = W3CNTriplesParser(sink=revision)
+
+        sink = TripleSink()
+        NTriplesParser= W3CNTriplesParser(sink=sink)
         for NQuad in NQuads:
 
             splitQuad = re.findall(r'<(.*?)>', NQuad)
@@ -73,33 +76,34 @@ class UpdateParser(Parser):
                 return revision, index
 
             if splitQuad[1] == str(BITR4QS.inserts):
-                stringOfTriple = re.search(r'<<\s(.*?)\s>>', NQuad)
-                if stringOfTriple is None:
-                    pass
-
-                stringOfTriple = stringOfTriple.group(1)
-                NTriplesParser.parsestring(stringOfTriple + " .")
-                graph = UpdateParser._graph_name(NQuad, stringOfTriple)
-                revision.add_modification(graph=graph)
+                _ = cls.parse_inserts_or_deletes(sink=revision, NQuad=NQuad)
 
             elif splitQuad[1] == str(BITR4QS.deletes):
-                stringOfTriple = re.search(r'<<\s(.*?)\s>>', NQuad)
-                if stringOfTriple is None:
-                    pass
-
-                stringOfTriple = stringOfTriple.group(1)
-                NTriplesParser.parsestring(stringOfTriple + " .")
-                graph = UpdateParser._graph_name(NQuad, stringOfTriple)
-                revision.add_modification(graph=graph, deletion=True)
+                _ = cls.parse_inserts_or_deletes(sink=revision, NQuad=NQuad, deletion=True)
 
             elif splitQuad[1] == str(BITR4QS.precedingUpdate):
-                revision.preceding_identifier = splitQuad[2]
+                NTriplesParser.parsestring(NQuad)
+                revision.preceding_identifier = sink.object
 
             elif splitQuad[1] == str(BITR4QS.startedAt):
-                revision.start_date = splitQuad[2]
+                NTriplesParser.parsestring(NQuad)
+                revision.start_date = sink.object
 
             elif splitQuad[1] == str(BITR4QS.endedAt):
-                revision.end_date = splitQuad[2]
+                NTriplesParser.parsestring(NQuad)
+                revision.end_date = sink.object
+
+            elif splitQuad[1] == str(BITR4QS.hash):
+                NTriplesParser.parsestring(NQuad)
+                revision.hexadecimal_of_hash = sink.object
+
+            elif splitQuad[1] == str(BITR4QS.branchIndex):
+                NTriplesParser.parsestring(NQuad)
+                revision.branch_index = sink.object
+
+            elif splitQuad[1] == str(BITR4QS.revisionNumber):
+                NTriplesParser.parsestring(NQuad)
+                revision.revision_number = sink.object
 
         return revision, index
 

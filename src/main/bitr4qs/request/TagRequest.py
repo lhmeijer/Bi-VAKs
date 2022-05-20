@@ -15,66 +15,56 @@ class TagRequest(Request):
         self._transactionRevision = None
         self._tagName = None
 
-    @property
-    def effective_date(self) -> Literal:
-        return self._effectiveDate
-
-    @effective_date.setter
-    def effective_date(self, effectiveDate: Literal):
-        self._effectiveDate = effectiveDate
-
-    @property
-    def transaction_revision(self) -> Literal:
-        return self._transactionRevision
-
-    @transaction_revision.setter
-    def transaction_revision(self, transactionRevision: URIRef):
-        self._transactionRevision = transactionRevision
-
-    @property
-    def tag_name(self) -> Literal:
-        return self._tagName
-
-    @tag_name.setter
-    def tag_name(self, tagName: Literal):
-        self._tagName = tagName
-
     def evaluate_request(self, revisionStore):
 
+        self.evaluate_request_to_modify(revisionStore)
+
+        if self._effectiveDate is None:
+            self._effectiveDate = self._creationDate
+
+        # TODO throw error if not all variables have a value
+
+    def evaluate_request_to_modify(self, revisionStore):
         super().evaluate_request(revisionStore)
 
-        # Obtain effective date
+        # Obtain the effective date
         effectiveDate = self._request.values.get('date', None) or None
         if effectiveDate is not None:
-            self.effective_date = Literal(effectiveDate, datatype=XSD.dateTimeStamp)
-        else:
-            self.effective_date = self.creation_date
+            self._effectiveDate = Literal(effectiveDate, datatype=XSD.dateTimeStamp)
 
         # Obtain the transaction time based on a given transaction revision
         revisionID = self._request.values.get('revision', None) or None
         if revisionID is not None:
-            transactionRevision = revisionStore.revision(revisionID=URIRef(revisionID), transactionRevision=True)
-            self.transaction_revision = transactionRevision.identifier
+            if revisionID == 'HEAD':
+                self._transactionRevision = 'HEAD'
+            else:
+                revision = revisionStore.revision(revisionID=URIRef(revisionID), isValidRevision=False,
+                                                  transactionRevisionA=self._precedingTransactionRevision)
+                self._transactionRevision = revision.identifier
 
         # Obtain the name of the tag
         name = self._request.values.get('name', None) or None
         if name is not None:
-            self.tag_name = Literal(name)
+            self._tagName = Literal(name)
 
     def transaction_revision_from_request(self):
         revision = TagRevision.revision_from_data(
             precedingRevision=self._precedingTransactionRevision, creationDate=self._creationDate, author=self._author,
             description=self._description, branch=self._branch, revisionNumber=self._revisionNumber)
 
-        if self._transactionRevision is None:
-            self.transaction_revision = revision.identifier
+        if self._transactionRevision == 'HEAD':
+            self._transactionRevision = revision.identifier
 
         return revision
 
     def valid_revisions_from_request(self):
+        print("self._tagName ", self._tagName)
+        print("self._effectiveDate ", self._effectiveDate)
+        print("self._transactionRevision ", self._transactionRevision)
         revision = Tag.revision_from_data(
             tagName=self._tagName, revisionNumber=self._revisionNumber, effectiveDate=self._effectiveDate,
             transactionRevision=self._transactionRevision, branchIndex=self._branchIndex)
+        print("revision" , revision)
         return [revision]
 
     def modifications_from_request(self, revision, revisionStore):

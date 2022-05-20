@@ -10,71 +10,38 @@ class BranchRequest(Request):
     def __init__(self, request):
         super().__init__(request)
 
-        self.branch_name = None
-        self.branched_off_revision = None
-
-    @property
-    def branch_name(self) -> Literal:
-        return self._branchName
-
-    @branch_name.setter
-    def branch_name(self, branchName: Literal):
-        self._branchName = branchName
-
-    @property
-    def branched_off_revision(self) -> URIRef:
-        return self._branchedOffRevision
-
-    @branched_off_revision.setter
-    def branched_off_revision(self, branchedOffRevision: URIRef):
-        self._branchedOffRevision = branchedOffRevision
+        self._branchName = None
+        self._branchedOffRevision = None
 
     def evaluate_request(self, revisionStore):
 
-        super().evaluate_request(revisionStore)
+        self.evaluate_request_to_modify(revisionStore)
 
-        # Obtain the name of the branch
-        branchName = self._request.values.get('branchName', None) or None
-        print("branchName ", branchName)
-        if branchName is not None:
-            self.branch_name = Literal(branchName)
-        else:
-            # TODO return an error
-            pass
+        if self._branchedOffRevision is None:
+            self._branchedOffRevision = self._precedingTransactionRevision
 
-        # Obtain the branch from which the branch branches off.
-        revisionID = self._request.values.get('revision', None) or None
-        print("revisionID ", revisionID)
-        if revisionID is not None:
-            # TODO check existence branch and revision
-            transactionRevision = revisionStore.revision(revisionID=URIRef(revisionID), transactionRevision=True)
-            print("transactionRevision ", transactionRevision)
-            self.branched_off_revision = transactionRevision.identifier
-            self.preceding_transaction_revision = transactionRevision.identifier
-            self.revision_number = revisionStore.get_new_revision_number(transactionRevision.revision_number)
-        else:
-            self.branched_off_revision = self._precedingTransactionRevision
+        self._branchIndex = revisionStore.get_new_branch_index()
+        self._headRevision = None
+        self._branch = None
 
-        self.branch_index = revisionStore.get_new_branch_index()
-        self.head_revision = None
-        self.branch = None
+        # TODO throw error if not all variables have a value
 
     def evaluate_request_to_modify(self, revisionStore):
         super().evaluate_request(revisionStore)
 
         # Obtain the name of the branch
-        branchName = self._request.values.get('branchName', None) or None
-        print("branchName ", branchName)
+        branchName = self._request.values.get('name', None) or None
         if branchName is not None:
-            self.branch_name = Literal(branchName)
+            self._branchName = Literal(branchName)
 
         # Obtain the branch from which the branch branches off.
         revisionID = self._request.values.get('revision', None) or None
         if revisionID is not None:
-            transactionRevision = revisionStore.revision(revisionID=URIRef(revisionID), transactionRevision=True)
-            self.branched_off_revision = transactionRevision.identifier
-            self.preceding_transaction_revision = transactionRevision.identifier
-            self.revision_number = revisionStore.get_new_revision_number(transactionRevision.revision_number)
+            revision = revisionStore.revision(revisionID=URIRef(revisionID), isValidRevision=False,
+                                              transactionRevisionA=self._precedingTransactionRevision)
+            self._branchedOffRevision = revision.identifier
+            self._precedingTransactionRevision = revision.identifier
+            self._revisionNumber = revisionStore.get_new_revision_number(revision.revision_number)
 
     def transaction_revision_from_request(self):
         revision = BranchRevision.revision_from_data(
@@ -84,12 +51,11 @@ class BranchRequest(Request):
         return revision
 
     def valid_revisions_from_request(self):
-        print("self._branchName ", self._branchName)
-        print("self._branchedOffRevision ", self._branchedOffRevision)
-        print('self._branchIndex ', self._branchIndex)
-        revision = Branch.revision_from_data(branchName=self._branchName, revisionNumber=self._revisionNumber,
-                                             branchedOffRevision=self._branchedOffRevision, branchIndex=self._branchIndex)
-        print("revision ", revision)
+
+        revision = Branch.revision_from_data(
+            branchName=self._branchName, revisionNumber=self._revisionNumber,
+            branchedOffRevision=self._branchedOffRevision, branchIndex=self._branchIndex)
+
         return [revision]
 
     def modifications_from_request(self, revision, revisionStore):

@@ -17,42 +17,25 @@ class UpdateRequest(Request):
         self._endDate = None
         self._modifications = None
 
-    @property
-    def start_date(self) -> Literal:
-        return self._startDate
-
-    @start_date.setter
-    def start_date(self, startDate: Literal):
-        self._startDate = startDate
-
-    @property
-    def end_date(self) -> Literal:
-        return self._endDate
-
-    @end_date.setter
-    def end_date(self, endDate: Literal):
-        self._endDate = endDate
-
-    @property
-    def modifications(self):
-        return self._modifications
-
-    @modifications.setter
-    def modifications(self, modifications):
-        self._modifications = modifications
-
     def evaluate_request(self, revisionStore):
+        self.evaluate_request_to_modify(revisionStore)
+
+    def evaluate_request_to_modify(self, revisionStore):
+
         super().evaluate_request(revisionStore)
 
         # Obtain start date
         startDate = self._request.values.get('startDate', None) or None
         if startDate is not None:
-            self.start_date = Literal(str(startDate), datatype=XSD.dateTimeStamp)
+            self._startDate = Literal(str(startDate), datatype=XSD.dateTimeStamp)
 
         # Obtain end date
         endDate = self._request.values.get('endDate', None) or None
         if endDate is not None:
-            self.end_date = Literal(str(endDate), datatype=XSD.dateTimeStamp)
+            self._endDate = Literal(str(endDate), datatype=XSD.dateTimeStamp)
+
+        # Obtain the modifications
+        self._modifications = self._request.values.get('modifications', None) or None
 
     def transaction_revision_from_request(self):
         revision = UpdateRevision.revision_from_data(
@@ -133,7 +116,7 @@ class UpdateQueryRequest(UpdateRequest):
         return None
 
     def evaluate_request(self, revisionStore):
-        super().evaluate_request(revisionStore)
+        self.evaluate_request_to_modify(revisionStore)
 
         node = self._modifications_fom_query(revisionStore)
         if node is not None:
@@ -141,12 +124,6 @@ class UpdateQueryRequest(UpdateRequest):
 
 
 class ModifiedRepeatedUpdateRequest(UpdateRequest):
-
-    def evaluate_request(self, revisionStore):
-        super().evaluate_request(revisionStore)
-
-        # Obtain the modifications
-        self._modifications = self._request.values.get('modifications', None) or None
 
     def modifications_from_request(self, revision, revisionStore):
 
@@ -166,12 +143,6 @@ class ModifiedRepeatedUpdateRequest(UpdateRequest):
 
 
 class ModifiedRelatedUpdateRequest(UpdateRequest):
-
-    def evaluate_request(self, revisionStore):
-        super().evaluate_request(revisionStore)
-
-        # Obtain the modifications
-        self._modifications = self._request.values.get('modifications', None) or None
 
     def modifications_from_request(self, revision, revisionStore):
 

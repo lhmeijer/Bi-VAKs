@@ -2,6 +2,7 @@ from src.main.bitr4qs.core.BiTR4Qs import BiTR4QsSingleton
 from src.main.bitr4qs.namespace import BITR4QS
 from flask import Blueprint, request, make_response, current_app
 import src.main.bitr4qs.request as requests
+from rdflib.term import Literal, URIRef
 
 
 versioningEndpoint = Blueprint('versioning_endpoint', __name__)
@@ -20,7 +21,8 @@ def update(updateID):
         return make_response('No update content strategy is given', 400)
 
     try:
-        update = BiTR4QsCore.apply_versioning_operation(updateRequest)
+        updateID = URIRef(str(BITR4QS) + updateID)
+        update = BiTR4QsCore.modify_versioning_operation(updateID, updateRequest)
         response = make_response('', 200)
         return response
     except Exception as e:
@@ -71,6 +73,21 @@ def snapshot(snapshotID):
     BiTR4QsCore = BiTR4QsSingleton.get(BiTR4QsConfiguration)
     snapshotRequest = requests.SnapshotRequest(request)
 
+    if snapshotID is not None:
+        try:
+            tag = BiTR4QsCore.modify_versioning_operation(tagID, tagRequest)
+            response = make_response('', 200)
+            return response
+        except Exception as e:
+            return make_response('Error after executing the tag query.', 400)
+    else:
+        try:
+            tag = BiTR4QsCore.apply_versioning_operation(tagRequest)
+            response = make_response('', 200)
+            return response
+        except Exception as e:
+            return make_response('Error after executing the tag query.', 400)
+
     try:
         snapshot = BiTR4QsCore.apply_versioning_operation(snapshotRequest)
         response = make_response('', 200)
@@ -85,6 +102,21 @@ def branch(branchID):
     BiTR4QsConfiguration = current_app.config['BiTR4QsConfiguration']
     BiTR4QsCore = BiTR4QsSingleton.get(BiTR4QsConfiguration)
     branchRequest = requests.BranchRequest(request)
+
+    if snapshotID is not None:
+        try:
+            tag = BiTR4QsCore.modify_versioning_operation(tagID, tagRequest)
+            response = make_response('', 200)
+            return response
+        except Exception as e:
+            return make_response('Error after executing the tag query.', 400)
+    else:
+        try:
+            tag = BiTR4QsCore.apply_versioning_operation(tagRequest)
+            response = make_response('', 200)
+            return response
+        except Exception as e:
+            return make_response('Error after executing the tag query.', 400)
 
     try:
         branch = BiTR4QsCore.apply_versioning_operation(branchRequest)

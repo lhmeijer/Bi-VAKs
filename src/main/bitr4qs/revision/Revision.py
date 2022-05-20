@@ -65,7 +65,7 @@ class Revision(object):
             self._RDFPatterns.append(Triple((self._identifier, BITR4QS.revisionNumber, revisionNumber)))
         self._revisionNumber = revisionNumber
 
-    def compute_hash_of_revision(self):
+    def _compute_hash_of_revision(self):
         if self._hexadecimalOfHash is None:
             self._RDFPatterns.sort(key=lambda x: x.n_quad())   # sort RDFPatterns based on lexicographic ordering
             inText = ''.join(triple.n_quad() for triple in self._RDFPatterns)
@@ -74,7 +74,7 @@ class Revision(object):
         else:
             return self._hexadecimalOfHash
 
-    def reset_RDFPatterns(self):
+    def _reset_RDFPatterns(self):
         for quad in self._RDFPatterns:
             quad.subject = self._identifier
 
@@ -82,13 +82,13 @@ class Revision(object):
         SPARQLUpdateQuery = """INSERT DATA {{ {0} }}
         """.format('\n'.join(triple.to_sparql() for triple in self._RDFPatterns))
         print(SPARQLUpdateQuery)
-        revisionStore.revision_store.execute_update_query(SPARQLUpdateQuery)
+        # revisionStore.revision_store.execute_update_query(SPARQLUpdateQuery)
 
     def delete_to_revision_store(self, revisionStore):
         SPARQLUpdateQuery = """DELETE DATA {{ {0} }}
         """.format('\n'.join(triple.to_sparql() for triple in self._RDFPatterns))
         print(SPARQLUpdateQuery)
-        revisionStore.revision_store.execute_update_query(SPARQLUpdateQuery)
+        # revisionStore.revision_store.execute_update_query(SPARQLUpdateQuery)
 
     @classmethod
     def _revision_from_request(cls, request):
@@ -97,15 +97,16 @@ class Revision(object):
     @classmethod
     def revision_from_request(cls, request):
         revision = cls._revision_from_request(request)
-        hashOfRevision = str(revision.compute_hash_of_revision())
+        hashOfRevision = str(revision._compute_hash_of_revision())
         identifierOfRevision = revision.nameOfRevision + '_' + hashOfRevision
         revision.identifier = URIRef(str(BITR4QS) + identifierOfRevision)
-        revision.reset_RDFPatterns()
+        revision._reset_RDFPatterns()
         revision.hexadecimal_of_hash = Literal(hashOfRevision)
         return revision
 
     @classmethod
     def _revision_from_data(cls, **data):
+        print("data ", data)
         assert 'revisionNumber' in data, "revisionNumber should be in the data of the revision"
         assert 'precedingRevision' in data, "precedingRevision should be in the data of the revision"
 
@@ -114,11 +115,12 @@ class Revision(object):
     @classmethod
     def revision_from_data(cls, **data):
         revision = cls._revision_from_data(**data)
-        hashOfRevision = str(revision.compute_hash_of_revision())
+        print("revision in revision from data ", revision)
+        hashOfRevision = str(revision._compute_hash_of_revision())
         identifierOfRevision = revision.nameOfRevision + '_' + hashOfRevision
         print("identifierOfRevision ", identifierOfRevision)
         revision.identifier = URIRef(str(BITR4QS) + identifierOfRevision)
-        revision.reset_RDFPatterns()
+        revision._reset_RDFPatterns()
         revision.hexadecimal_of_hash = Literal(hashOfRevision)
         return revision
 
