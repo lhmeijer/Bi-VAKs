@@ -119,7 +119,7 @@ class DMQuery(Query):
     def _apply_select_query(self, modifications):
         # Check the variables in the SPARQL query, and returns these and separate them based on insertions and deletions
         variables = self._quadPattern.get_variables()
-        results = {'head': {'vars': [var for var, _ in variables]}, 'result': {'insertions': [], 'deletions': []}}
+        results = {'head': {'vars': [var for var, _ in variables]}, 'results': {'insertions': [], 'deletions': []}}
         for modification in modifications:
             result = {}
             for variable, index in variables:

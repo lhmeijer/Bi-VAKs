@@ -75,4 +75,8 @@ class TriplePattern(object):
     def rdf_star(self):
         return "<< {0} >>".format(' '.join(element.n3() for element in self.get_triple()))
 
+    def to_select_query(self):
+        SPARQLQuery = """SELECT {0}
+        WHERE {{ {1} }}""".format(' '.join(variable[0] for variable in self.get_variables()), self.to_sparql())
+
 
