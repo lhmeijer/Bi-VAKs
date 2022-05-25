@@ -5,6 +5,7 @@ from flask import Blueprint, request, make_response, current_app
 from src.main.bitr4qs.exception import UnsupportedQuery, NonAbsoluteBaseError, SparqlProtocolError
 import src.main.bitr4qs.query as queries
 from src.main.bitr4qs.request.UpdateRequest import UpdateQueryRequest
+from .VersioningEndpoint import versioning_operation
 
 SPARQLEndpoint = Blueprint('sparql_endpoint', __name__)
 
@@ -46,7 +47,10 @@ def sparql_query():
         queryResponse = BiTR4QsCore.apply_query(query)
         print("queryResponse ", queryResponse)
         response = make_response(queryResponse, 200)
-        response.headers['Content-Type'] = query.return_format
+        if query.return_format:
+            response.headers['Content-Type'] = query.return_format
+        if query.number_of_processed_quads:
+            response.headers['N-ProcessedQuads'] = query.number_of_processed_quads
         return response
     except Exception as e:
         return make_response('Error after executing the SPARQL query.', 400)
@@ -54,9 +58,6 @@ def sparql_query():
 
 @SPARQLEndpoint.route("/update", methods=['POST'])
 def sparql_update():
-    BiTR4QsConfiguration = current_app.config['BiTR4QsConfiguration']
-    BiTR4QsCore = BiTR4QsSingleton.get(BiTR4QsConfiguration)
-
     try:
         updateQuery = UpdateQuery(request=request, base=str(BITR4QS))
         updateQuery.translate_query()
@@ -68,9 +69,4 @@ def sparql_update():
         return make_response('Sparql Protocol Error', 400)
 
     updateRequest = UpdateQueryRequest(updateQuery=updateQuery)
-    try:
-        update = BiTR4QsCore.apply_versioning_operation(updateRequest)
-        response = make_response('', 200)
-        return response
-    except Exception as e:
-        return make_response('Error after executing the update query.', 400)
+    return versioning_operation(revisionRequest=updateRequest)

@@ -2,9 +2,10 @@ import json
 import re
 from rdflib import URIRef, Literal
 import numpy as np
+from .preprocess_BEAR_B import get_queries_from_nt_file
 
 
-class EvaluationCreator(object):
+class Evaluator(object):
 
     def __init__(self, application, config):
         self._application = application
@@ -13,6 +14,10 @@ class EvaluationCreator(object):
         self._queries = get_queries_from_nt_file(self._config.bear_queries_file_name)
 
     def evaluate(self):
+        """
+
+        :return:
+        """
         timePerQuery = []
         triplesPerQuery = []
 
@@ -45,12 +50,17 @@ class EvaluationCreator(object):
         trueResults = self._extract_vm_results_from_file('{0}-{1}.txt'.format(self._config.bear_results_dir, queryIndex))
 
         time = []
-        nOfTriples = []
+        totalNumberOfTriples = []
 
         for i in range(self._config.NUMBER_OF_VERSIONS + 1):
             results = self._application.get('/query', query_string=dict(
                 query=query.to_select_query(), queryAtomType='VM', tag='version {0}'.format(i)),
                                             headers=dict(accept="application/sparql-results+json"))
+
+            # Obtain the number of triples it needed to construct the given version.
+            numberOfTriples = results.headers['N-ProcessedQuads']
+            totalNumberOfTriples.append(numberOfTriples)
+
             jsonResults = json.loads(results.read().decode("utf-8"))
             for jsonResult in jsonResults['results']['bindings']:
                 try:
@@ -58,7 +68,7 @@ class EvaluationCreator(object):
                 except Exception:
                     raise Exception
 
-        return time, nOfTriples
+        return time, totalNumberOfTriples
 
     def _evaluate_dm_query(self, queryIndex, query):
 
@@ -66,12 +76,17 @@ class EvaluationCreator(object):
         jumps = list(range(0, self._config.NUMBER_OF_VERSIONS, 5)) + [self._config.NUMBER_OF_VERSIONS]
 
         time = []
-        nOfTriples = []
+        totalNumberOfTriples = []
 
         for i in jumps:
             results = self._application.get('/query', query_string=dict(
                 query=query.to_select_query(), queryAtomType='DM', tagA='version 0', tagB='version {0}'.format(i)),
                                headers=dict(accept="application/sparql-results+json"))
+
+            # Obtain the number of triples it needed to obtain the insertions and deletions between to versions.
+            numberOfTriples = results.headers['N-ProcessedQuads']
+            totalNumberOfTriples.append(numberOfTriples)
+
             jsonResults = json.loads(results.read().decode("utf-8"))
 
             for jsonResult in jsonResults['results']['insertions']:
@@ -86,23 +101,26 @@ class EvaluationCreator(object):
                 except Exception:
                     raise Exception
 
-        return time, nOfTriples
+        return time, totalNumberOfTriples
 
     def _evaluate_vq_query(self, queryIndex, query):
         realResults = self._extract_vq_results_from_file('{0}-{1}.txt'.format(self._config.bear_results_dir, queryIndex))
 
         time = []
-        nOfTriples = []
 
         results = self._application.get('/query', query_string=dict(query=query.to_select_query(), queryAtomType='VQ'),
                                         headers=dict(accept="application/sparql-results+json"))
+
+        # Obtain the number of triples it needed to obtain all versions which give an answer for query x.
+        numberOfTriples = results.headers['N-ProcessedQuads']
+
         jsonResults = json.loads(results.read().decode("utf-8"))
 
         for variableName, variableResult in jsonResults.items():
             if variableResult['value'] not in realResults:
                 raise Exception
 
-        return time, nOfTriples
+        return time, numberOfTriples
 
     def _compare_results(self, jsonResult, trueResults):
         result = []
@@ -161,7 +179,7 @@ class EvaluationCreator(object):
 
     @staticmethod
     def _extract_vq_results_from_file(fileName):
-        return EvaluationCreator._extract_vm_results_from_file(fileName)
+        return Evaluator._extract_vm_results_from_file(fileName)
 
 
 

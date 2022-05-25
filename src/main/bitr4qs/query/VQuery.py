@@ -10,23 +10,11 @@ class VQuery(Query):
         super().__init__(request, base)
 
         self._tags = None
-        self._validTime = None
+        self._headRevision = None
 
     @property
-    def valid_time(self) -> Literal:
-        return self._validTime
-
-    @valid_time.setter
-    def valid_time(self, validTime: Literal):
-        self._validTime = validTime
-
-    @property
-    def tags(self) -> Literal:
-        return self._tags
-
-    @tags.setter
-    def tags(self, tags: Literal):
-        self._tags = tags
+    def return_format(self):
+        return 'application/json'
 
     def evaluate_query(self, revisionStore):
         super().evaluate_query(revisionStore)
@@ -43,24 +31,24 @@ class VQuery(Query):
 
         # Obtain the head of the transaction revisions
         try:
-            headRevision = revisionStore.head_revision(branch)
+            self._headRevision = revisionStore.head_revision(branch)
         except Exception as e:
             raise e
 
         # Get all tags from the revision graph also specified from a branch (ordered on transaction time)
-        self._tags = revisionStore.tags_in_revision_line(revisionA=headRevision)
+        self._tags = revisionStore.tags_in_revision_line(revisionA=self._headRevision.preceding_revision)
         # TODO check whether we obtain a list of tags
 
-        # Set a specific effective date for all tags
-        effectiveDate = self._request.values.get('date', None) or None
-        if effectiveDate is not None:
-            self._validTime = Literal(str(effectiveDate), datatype=XSD.dateTimeStamp)
-
     def apply_query(self, revisionStore):
-        # effective date of query is leading compare to tag effective date
-        responses = {}
+        """
+
+        :param revisionStore:
+        :return:
+        """
+        results = {"head": {"vars": ["tagName", "response"]}, "results": {"bindings": []}}
         # Initialise the version
-        version = Version(None, None)
+        version = Version(validTime=None, transactionTime=None, revisionStore=revisionStore,
+                          quadPattern=self._quadPattern)
 
         previousTransactionTime = None
         previousValidTime = None
@@ -68,18 +56,21 @@ class VQuery(Query):
         for tag in self._tags:
 
             version.transaction_time = tag.transaction_revision
+            version.valid_time = tag.valid_time
 
-            if self._validTime is None:
-                version.valid_time = tag.valid_time
-            else:
-                version.valid_time = self._validTime
-
-            version.retrieve_version(revisionStore=revisionStore, previousTransactionTime=previousTransactionTime,
-                                     previousValidTime=previousValidTime, quadPattern=self._quadPattern)
+            version.retrieve_version(previousTransactionTime=previousTransactionTime,
+                                     previousValidTime=previousValidTime,
+                                     headRevision=self._headRevision.preceding_revision)
             response = version.query_version(self._query, self._returnFormat)
-            responses[tag.tag_name] = response
+
+            result = {"tagName": {"type": "literal", "value": tag.tag_name.value},
+                      "response": {"type": self._returnFormat, "value": response}}
+            results["results"]["bindings"].append(result)
 
             previousTransactionTime = version.transaction_time
             previousValidTime = version.valid_time
 
-        return responses
+        # Set the number of processed quads to construct all versions
+        self._numberOfProcessedQuads = version.number_of_processed_quads()
+
+        return results

@@ -81,9 +81,9 @@ class UpdateQueryRequest(UpdateRequest):
         :param deletion:
         :return:
         """
-        canBeAdded = revisionStore.can_quad_be_added_or_deleted(quad=quad, deletion=deletion, endDate=self._endDate,
-                                                                headRevision=self._precedingTransactionRevision,
-                                                                startDate=self._startDate)
+        canBeAdded = revisionStore.can_quad_be_added_or_deleted(
+            quad=quad, deletion=deletion, endDate=self._endDate, headRevision=self._precedingTransactionRevision,
+            startDate=self._startDate)
         return canBeAdded
 
     def _evaluate_insert_or_delete_data(self, update, revisionStore, deletion=False):

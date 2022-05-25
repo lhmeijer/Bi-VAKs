@@ -60,17 +60,16 @@ class TriplePattern(object):
         return ' '.join(element.n3() for element in self.get_triple()) + ' .'
 
     def to_query_via_insert_update(self, construct=True, subjectName='?update'):
-        return self.to_query_via_update(':inserts', construct, subjectName)
+        return "{0} :inserts {1} .".format(subjectName, self.rdf_star())
 
     def to_query_via_delete_update(self, construct=True, subjectName='?update'):
-        return self.to_query_via_update(':deletes', construct, subjectName)
+        return "{0} :deletes {1} .".format(subjectName, self.rdf_star())
 
-    def to_query_via_update(self, predicate, construct=True, subjectName='?update'):
-        queryString = "{2} {0} {1} .".format(predicate, self.rdf_star(), subjectName)
-        return queryString
+    def to_query_via_unknown_update(self, construct=True, subjectName='?update'):
+        return "{0} ?p {1} .".format(subjectName, self.rdf_star())
 
     def n3(self):
-        pass
+        return ' '.join(element.n3() for element in self.get_triple()) + ' .'
 
     def rdf_star(self):
         return "<< {0} >>".format(' '.join(element.n3() for element in self.get_triple()))
@@ -78,5 +77,33 @@ class TriplePattern(object):
     def to_select_query(self):
         SPARQLQuery = """SELECT {0}
         WHERE {{ {1} }}""".format(' '.join(variable[0] for variable in self.get_variables()), self.to_sparql())
+        return SPARQLQuery
 
+    def matches(self, triple):
+
+        if not isinstance(self._subject, Variable):
+            if self._subject.n3() != triple.subject.n3():
+                return False
+        if not isinstance(self._predicate, Variable):
+            if self._predicate.n3() != triple.predicate.n3():
+                return False
+        if not isinstance(self._object, Variable):
+            if self._object.n3() != triple.object.n3():
+                return False
+        return True
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            if self._subject.n3() != other.subject.n3():
+                return False
+            if self._predicate.n3() != other.predicate.n3():
+                return False
+            if self._object.n3() != other.predicate.n3():
+                return False
+            return True
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 

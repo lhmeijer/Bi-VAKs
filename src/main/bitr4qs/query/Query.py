@@ -40,6 +40,11 @@ class Query(object):
         self._quadPattern = None
         self._queryType = None
         self._returnFormat = None
+        self._numberOfProcessedQuads = None
+
+    @property
+    def number_of_processed_quads(self):
+        return self._numberOfProcessedQuads
 
     @property
     def request(self):
@@ -51,7 +56,7 @@ class Query(object):
 
     @property
     def return_format(self):
-        return self._queryType
+        return self._returnFormat
 
     @property
     def translated_query(self):
@@ -74,7 +79,14 @@ class Query(object):
                 self._extract_quad_pattern(part.graph, part.term)
 
     def evaluate_query(self, revisionStore):
+        """
+
+        :param revisionStore:
+        :return:
+        """
         self._returnFormat = self._get_best_matching_mime_type()
+        if not self._returnFormat:
+            raise Exception
         # Extract the quad pattern from SPARQL query
         self._extract_quad_pattern(self.translated_query.where)
 

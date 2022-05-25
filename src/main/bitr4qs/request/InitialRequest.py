@@ -17,6 +17,14 @@ class InitialRequest(Request):
         self._effectiveDate = None
         self._transactionRevision = None
 
+    @property
+    def transaction_revision(self):
+        return self._transactionRevision
+
+    @property
+    def revision_number(self):
+        return self._revisionNumber
+
     def evaluate_request(self, revisionStore):
 
         super().evaluate_request(revisionStore)

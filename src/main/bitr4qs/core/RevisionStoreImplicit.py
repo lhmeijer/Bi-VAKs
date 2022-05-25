@@ -265,6 +265,19 @@ class RevisionStoreImplicit(RevisionStore):
         print("stringOfUpdates ", stringOfUpdates)
         updateParser.parse_aggregate(stringOfUpdates, forward)
 
+    def _transaction_revision_from_valid_revision(self, validRevisionID, revisionType):
+        # TODO
+        SPARQLQuery = """PREFIX : <{0}>
+        DESCRIBE ?revision
+        WHERE {{ 
+            {1} :branchIndex ?branchIndex .
+            {1} :revisionNumber ?revisionNumber .
+            OPTIONAL {{ ?branch :branchIndex ?branchIndex }}
+            ?revision :revisionNumber ?revisionNumber .
+        
+        ?revision :{1} {2} }}""".format(str(BITR4QS), revisionType, validRevisionID.n3())
+        return SPARQLQuery
+
     def _valid_revisions_from_transaction_revision(self, transactionRevisionID, revisionType):
         SPARQLQuery = """PREFIX : <{0}>
         DESCRIBE ?revision

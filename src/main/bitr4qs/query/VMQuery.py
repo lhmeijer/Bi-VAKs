@@ -15,12 +15,12 @@ class VMQuery(Query):
         self._headRevision = None
 
     @property
-    def head_revision(self) -> URIRef:
+    def head_revision(self):
         return self._headRevision
 
-    @head_revision.setter
-    def head_revision(self, headRevision: URIRef):
-        self._headRevision = headRevision
+    # @head_revision.setter
+    # def head_revision(self, headRevision: URIRef):
+    #     self._headRevision = headRevision
 
     @property
     def transaction_time(self) -> URIRef:
@@ -95,14 +95,25 @@ class VMQuery(Query):
         print("self._validTime ", self._validTime)
 
     def apply_query(self, revisionStore):
+        """
+
+        :param revisionStore:
+        :return:
+        """
         # Initialise the state or version of the RDF dataset
-        version = Version(validTime=self._validTime, transactionTime=self._transactionTime)
+        version = Version(validTime=self._validTime, transactionTime=self._transactionTime,
+                          quadPattern=self._quadPattern, revisionStore=revisionStore)
+
         # Construct the version or state of the RDF dataset
-        version.retrieve_version(headRevision=self._headRevision.preceding_revision, revisionStore=revisionStore,
-                                 quadPattern=self._quadPattern)
+        version.retrieve_version(headRevision=self._headRevision.preceding_revision)
+
+        # Set the number of processed quads to construct the version
+        self._numberOfProcessedQuads = version.number_of_processed_quads()
+
         # Apply the query to the version
         response = version.query_version(self._query, self._returnFormat)
         print("response ", response)
+
         # Reset the temporal quad store
         version.clear_version()
         return response

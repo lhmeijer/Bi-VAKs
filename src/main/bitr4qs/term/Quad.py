@@ -27,10 +27,18 @@ class Quad(Triple):
     def __hash__(self):
         return hash((self._subject, self._predicate, self._object, self._graph))
 
-    def to_query_via_update(self, predicate, construct=True, subjectName='?update'):
-        queryString = "GRAPH {0} {{ {3} {1} {2} }}".format(self._graph.n3(), predicate, self.rdf_star(), subjectName)
+    def to_query_via_unknown_update(self, construct=True, subjectName='?update'):
+        queryString = "GRAPH {0} {{ {1} ?p {2} }}".format(self._graph.n3(), subjectName, self.rdf_star())
         return queryString
 
     def to_sparql(self):
         return "GRAPH {0} {{ {1} }}".format(self._graph.n3(), ' '.join(element.n3() for element in self.get_triple()))
+
+    def __eq__(self, other):
+        equals = super().__eq__(other)
+        if not equals:
+            return False
+        if self._graph.n3() != other._graph.n3():
+            return False
+        return True
 

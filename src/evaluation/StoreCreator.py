@@ -1,6 +1,7 @@
 from rdflib.plugins.parsers.ntriples import W3CNTriplesParser
 from src.main.bitr4qs.tools.parser.Parser import TripleSink
 import numpy as np
+import gzip
 
 
 class StoreCreator(object):
@@ -55,47 +56,99 @@ class StoreCreator(object):
                 name='version {0}'.format(str(self._versionNumber)), author='Jeroen Klein',
                 date=self._config.QUERY_TIME, description='Add a new tag.', revision='HEAD', branch=branch))
 
-    def _send_updates(self, updateData):
+    def _read_modifications_file(self, fileName, deletion=False):
 
-        fileName = '{0}{1}'.format(self._modificationsFolder, updateData[self._updateIndex][1])
-        startIndex = 1
-        endIndex = updateData[self._updateIndex][3]
-
-        modifications = []
         sink = TripleSink()
         NTriplesParser = W3CNTriplesParser(sink=sink)
+        modifications = []
 
-        with open(fileName, 'r') as file:
+        with gzip.open('{0}{1}'.format(self._modificationsFolder, fileName), 'rt') as file:
             for line in file:
-
-                tripleString = ''.join(line[6:])
-                deletion = True if line[2] == 'deleted' else False
-                NTriplesParser.parsestring(tripleString)
+                NTriplesParser.parsestring(line)
                 modification = sink.add_modification(deletion=deletion)
                 modifications.append(modification)
+        return modifications
 
-                if startIndex == endIndex:
-                    SPARQLUpdateQuery = self._update_sparql_from_modifications(modifications)
-                    updateID = self._application.post('/update', data=dict(
-                        update=SPARQLUpdateQuery, author='Tom de Vries', startDate=updateData[self._updateIndex][4],
-                        endDate=updateData[self._updateIndex][5], description='Add new update.', branch=self._branch))
-                    self._updateIDs.append(updateID)
+    def _send_updates(self, updateData):
+        addedFileName = 'data-added_{0}.nt.gz'.format(updateData[self._updateIndex][1])
+        deletedFileName = 'data-deleted_{0}.nt.gz'.format(updateData[self._updateIndex][1])
 
-                    endIndex = updateData[self._updateIndex][3]
-                    self._updateIndex += 1
+        insertions = self._read_modifications_file(addedFileName)
+        deletions = self._read_modifications_file(deletedFileName, deletion=True)
+        totalTriples = len(insertions) + len(deletions)
 
-                    if self._config.NUMBER_UPDATES_TO_MODIFIED_UPDATE is not None \
-                            and self._updateIndex % self._config.NUMBER_UPDATES_TO_MODIFIED_UPDATE == 0:
+        index = 0
+        while index <= totalTriples:
 
-                        if self._config.FROM_LAST_X_UPDATES is not None:
-                            randomInt = np.random.randint(self._updateIndex - self._config.FROM_LAST_X_UPDATES,
-                                                          self._updateIndex)
-                        else:
-                            randomInt = np.random.randint(1, self._updateIndex)
-                        updateID = self._application.post('/update/{0}'.format(self._updateIDs[randomInt]), data=dict(
-                            author='Tom de Vries', description='Modify update.', branch=self._branch))
+            updateInsertions = [insertions[int(i)] for i in updateData[self._updateIndex][2].split('-')]
+            updateDeletions = [deletions[int(i)] for i in updateData[self._updateIndex][3].split('-')]
+            index += len(updateDeletions) + len(updateInsertions)
 
-                startIndex += 1
+            startDate = '' if updateData[self._updateIndex][4] == 'unknown' else updateData[self._updateIndex][4]
+            endDate = '' if updateData[self._updateIndex][5] == 'unknown' else updateData[self._updateIndex][5]
+            SPARQLUpdateQuery = self._update_sparql_from_modifications(updateInsertions + updateDeletions)
+
+            updateID = self._application.post('/update', data=dict(
+                update=SPARQLUpdateQuery, author='Tom de Vries', startDate=startDate, endDate=endDate,
+                description='Add new update.', branch=self._branch))
+            self._updateIDs.append(updateID)
+
+            self._updateIndex += 1
+            if self._config.NUMBER_UPDATES_TO_MODIFIED_UPDATE is not None \
+                    and self._updateIndex % self._config.NUMBER_UPDATES_TO_MODIFIED_UPDATE == 0:
+
+                if self._config.FROM_LAST_X_UPDATES is not None:
+                    randomInt = np.random.randint(self._updateIndex - self._config.FROM_LAST_X_UPDATES,
+                                                  self._updateIndex)
+                else:
+                    randomInt = np.random.randint(1, self._updateIndex)
+                updateID = self._application.post('/update/{0}'.format(self._updateIDs[randomInt]), data=dict(
+                    author='Tom de Vries', description='Modify update.', branch=self._branch))
+
+
+    # def _send_updates(self, updateData):
+    #
+    #     fileName = '{0}{1}'.format(self._modificationsFolder, updateData[self._updateIndex][1])
+    #     startIndex = 1
+    #     endIndex = updateData[self._updateIndex][3]
+    #
+    #     modifications = []
+    #     sink = TripleSink()
+    #     NTriplesParser = W3CNTriplesParser(sink=sink)
+    #
+    #     with open(fileName, 'r') as file:
+    #         for line in file:
+    #
+    #             tripleString = ''.join(line[6:])
+    #             deletion = True if line[2] == 'deleted' else False
+    #             NTriplesParser.parsestring(tripleString)
+    #             modification = sink.add_modification(deletion=deletion)
+    #             modifications.append(modification)
+    #
+    #             if startIndex == endIndex:
+    #                 startDate = '' if updateData[self._updateIndex][4] == 'unknown' else updateData[self._updateIndex][4]
+    #                 endDate = '' if updateData[self._updateIndex][5] == 'unknown' else updateData[self._updateIndex][5]
+    #                 SPARQLUpdateQuery = self._update_sparql_from_modifications(modifications)
+    #                 updateID = self._application.post('/update', data=dict(
+    #                     update=SPARQLUpdateQuery, author='Tom de Vries', startDate=startDate, endDate=endDate,
+    #                     description='Add new update.', branch=self._branch))
+    #                 self._updateIDs.append(updateID)
+    #
+    #                 endIndex = updateData[self._updateIndex][3]
+    #                 self._updateIndex += 1
+    #
+    #                 if self._config.NUMBER_UPDATES_TO_MODIFIED_UPDATE is not None \
+    #                         and self._updateIndex % self._config.NUMBER_UPDATES_TO_MODIFIED_UPDATE == 0:
+    #
+    #                     if self._config.FROM_LAST_X_UPDATES is not None:
+    #                         randomInt = np.random.randint(self._updateIndex - self._config.FROM_LAST_X_UPDATES,
+    #                                                       self._updateIndex)
+    #                     else:
+    #                         randomInt = np.random.randint(1, self._updateIndex)
+    #                     updateID = self._application.post('/update/{0}'.format(self._updateIDs[randomInt]), data=dict(
+    #                         author='Tom de Vries', description='Modify update.', branch=self._branch))
+    #
+    #             startIndex += 1
 
     @staticmethod
     def _update_sparql_from_modifications(modifications):

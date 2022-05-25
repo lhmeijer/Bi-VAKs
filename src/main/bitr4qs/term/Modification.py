@@ -27,3 +27,16 @@ class Modification(object):
             self._deletion = False
         else:
             self._deletion = True
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            if self._value != other.value:
+                return False
+            if self._deletion != other.deletion:
+                return False
+            return True
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

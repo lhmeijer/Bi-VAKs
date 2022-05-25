@@ -21,16 +21,11 @@ class Update(ValidRevision):
     nameOfRevision = 'Update'
     predicateOfPrecedingRevision = BITR4QS.precedingUpdate
 
-    def __init__(self, identifier=None,
-                 precedingRevision=None,
-                 hexadecimalOfHash=None,
-                 modifications=None,
-                 startDate=None,
-                 endDate=None,
-                 revisionNumber=None,
-                 branchIndex=None):
-        super().__init__(identifier=identifier, precedingRevision=precedingRevision,
-                         hexadecimalOfHash=hexadecimalOfHash, revisionNumber=revisionNumber, branchIndex=branchIndex)
+    def __init__(self, identifier=None, precedingRevision=None, hexadecimalOfHash=None, modifications=None,
+                 startDate=None, endDate=None, revisionNumber=None, branchIndex=None):
+
+        super().__init__(identifier=identifier, precedingRevision=precedingRevision, branchIndex=branchIndex,
+                         hexadecimalOfHash=hexadecimalOfHash, revisionNumber=revisionNumber)
         self.modifications = modifications
         self.start_date = startDate
         self.end_date = endDate
@@ -43,7 +38,7 @@ class Update(ValidRevision):
 
     @modifications.setter
     def modifications(self, modifications):
-        if modifications is not None:
+        if modifications is not None and len(modifications) > 0:
             self._RDFPatterns.extend([self._to_rdf_star(modification) for modification in modifications])
         self._modifications = modifications
 
@@ -87,14 +82,14 @@ class Update(ValidRevision):
             elif isinstance(modification.value, Triple):
                 value = RDFStarTriple((self._identifier, BITR4QS.deletes, modification.value))
             else:
-                pass
+                raise Exception
         else:
             if isinstance(modification.value, Quad):
                 value = RDFStarQuad((self._identifier, BITR4QS.inserts, modification.value))
             elif isinstance(modification.value, Triple):
                 value = RDFStarTriple((self._identifier, BITR4QS.inserts, modification.value))
             else:
-                pass
+                raise Exception
         return value
 
     @classmethod
@@ -108,27 +103,64 @@ class Update(ValidRevision):
 
         return cls(**data)
 
-    @classmethod
-    def _revision_from_request(cls, request):
-        return cls(modifications=request.modifications, startDate=request.start_date, endDate=request.end_date,
-                   precedingRevision=request.preceding_valid_revision, revisionNumber=request.revision_number,
-                   branchIndex=request.branch_index)
-
-    def modify(self, revisionStore, otherModifications=None, otherStartDate=None, otherEndDate=None,
-               revisionNumber=None, branchIndex=None, relatedContent=True):
+    def modify(self, revisionStore, headRevision, otherModifications=None, otherStartDate=None, otherEndDate=None,
+               revisionNumber=None, branchIndex=None, relatedContent=False):
 
         startDate = otherStartDate if otherStartDate is not None else self._startDate
         endDate = otherEndDate if otherEndDate is not None else self._endDate
 
+        # Nothing has been changed so no need for a modified update
+        if startDate == self._startDate and endDate == self._endDate and not otherModifications:
+            return None
+
+        # Check if the update content is related
+        if relatedContent:
+            precedingModifications = revisionStore.preceding_modifications(self._identifier)
+            self._modifications.extend(precedingModifications)
+
+        transactionRevision = revisionStore.transaction_from_valid_and_valid_from_transaction(
+            self._identifier, transactionFromValid=True, revisionType='update')
+
+        newModifications = []
         if otherModifications is not None:
-            updates = ...
-            # Add and delete these updates from the snapshot
-            modifications = ...
+
+            # Check whether the existing modifications can be changed
+            for otherModification in otherModifications:
+                canBeAdded = False
+                index = None
+                for i in range(len(self._modifications)):
+                    if otherModification.value == self._modifications[i].value:
+                        if otherModification.deletion and self._modifications[i].insertion:
+                            canBeAdded = revisionStore.can_quad_be_modified(quad=otherModification.value, revisionA=transactionRevision,
+                                                                            revisionB=headRevision, startDate=startDate, endDate=endDate)
+                            index = i
+                        elif otherModification.insertion and self._modifications[i].deletion:
+                            canBeAdded = revisionStore.can_quad_be_modified(
+                                quad=otherModification.value, revisionA=transactionRevision, revisionB=headRevision,
+                                startDate=startDate, endDate=endDate)
+                            index = i
+                        elif otherModification.deletion and self._modifications[i].deletion:
+                            canBeAdded = False
+                        else:
+                            canBeAdded = False
+
+                if index and canBeAdded:
+                    _ = self._modifications.pop(index)
+                    newModifications.append(otherModification)
+                else:
+                    raise Exception
+
+        for modification in self._modifications:
+            canBeModified = revisionStore.can_quad_be_modified(
+                quad=modification.value, revisionA=transactionRevision, revisionB=headRevision, startDate=startDate,
+                endDate=endDate)
+            if not canBeModified:
+                raise Exception
+
+        if relatedContent:
+            modifications = newModifications
         else:
-            if relatedContent:
-                modifications = None
-            else:
-                modifications = self._modifications
+            modifications = self._modifications + newModifications
 
         modifiedUpdate = Update.revision_from_data(
             modifications=modifications, branchIndex=branchIndex, startDate=startDate, endDate=endDate,
@@ -138,11 +170,32 @@ class Update(ValidRevision):
     def revert(self, revisionStore, revisionNumber=None, branchIndex=None, relatedContent=True):
         # Check whether there exists a preceding snapshot
         if self._precedingRevision is not None:
-            # Get the preceding snapshot
-            otherUpdate = ...
-            revertedUpdate = self.modify()
+            # Get the preceding update
+            otherUpdate = revisionStore.preceding_revision(self._identifier, revisionType='update')
+            if relatedContent:
+                for modification in self._modifications:
+                    modification.invert()
+            else:
+                previousModifications = []
+                for otherModification in otherUpdate.modifications:
+                    index = None
+                    for i in range(len(self._modifications)):
+                        if otherModification == self._modifications[i]:
+                            index = i
+                    if index:
+                        _ = self._modifications.pop(index)
+                    else:
+                        previousModifications.append(otherModification)
+                self._modifications.extend(previousModifications)
+
+            revertedUpdate = self.modify(revisionNumber=revisionNumber, branchIndex=branchIndex,
+                                         otherStartDate=otherUpdate.start_date, otherEndDate=otherUpdate.end_date,
+                                         otherModifications=self._modifications, headRevision=...,
+                                         relatedContent=relatedContent, revisionStore=revisionStore)
         else:
             if relatedContent:
+                precedingModifications = revisionStore.preceding_modifications(self._identifier)
+                self._modifications.extend(precedingModifications)
                 for modification in self._modifications:
                     modification.invert()
             else:

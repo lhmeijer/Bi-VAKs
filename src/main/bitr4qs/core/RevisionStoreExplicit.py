@@ -81,7 +81,7 @@ class RevisionStoreExplicit(RevisionStore):
         :param revisionB:
         :return:
         """
-        tags = self._valid_revisions_in_graph(revisionA=revisionA, validRevisionType='Tag', revisionB=revisionB,
+        tags = self._valid_revisions_in_graph(revisionA=revisionA, revisionType='tag', revisionB=revisionB,
                                               queryType='DescribeQuery')
         tagRevisions = self._tag_revisions_in_revision_graph(revisionA, revisionB)
         tags = parser.TagParser.parse_sorted_explicit(tags, tagRevisions, endRevision=revisionA)
@@ -148,6 +148,12 @@ class RevisionStoreExplicit(RevisionStore):
         else:
             return SPARQLQuery
 
+    def _transaction_revision_from_valid_revision(self, validRevisionID, revisionType):
+        SPARQLQuery = """PREFIX : <{0}>
+        DESCRIBE ?revision
+        WHERE {{ ?revision :{1} {2} }}""".format(str(BITR4QS), revisionType, validRevisionID.n3())
+        return SPARQLQuery
+
     def _valid_revisions_from_transaction_revision(self, transactionRevisionID, revisionType):
         if revisionType == 'update':
             where = "{0} :update ?revision .".format(transactionRevisionID.n3())
@@ -169,7 +175,6 @@ class RevisionStoreExplicit(RevisionStore):
 
         SPARQLQuery = """PREFIX : <{0}>
         DESCRIBE ?revision
-        WHERE {{ {1} }} 
-        }}""".format(str(BITR4QS), where)
+        WHERE {{ {1} }}""".format(str(BITR4QS), where)
         return SPARQLQuery
 

@@ -3,14 +3,18 @@ import re
 from rdflib.plugins.parsers.ntriples import W3CNTriplesParser
 from .Parser import Parser, TripleSink
 from src.main.bitr4qs.term.Modification import Modification
-from rdflib.term import URIRef, Literal
-from rdflib.namespace import XSD
+from rdflib.term import URIRef
 
 
 class UpdateParser(Parser):
 
     def __init__(self):
         self._modifications = {}
+        self._numberOfProcessedQuads = 0
+
+    @property
+    def number_of_processed_quads(self):
+        return self._numberOfProcessedQuads
 
     @staticmethod
     def _graph_name(NQuad, StringOfTriple):
@@ -61,8 +65,6 @@ class UpdateParser(Parser):
         from src.main.bitr4qs.revision.Update import Update
         if revision is None:
             revision = Update(URIRef(identifier))
-
-        RevisionNTriplesParser = W3CNTriplesParser(sink=revision)
 
         sink = TripleSink()
         NTriplesParser= W3CNTriplesParser(sink=sink)
@@ -131,6 +133,7 @@ class UpdateParser(Parser):
         for NQuad in NQuads:
 
             splitQuad = re.findall(r'<(.*?)>', NQuad)
+            self._numberOfProcessedQuads += 1
 
             if splitQuad[1] == str(BITR4QS.inserts):
                 modification = self.parse_inserts_or_deletes(sink=sink, NQuad=NQuad, forward=forward)

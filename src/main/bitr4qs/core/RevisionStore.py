@@ -15,10 +15,6 @@ class RevisionStore(object):
     def config(self):
         return self._config
 
-    @config.setter
-    def config(self, config):
-        self._config = config
-
     @property
     def revision_store(self):
         return self._revisionStore
@@ -29,7 +25,7 @@ class RevisionStore(object):
         :param branch: the given branch for which one would like to have the HEAD Revision.
         :return: an HEAD revision object containing all data of the HEAD Revision.
         """
-        branchString = "?revision :branch {0} .".format(branch.n3()) if branch is not None else \
+        branchString = "?revision :branch {0} .".format(branch.n3()) if not branch else \
             "FILTER NOT EXISTS { ?revision :branch ?branch . }"
 
         SPARQLQuery = """
@@ -60,6 +56,69 @@ class RevisionStore(object):
     @staticmethod
     def main_branch_index():
         return None
+
+    def preceding_modifications(self, updateID):
+        SPARQLQuery = """PREFIX : <{0}>
+        CONSTRUCT {{ GRAPH ?g {{ ?update ?p1 ?o1 }}\n?update ?p2 ?o2 }}
+        WHERE {{ 
+            {1} :precedingUpdate+ ?update .
+            {{ GRAPH ?g {{ ?update ?p1 ?o1 }} }} UNION {{ ?update ?p2 ?o2 }}
+        }}""".format(str(BITR4QS), updateID.n3())
+        stringOfUpdates= self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
+        updateParser = parser.UpdateParser()
+        updateParser.parse_aggregate(stringOfUpdates)
+        return updateParser.get_list_of_modifications()
+
+    def preceding_revision(self, revisionID, revisionType, isValidRevision=True):
+        func = getattr(self, '_' + revisionType)
+        if not isValidRevision:
+            revisionType = 'revision'
+
+        SPARQLQuery = """PREFIX : <{0}>
+        DESCRIBE ?revision
+        WHERE {{ 
+            {1} :preceding{2} ?revision .
+        }}""".format(str(BITR4QS), revisionID.n3(), revisionType.title())
+        stringOfRevision = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
+        revisions = func(stringOfRevision, isValidRevision=isValidRevision)
+        if len(revisions) == 1:
+            for revisionID, revision in revisions.items():
+                return revision
+        else:
+            return Exception('Not an unique identifier')
+
+    def transaction_from_valid_and_valid_from_transaction(self, revisionID, transactionFromValid=True, revisionType=None):
+        """
+
+        :param revisionID:
+        :param transactionFromValid:
+        :param revisionType:
+        :return:
+        """
+        if revisionType is None:
+            if 'Update' in revisionID:
+                revisionType = 'update'
+            elif 'Snapshot' in revisionID:
+                revisionType = 'snapshot'
+            elif 'Tag' in revisionID:
+                revisionType = 'tag'
+            elif 'Branch' in revisionID:
+                revisionType = 'branch'
+            elif 'Revert' in revisionID:
+                revisionType = 'revert'
+            else:
+                return Exception
+
+        if transactionFromValid:
+            SPARQLQuery = self._transaction_revision_from_valid_revision(revisionID, revisionType)
+        else:
+            SPARQLQuery = self._valid_revisions_from_transaction_revision(revisionID, revisionType)
+        stringOfRevision = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
+        func = getattr(self, '_' + revisionType)
+        return func(stringOfRevision, validRevision=not transactionFromValid)
+
+    def _transaction_revision_from_valid_revision(self, validRevisionID, revisionType):
+        return ""
 
     def valid_revisions_from_transaction_revision(self, transactionRevisionID, revisionType=None):
         if revisionType is None:
@@ -182,11 +241,6 @@ class RevisionStore(object):
             update = parser.UpdateParser.parse_revisions(stringOfUpdate, revisionName='transaction')
         return update
 
-    def check_existence(self, revisionIdentifier, revisionType):
-        SPARQLQuery = "ASK {{ {0} rdf:type {1} }}".format(revisionIdentifier, revisionType)
-        existence = self._revisionStore.execute_ask_query(SPARQLQuery)
-        return existence
-
     def branch_from_name(self, branchName: Literal):
         SPARQLQuery = """PREFIX : <{0}>
         DESCRIBE ?branch
@@ -211,6 +265,45 @@ class RevisionStore(object):
         else:
             return Exception('Not an unique name')
 
+    def can_quad_be_modified(self, quad, revisionA: URIRef, revisionB: URIRef, startDate: Literal = None,
+                             endDate: Literal = None):
+        if not startDate:
+            startDate = datetime.strptime(startDate.value, "%Y-%m-%dT%H:%M:%S+00:00")
+
+        if not endDate:
+            endDate = datetime.strptime(endDate.value, "%Y-%m-%dT%H:%M:%S+00:00")
+
+        updateWhere = self._valid_revisions_in_graph(revisionA=revisionA, revisionB=revisionB, queryType='SelectQuery',
+                                                     revisionType='update', prefix=False)
+        SPARQLQuery = """PREFIX : <{0}>
+        SELECT ?update ?startDate ?endDate
+        WHERE {{ {{ {1} }}
+        {2}
+        OPTIONAL {{ ?update :startedAt ?startDate . }} 
+        OPTIONAL {{ ?update :endedAt ?endDate . }} 
+        }""".format(str(BITR4QS), updateWhere, quad.to_query_via_unknown_update(construct=False))
+
+        results = self._revisionStore.execute_select_query(SPARQLQuery, 'json')
+
+        for result in results['results']['bindings']:
+            if 'startDate' in result:
+                otherStartDate = datetime.strptime(result['startDate']['value'], "%Y-%m-%dT%H:%M:%S+00:00")
+                if startDate > otherStartDate:
+                    return False
+            else:
+                if startDate:
+                    return False
+
+            if 'endDate' in result:
+                otherEndDate = datetime.strptime(result['endDate']['value'], "%Y-%m-%dT%H:%M:%S+00:00")
+                if endDate < otherEndDate:
+                    return False
+            else:
+                if endDate:
+                    return False
+
+        return True
+
     def can_quad_be_added_or_deleted(self, quad, headRevision: URIRef, startDate: Literal = None,
                                      endDate: Literal = None, deletion=False):
         """
@@ -229,14 +322,14 @@ class RevisionStore(object):
         assert headRevision is not None, "The HEAD Revision is not allowed to be None."
 
         updateWhere = self._valid_revisions_in_graph(revisionA=headRevision, queryType='SelectQuery',
-                                                     validRevisionType='Update', prefix=False)
+                                                     revisionType='update', prefix=False)
 
         if deletion:
-            stringA = quad.to_query_via_delete_update()
-            stringB = quad.to_query_via_insert_update()
+            stringA = quad.to_query_via_delete_update(construct=False)
+            stringB = quad.to_query_via_insert_update(construct=False)
         else:
-            stringA = quad.to_query_via_insert_update()
-            stringB = quad.to_query_via_delete_update()
+            stringA = quad.to_query_via_insert_update(construct=False)
+            stringB = quad.to_query_via_delete_update(construct=False)
 
         if startDate is None and endDate is None:
             timeString = """{{ {0} }}

@@ -53,7 +53,7 @@ class BiTR4Qs(object):
         :param transactionRevision:
         :return:
         """
-        # Check whether there is a head revision. If yes -> remove entirely from the revision store.
+        # Check whether there exists a head revision. If yes -> remove entirely from the revision store.
         if precedingHeadRevision is not None:
             precedingHeadRevision.delete_to_revision_store(self._revisionStore)
 
@@ -118,24 +118,39 @@ class BiTR4Qs(object):
         :return:
         """
         try:
+            # Extract all information needed for the revisions from the request.
             request.evaluate_request(self._revisionStore)
+
+            # Create a transaction revision
+            transactionRevision = request.transaction_revision_from_request()
+            print("transactionRevision ", transactionRevision)
+
+            # Create valid revision(s)
+            validRevisions = request.valid_revisions_from_request()
+        except AssertionError:
+            raise Exception
         except Exception as e:
             print("e ", e)
             raise e
 
-        try:
-            transactionRevision = request.transaction_revision_from_request()
-            print("transactionRevision ", transactionRevision)
-            validRevisions = request.valid_revisions_from_request()
-        except AssertionError:
-            raise Exception
-
+        # Attach the created valid revisions to the transaction revisions for explicit reference.
         self._valid_revisions_to_transaction_revision(transactionRevision, validRevisions)
+
+        # Insert the transaction revision and the valid revisions to the revision store.
         self._to_revision_store([transactionRevision] + validRevisions)
+
+        # Delete the old HEAD revision and add a new HEAD revision.
         self._head_revision(request.head_revision, transactionRevision)
 
+        # Return identifiers of valid revisions.
+        return [validRevision.identifier for validRevision in validRevisions]
+
     def apply_query(self, query):
-        query.evaluate_query(self._revisionStore)
+        try:
+            query.evaluate_query(self._revisionStore)
+        except Exception as e:
+            print("e ", e)
+            raise e
         print("Query evaluated")
         # if node is not None:
         #     return node
