@@ -152,6 +152,7 @@
 .
 
 ##### First Branch #####
+
 :Revision_kd2ng30
   a :BranchRevision ;
   rdfs:comment "Create a new branch to add more sweet recipes to the dataset."@en-gb ;
@@ -918,133 +919,22 @@ recipes:DownToEarth {
   :startedAt "2021-06-25T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :endedAt "2021-10-09T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :precedingUpdate :Update_dio23e ;
-  :inserts << recipes:JapanesePankoBreadcrumbs a recipes:Food >> ;
-  :inserts << recipes:JapanesePankoBreadcrumbs rdfs:label "Japanese panko breadcrumbs"@en-gb >> ;
-  :inserts << recipes:JapanesePankoBreadcrumbs rdfs:label "Japanse panko paneermeel"@nl >> ;
-  :inserts << recipes:KatsuCurry a recipes:Food >> ;
-  :inserts << recipes:KatsuCurry rdfs:label "Katsu curry"@en-gb >> ;
-  :inserts << recipes:KatsuCurry rdfs:label "Katsu curry"@nl >> ;
+  :deletes << recipes:ChickenBreast a recipes:Food >> ;
+  :deletes << recipes:ChickenBreast rdfs:label "Chicken breast"@en-gb >> ;
+  :deletes << recipes:ChickenBreast rdfs:label "Kipfilet"@nl >> ;
 .
 recipes:GreatCurries {
-  :Update_45hgxa   :inserts << recipes:RecipeKatsuCurry a recipes:Recipe >> ;
-                   :inserts << recipes:RecipeKatsuCurry rdfs:label "Katsu curry"@en-gb >> ;
-                   :inserts << recipes:RecipeKatsuCurry recipes:cuisine recipes:JapaneseCuisine >> ;
-                   :inserts << recipes:RecipeKatsuCurry recipes:meal recipes:MainCourse >> ;
-                   :inserts << recipes:RecipeKatsuCurry recipes:diet recipes:GlutenFree >> ;
-                   :inserts << recipes:RecipeKatsuCurry rdfs:comment "Bruce Lee meets Colonel Sanders - this is one of those dishes that just works. We've experimented with losts of variations and this is our favourite - it has a lovely slightly aniseedy taste. Panko breadcrumbs are a must so keep some in your store cupboard."@en-gb >> ;
+  :Update_45hgxa   :inserts << recipes:RecipeKatsuCurry recipes:diet recipes:GlutenFree >> ;
                    :inserts << recipes:RecipeKatsuCurry recipes:ingredients recipes:Chicken >> ;
-                   :inserts << recipes:RecipeKatsuCurry recipes:ingredients recipes:Egg >> ;
-                   :inserts << recipes:RecipeKatsuCurry recipes:ingredients recipes:SunflowerOil >> ;
-                   :inserts << recipes:RecipeKatsuCurry recipes:produces recipes:KatsuCurry >> ;
+                   :deletes << recipes:RecipeKatsuCurry recipes:ingredients recipes:ChickenBreast >> ;
+                   :deletes << recipes:RecipeKatsuCurry recipes:ingredients recipes:Flour >> ;
+                   :deletes << recipes:RecipeKatsuCurry recipes:ingredients recipes:JapanesePankoBreadcrumbs >> ;
 . }
 :Update_6gclpo
   a :Update ;
   :hash "6gclpo" ;
   :precedingUpdate :Update_mv83lv ;
   :endedAt "2021-11-30T00:00:00+00:00"^^xsd:dateTimeStamp ;
-  :inserts << recipes:BlackMustardSeed a recipes:Food >> ;
-  :inserts << recipes:BlackMustardSeed rdfs:label "Black mustard seed"@en-gb >> ;
-  :inserts << recipes:BlackMustardSeed rdfs:label "Zwarte mosterdzaad"@nl >> ;
-  :inserts << recipes:Butter a recipes:Food >> ;
-  :inserts << recipes:Butter rdfs:label "Butter"@en-gb >> ;
-  :inserts << recipes:Butter rdfs:label "Boter"@nl >> ;
-  :inserts << recipes:Cashewnut a recipes:Food >> ;
-  :inserts << recipes:Cashewnut rdfs:label "Cashewnut"@en-gb >> ;
-  :inserts << recipes:Cashewnut rdfs:label "Cashewnoot"@nl >> ;
-  :inserts << recipes:CasterSugar a recipes:Food >> ;
-  :inserts << recipes:CasterSugar rdfs:label "Caster sugar"@en-gb >> ;
-  :inserts << recipes:CasterSugar rdfs:label "Basterdsuiker"@nl >> ;
-  :inserts << recipes:Chicken a recipes:Food >> ;
-  :inserts << recipes:Chicken rdfs:label "Chicken"@en-gb >> ;
-  :inserts << recipes:Chicken rdfs:label "Kip"@nl >> ;
-  :inserts << recipes:ChickpeaFlour a recipes:Food >> ;
-  :inserts << recipes:ChickpeaFlour rdfs:label "Chickpea flour"@en-gb >> ;
-  :inserts << recipes:ChickpeaFlour rdfs:label "Kikkererwtenbloem"@nl >> ;
-  :inserts << recipes:ChilliPowder a recipes:Food >> ;
-  :inserts << recipes:ChilliPowder rdfs:label "Chilli powder"@en-gb >> ;
-  :inserts << recipes:ChilliPowder rdfs:label "Chilipoeder"@nl >> ;
-  :inserts << recipes:CorianderLeaves a recipes:Food >> ;
-  :inserts << recipes:CorianderLeaves rdfs:label "Coriander leaves"@en-gb >> ;
-  :inserts << recipes:CorianderLeaves rdfs:label "Koriander blaadjes"@nl >> ;
-  :inserts << recipes:Egg a recipes:Food >> ;
-  :inserts << recipes:Egg rdfs:label "Egg"@en-gb >> ;
-  :inserts << recipes:Egg rdfs:label "Ei"@nl >> ;
-  :inserts << recipes:EggNoodles a recipes:Food >> ;
-  :inserts << recipes:EggNoodles rdfs:label "Egg noodles"@en-gb >> ;
-  :inserts << recipes:EggNoodles rdfs:label "Eiernoedels"@nl >> ;
-  :inserts << recipes:Flour a recipes:Food >> ;
-  :inserts << recipes:Flour rdfs:label "Flour"@en-gb >> ;
-  :inserts << recipes:Flour rdfs:label "Bloem"@nl >> ;
-  :inserts << recipes:GaramMasala a recipes:Food >> ;
-  :inserts << recipes:GaramMasala rdfs:label "Garam masala"@en-gb >> ;
-  :inserts << recipes:GaramMasala rdfs:label "Garam masala"@nl >> ;
-  :inserts << recipes:Garlic a recipes:Food >> ;
-  :inserts << recipes:Garlic rdfs:label "Garlic"@en-gb >> ;
-  :inserts << recipes:Garlic rdfs:label "Knoflook"@nl >> ;
-  :inserts << recipes:Ginger a recipes:Food >> ;
-  :inserts << recipes:Ginger rdfs:label "Ginger"@en-gb >> ;
-  :inserts << recipes:Ginger rdfs:label "Gember"@nl >> ;
-  :inserts << recipes:Gourgette a recipes:Food >> ;
-  :inserts << recipes:Gourgette rdfs:label "Gourgette"@en-gb >> ;
-  :inserts << recipes:Gourgette rdfs:label "Gourgette"@nl >> ;
-  :inserts << recipes:GreenChilli a recipes:Food >> ;
-  :inserts << recipes:GreenChilli rdfs:label "Green chilli"@en-gb >> ;
-  :inserts << recipes:GreenChilli rdfs:label "Groene peper"@nl >> ;
-  :inserts << recipes:HotChilliPowder a recipes:Food >> ;
-  :inserts << recipes:HotChilliPowder rdfs:label "Hot chilli powder"@en-gb >> ;
-  :inserts << recipes:HotChilliPowder rdfs:label "Hete chilipoeder"@nl >> ;
-  :inserts << recipes:Lamb a recipes:Food >> ;
-  :inserts << recipes:Lamb rdfs:label "Lamb"@en-gb >> ;
-  :inserts << recipes:Lamb rdfs:label "Lams"@nl >> ;
-  :inserts << recipes:Lemon a recipes:Food >> ;
-  :inserts << recipes:Lemon rdfs:label "Lemon"@en-gb >> ;
-  :inserts << recipes:Lemon rdfs:label "Citroen"@nl >> ;
-  :inserts << recipes:Milk a recipes:Food >> ;
-  :inserts << recipes:Milk rdfs:label "Milk"@en-gb >> ;
-  :inserts << recipes:Milk rdfs:label "Melk"@nl >> ;
-  :inserts << recipes:Onion a recipes:Food >> ;
-  :inserts << recipes:Onion rdfs:label "Onion"@en-gb >> ;
-  :inserts << recipes:Onion rdfs:label "Ui"@nl >> ;
-  :inserts << recipes:Potato a recipes:Food >> ;
-  :inserts << recipes:Potato rdfs:label "Potato"@en-gb >> ;
-  :inserts << recipes:Potato rdfs:label "Aardappel"@nl >> ;
-  :inserts << recipes:RedChilli a recipes:Food >> ;
-  :inserts << recipes:RedChilli rdfs:label "Red chilli"@en-gb >> ;
-  :inserts << recipes:RedChilli rdfs:label "Rode peper"@nl >> ;
-  :inserts << recipes:RedLentils a recipes:Food >> ;
-  :inserts << recipes:RedLentils rdfs:label "Red lentils"@en-gb >> ;
-  :inserts << recipes:RedLentils rdfs:label "Rode linzen"@nl >> ;
-  :inserts << recipes:RedWineVinegar a recipes:Food >> ;
-  :inserts << recipes:RedWineVinegar rdfs:label "Red wine vinegar"@en-gb >> ;
-  :inserts << recipes:RedWineVinegar rdfs:label "Rode wijnazijn"@nl >> ;
-  :inserts << recipes:Salt a recipes:Food >> ;
-  :inserts << recipes:Salt rdfs:label "Salt"@en-gb >> ;
-  :inserts << recipes:Salt rdfs:label "Zout"@nl >> ;
-  :inserts << recipes:SelfRaisingFlour a recipes:Food >> ;
-  :inserts << recipes:SelfRaisingFlour rdfs:label "Self raising flour"@en-gb >> ;
-  :inserts << recipes:SelfRaisingFlour rdfs:label "Zelfrijzend bakmeel"@nl >> ;
-  :inserts << recipes:Shallot a recipes:Food >> ;
-  :inserts << recipes:Shallot rdfs:label "Shallot"@en-gb >> ;
-  :inserts << recipes:Shallot rdfs:label "Sjalot"@nl >> ;
-  :inserts << recipes:StarAnise a recipes:Food >> ;
-  :inserts << recipes:StarAnise rdfs:label "StarAnise"@en-gb >> ;
-  :inserts << recipes:StarAnise rdfs:label "Steranijs"@nl >> ;
-  :inserts << recipes:SunflowerOil a recipes:Food >> ;
-  :inserts << recipes:SunflowerOil rdfs:label "Sunflower oil"@en-gb >> ;
-  :inserts << recipes:SunflowerOil rdfs:label "Zonnebloemolie"@nl >> ;
-  :inserts << recipes:TomatoPuree a recipes:Food >> ;
-  :inserts << recipes:TomatoPuree rdfs:label "Tomato purée"@en-gb >> ;
-  :inserts << recipes:TomatoPuree rdfs:label "Tomatenpuree"@nl >> ;
-  :inserts << recipes:Turmeric a recipes:Food >> ;
-  :inserts << recipes:Turmeric rdfs:label "Turmeric"@en-gb >> ;
-  :inserts << recipes:Turmeric rdfs:label "Kurkuma"@nl >> ;
-  :inserts << recipes:Turmeric rdfs:label "Geelwortel"@nl >> ;
-  :inserts << recipes:Yeast a recipes:Food >> ;
-  :inserts << recipes:Yeast rdfs:label "Yeast"@en-gb >> ;
-  :inserts << recipes:Yeast rdfs:label "Gist"@nl >> ;
-  :inserts << recipes:Yoghurt a recipes:Food >> ;
-  :inserts << recipes:Yoghurt rdfs:label "Yoghurt"@en-gb >> ;
-  :inserts << recipes:Yoghurt rdfs:label "Yoghurt"@nl >> ;
 .
 
 
@@ -1206,26 +1096,11 @@ recipes:ChickenAndEgg {
   :startedAt "2021-07-09T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :endedAt "2021-10-04T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :precedingUpdate :Update_94wqpl ;
-  :inserts << recipes:CoqAuRiesling a recipes:Food >> ;
-  :inserts << recipes:CoqAuRiesling rdfs:label "Coq au riesling"@en-gb >> ;
-  :inserts << recipes:CoqAuRiesling rdfs:label "Coq au riesling"@nl >> ;
-  :inserts << recipes:FrenchCuisine a recipes:Cuisine >> ;
-  :inserts << recipes:FrenchCuisine rdfs:label "Frans"@nl >> ;
-  :inserts << recipes:FrenchCuisine rdfs:label "Franse keuken"@nl >> ;
-  :inserts << recipes:FrenchCuisine rdfs:label "French"@en-gb >> ;
-  :inserts << recipes:FrenchCuisine rdfs:label "French cuisine"@en-gb >> ;
 .
 recipes:ChickenAndEgg {
-  :Update_9wr9po   :inserts << recipes:RecipeCoqAuRiesling a recipes:Recipe >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling rdfs:label "Coq au riesling"@en-gb >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:cuisine recipes:FrenchCuisine >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:meal recipes:MainCourse >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:diet recipes:GlutenFree >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling rdfs:comment "This is a twist on our beloved coq au vin. The creat thing is because you use white wine instead of red you can add cream and the dish doesn't go a funny color - and it tastes great."@en-gb >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Chicken >> ;
+  :Update_9wr9po   :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Chicken >> ;
                    :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Onion >> ;
                    :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Garlic >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:produces recipes:CoqAuRiesling >> ;
 . }
 :Update_yt2l81
   a :Update ;
@@ -1233,27 +1108,7 @@ recipes:ChickenAndEgg {
   :startedAt "2021-07-15T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :endedAt "2021-10-04T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :precedingUpdate :Update_9wr9po ;
-  :inserts << recipes:CoqAuRiesling a recipes:Food >> ;
-  :inserts << recipes:CoqAuRiesling rdfs:label "Coq au riesling"@en-gb >> ;
-  :inserts << recipes:CoqAuRiesling rdfs:label "Coq au riesling"@nl >> ;
-  :inserts << recipes:FrenchCuisine a recipes:Cuisine >> ;
-  :inserts << recipes:FrenchCuisine rdfs:label "Frans"@nl >> ;
-  :inserts << recipes:FrenchCuisine rdfs:label "Franse keuken"@nl >> ;
-  :inserts << recipes:FrenchCuisine rdfs:label "French"@en-gb >> ;
-  :inserts << recipes:FrenchCuisine rdfs:label "French cuisine"@en-gb >> ;
 .
-recipes:ChickenAndEgg {
-  :Update_yt2l81   :inserts << recipes:RecipeCoqAuRiesling a recipes:Recipe >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling rdfs:label "Coq au riesling"@en-gb >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:cuisine recipes:FrenchCuisine >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:meal recipes:MainCourse >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:diet recipes:GlutenFree >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling rdfs:comment "This is a twist on our beloved coq au vin. The creat thing is because you use white wine instead of red you can add cream and the dish doesn't go a funny color - and it tastes great."@en-gb >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Chicken >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Onion >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Garlic >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:produces recipes:CoqAuRiesling >> ;
-. }
 
 :Update_hg01vc
   a :Update ;
@@ -1261,18 +1116,10 @@ recipes:ChickenAndEgg {
   :startedAt "2021-06-01T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :endedAt "2021-07-01T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :precedingUpdate :Update_7yv3wq ;
-  :inserts << recipes:RecipeOrangeCrushCookies a recipes:Recipe >> ;
-  :inserts << recipes:RecipeOrangeCrushCookies rdfs:label "Orange crush cookies"@en-gb >> ;
-  :inserts << recipes:RecipeOrangeCrushCookies recipes:cuisine recipes:EnglishCuisine >> ;
-  :inserts << recipes:RecipeOrangeCrushCookies recipes:meal recipes:Snack  >> ;
-  :inserts << recipes:RecipeOrangeCrushCookies rdfs:comment "This may look like a classic chocolate chip cookie but take a bite and your taste buds will get a real treat. With orange extract and orange zest, this recipe is irresistible. Orange and dark/bittersweet chocolate are a match made in heaven and work magically in a cookie."@en-gb >> ;
-  :inserts << recipes:RecipeOrangeCrushCookies recipes:ingredients recipes:Butter >> ;
-  :inserts << recipes:RecipeOrangeCrushCookies recipes:ingredients recipes:CasterSugar >> ;
-  :inserts << recipes:RecipeOrangeCrushCookies recipes:ingredients recipes:Egg >> ;
-  :inserts << recipes:RecipeOrangeCrushCookies recipes:produces recipes:OrangeCrushCookie >> ;
-  :inserts << recipes:OrangeCrushCookie a recipes:Food >> ;
-  :inserts << recipes:OrangeCrushCookie rdfs:label "Orange crush cookie"@en-gb >> ;
-  :inserts << recipes:OrangeCrushCookie rdfs:label "Sinaasappel crush koekje"@nl >> ;
+  :deletes << recipes:RecipeOrangeCrushCookies recipes:ingredients recipes:Muscovado >> ;
+  :deletes << recipes:Muscovado a recipes:Food >> ;
+  :deletes << recipes:Muscovado rdfs:label "Muscovado"@en-gb >> ;
+  :deletes << recipes:Muscovado rdfs:label "Muscovadosuiker"@nl >> ;
 .
 
 #### Fourth Branch #####

@@ -8,64 +8,63 @@
 
 :Revision_jd25eyq
   a :InitialRevision ;
-  :createdAt "2021-06-14T10:14:00+00:00"^^xsd:dateTimeStamp ;
-  :author "Jonas Mathijsen" ;
   rdfs:comment "Set up a new revision store." ;
+  :createdAt "2021-06-14T10:14:00+02:00"^^xsd:dateTimeStamp ;
+  :author "Jonas Mathijsen" ;
   :hash "jd25eyq" ;
-  :update :Update_k2j2ft ;
-  :snapshot :Snapshot_69ui2pt ;
+  :revisionNumber "1"^^xsd:nonNegativeInteger ;
 .
 :Revision_jdl28o3
   a :UpdateRevision ;
-  rdfs:comment "Added the Cuisine instances indian, english, japanese, chinese, french and mexican cuisine to the dataset.";
+  rdfs:comment "Added the Cuisine instances indian, english, japanese, chinese, french and mexican cuisine to the dataset."@en-gb ;
   :author "Lisa Meijer" ;
-  :createdAt "2021-06-16T12:20:00+00:00"^^xsd:dateTimeStamp ;
-  :update :Update_k3g1v4 ;
+  :createdAt "2021-06-16T12:20:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "2"^^xsd:nonNegativeInteger ;
   :hash "jdl28o3" ;
   :precedingRevision :Revision_jd25eyq ;
 .
 :Revision_dk290vw
   a :UpdateRevision ;
-  rdfs:comment "Added the Diet instances gluten-free, lactose-free, vegetarian, vegan, and nut-free to the dataset." ;
+  rdfs:comment "Added the Diet instances gluten-free, lactose-free, vegetarian, vegan, and nut-free to the dataset."@en-gb ;
   :author "Thomas Janssen" ;
-  :createdAt "2021-06-16T12:25:00+00:00"^^xsd:dateTimeStamp ;
-  :update :Update_ke2gw0 ;
+  :createdAt "2021-06-16T12:25:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "3"^^xsd:nonNegativeInteger ;
   :hash "dk290vw" ;
   :precedingRevision :Revision_jdl28o3 ;
 .
 :Revision_u2d4pkm
   a :UpdateRevision ;
-  rdfs:comment "Added the Meal instances lunch, starter, main-course, snack, and side dish to the dataset." ;
+  rdfs:comment "Added the Meal instances lunch, starter, main-course, snack, and side dish to the dataset."@en-gb ;
   :author "Floris Steenhuis" ;
-  :createdAt "2021-06-16T12:29:00+00:00"^^xsd:dateTimeStamp ;
-  :update :Update_9k2ghp ;
+  :createdAt "2021-06-16T12:29:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "4"^^xsd:nonNegativeInteger ;
   :hash "u2d4pkm" ;
   :precedingRevision :Revision_dk290vw ;
 .
 :Revision_d92ghv9
   a :SnapshotRevision ;
-  rdfs:comment "Added the Meal instances lunch, starter, main-course, snack, and side dish to the dataset." ;
+  rdfs:comment "Added the Meal instances lunch, starter, main-course, snack, and side dish to the dataset."@en-gb ;
   :author "Julia Broekmans" ;
-  :createdAt "2021-06-17T15:40:00+00:00"^^xsd:dateTimeStamp ;
-  :snapshot :Snapshot_ksjd3lq ;
+  :createdAt "2021-06-17T15:40:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "5"^^xsd:nonNegativeInteger ;
   :hash "d92ghv9" ;
   :precedingRevision :Revision_u2d4pkm ;
 .
 :Revision_o301vhg
   a :UpdateRevision ;
-  rdfs:comment "Added the recipe for Katsu curry and its ingredients to the dataset." ;
+  rdfs:comment "Added the recipe for Katsu curry and its ingredients to the dataset."@en-gb ;
   :author "Lisa Meijer" ;
-  :createdAt "2021-06-17T17:55:00+00:00"^^xsd:dateTimeStamp ;
-  :update :Update_dio23e ;
+  :createdAt "2021-06-17T17:55:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "6"^^xsd:nonNegativeInteger ;
   :hash "o301vhg" ;
   :precedingRevision :Revision_d92ghv9 ;
 .
 :Revision_93jgc0p
   a :TagRevision ;
-  rdfs:comment "Create a tag that refers to all main properties of the dataset.";
+  rdfs:comment "Create a tag that refers to all main properties of the dataset."@en-gb ;
   :author "Peter Visser" ;
-  :createdAt "2021-06-18T12:34:00+00:00"^^xsd:dateTimeStamp ;
-  :tag :Tag_ksjd3lq ;
+  :createdAt "2021-06-18T12:34:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "7"^^xsd:nonNegativeInteger ;
   :hash "93jgc0p" ;
   :precedingRevision :Revision_o301vhg ;
 .
@@ -73,8 +72,8 @@
   a :UpdateRevision ;
   rdfs:comment "Added a list of common ingredients to the dataset."@en-gb ;
   :author "Sofie Hermans" ;
-  :createdAt "2021-06-19T10:22:00+00:00"^^xsd:dateTimeStamp ;
-  :update :Update_mv83lv ;
+  :createdAt "2021-06-19T10:22:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "8"^^xsd:nonNegativeInteger ;
   :hash "p2kgnv2" ;
   :precedingRevision :Revision_93jgc0p ;
 .
@@ -82,8 +81,8 @@
   a :SnapshotRevision ;
   rdfs:comment "Create a new snapshot that differs from the main snapshot."@en-gb ;
   :author "Julia Broekmans" ;
-  :createdAt "2021-06-20T12:18:00+00:00"^^xsd:dateTimeStamp ;
-  :snapshot :Snapshot_kwo3c56  ;
+  :createdAt "2021-06-20T12:18:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "9"^^xsd:nonNegativeInteger ;
   :hash "kd204df" ;
   :precedingRevision :Revision_p2kgnv2 ;
 .
@@ -91,8 +90,8 @@
   a :UpdateRevision ;
   rdfs:comment "Added the recipes for chocolate fudge brownies, chocolate sticks and mexican coffee buns to the dataset."@en-gb ;
   :author "Marjolein de Jong" ;
-  :createdAt "2021-06-21T15:50:00+00:00"^^xsd:dateTimeStamp ;
-  :update :Update_84kanv ;
+  :createdAt "2021-06-21T15:50:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "10"^^xsd:nonNegativeInteger ;
   :hash "902ghcq" ;
   :precedingRevision :Revision_kd204df ;
 .
@@ -100,8 +99,8 @@
   a :SnapshotRevision ;
   rdfs:comment "Create a new snapshot of the previous snapshot Snapshot_ksjd3lq."@en-gb ;
   :author "Julia Broekmans" ;
-  :createdAt "2021-06-22T08:39:00+00:00"^^xsd:dateTimeStamp ;
-  :snapshot :Snapshot_k301fkl ;
+  :createdAt "2021-06-22T08:39:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "11"^^xsd:nonNegativeInteger ;
   :hash "ipm42rv" ;
   :precedingRevision :Revision_902ghcq ;
 .
@@ -109,8 +108,8 @@
   a :UpdateRevision ;
   rdfs:comment "Added recipes for courgette gratin and king prawn pakoras to the dataset."@en-gb ;
   :author "Sam Bakker" ;
-  :createdAt "2021-06-25T11:30:00+00:00"^^xsd:dateTimeStamp ;
-  :update :Update_dk2b0o ;
+  :createdAt "2021-06-25T11:30:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "12"^^xsd:nonNegativeInteger ;
   :hash "39kdgpq" ;
   :precedingRevision :Revision_ipm42rv ;
 .
@@ -118,8 +117,8 @@
   a :TagRevision ;
   rdfs:comment "Added second tag to the dataset."@en-gb ;
   :author "Eva de Vries" ;
-  :createdAt "2021-06-25T13:46:00+00:00"^^xsd:dateTimeStamp ;
-  :tag :Tag_38ld2gh ;
+  :createdAt "2021-06-25T13:46:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "13"^^xsd:nonNegativeInteger ;
   :hash "03kvbi1" ;
   :precedingRevision :Revision_39kdgpq ;
 .
@@ -127,8 +126,8 @@
   a :UpdateRevision ;
   rdfs:comment "Added recipes for lamb dhansak, lamb vindaloo, lamb kofta curry and spring onion pakoras to the dataset."@en-gb ;
   :author "Max van Dijk" ;
-  :createdAt "2021-06-29T10:26:00+00:00"^^xsd:dateTimeStamp ;
-  :update :Update_p2bx1d ;
+  :createdAt "2021-06-29T10:26:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "14"^^xsd:nonNegativeInteger ;
   :hash "03kgqp9" ;
   :precedingRevision :Revision_03kvbi1 ;
 .
@@ -136,8 +135,8 @@
   a :UpdateRevision ;
   rdfs:comment "Added recipes for chinese prawn curry, chow mein and dumplings to the dataset."@en-gb ;
   :author "Floris Steenhuis" ;
-  :createdAt "2021-07-01T10:48:00+00:00"^^xsd:dateTimeStamp ;
-  :update :Update_ljs29c ;
+  :createdAt "2021-07-01T10:48:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "15"^^xsd:nonNegativeInteger ;
   :hash "49bvls3" ;
   :precedingRevision :Revision_03kgqp9 ;
 .
@@ -145,8 +144,8 @@
   a :SnapshotRevision ;
   rdfs:comment "Create a new snapshot of the current dataset."@en-gb ;
   :author "Sofie Hermans" ;
-  :createdAt "2021-07-06T11:15:00+00:00"^^xsd:dateTimeStamp ;
-  :snapshot :Snapshot_38ld2gh ;
+  :createdAt "2021-07-06T11:15:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "16"^^xsd:nonNegativeInteger ;
   :hash "38gh2vh" ;
   :precedingRevision :Revision_49bvls3 ;
 .
@@ -156,8 +155,9 @@
   a :BranchRevision ;
   rdfs:comment "Create a new branch to add more sweet recipes to the dataset."@en-gb ;
   :author "Marjolein de Jong" ;
-  :createdAt "2021-06-21T09:00:00+00:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-21T09:00:00+02:00"^^xsd:dateTimeStamp ;
   :branch :Branch_ksjd3lq ;
+  :revisionNumber "10"^^xsd:nonNegativeInteger ;
   :hash "kd2ng30" ;
   :precedingRevision :Revision_kd204df ;
 .
@@ -165,9 +165,9 @@
   a :UpdateRevision ;
   rdfs:comment "Added a recipe for orange crush cookies to the dataset."@en-gb ;
   :author "Max van Dijk" ;
-  :createdAt "2021-06-24T16:19:00+00:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-24T16:19:00+02:00"^^xsd:dateTimeStamp ;
   :branch :Branch_ksjd3lq ;
-  :update :Update_7yv3wq ;
+  :revisionNumber "11"^^xsd:nonNegativeInteger ;
   :hash "93lgkac" ;
   :precedingRevision :Revision_kd2ng30 ;
 .
@@ -175,8 +175,9 @@
   a :BranchRevision ;
   rdfs:comment "Changes the name of the branch."@en-gb ;
   :author "Stefan van den Berg" ;
-  :createdAt "2021-06-30T10:15:00+00:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-30T10:15:00+02:00"^^xsd:dateTimeStamp ;
   :branch :Branch_k301fkl ;
+  :revisionNumber "12"^^xsd:nonNegativeInteger ;
   :hash "kd13bln" ;
   :precedingRevision :Revision_93lgkac ;
 .
@@ -184,9 +185,9 @@
   a :UpdateRevision ;
   rdfs:comment "Added a recipe for hazelnut macaroons to the dataset."@en-gb ;
   :author "Cato Vos" ;
-  :createdAt "2021-07-08T13:35:00+00:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-07-01T13:35:00+02:00"^^xsd:dateTimeStamp ;
   :branch :Branch_k301fkl ;
-  :update :Update_do8t42 ;
+  :revisionNumber "13"^^xsd:nonNegativeInteger ;
   :hash "20vqzxp" ;
   :precedingRevision :Revision_kd13bln ;
 .
@@ -196,7 +197,7 @@
   :author "Sammy Vonk" ;
   :createdAt "2021-07-10T19:25:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_k301fkl ;
-  :update :Update_45hgxa ;
+  :revisionNumber "14"^^xsd:nonNegativeInteger ;
   :hash "bcp5c9z" ;
   :precedingRevision :Revision_20vqzxp ;
 .
@@ -206,19 +207,19 @@
   :author "Cora Koopman" ;
   :createdAt "2021-07-13T11:59:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_k301fkl ;
-  :update :Update_6gclpo ;
+  :revisionNumber "15"^^xsd:nonNegativeInteger ;
   :hash "2xm1g03" ;
   :precedingRevision :Revision_bcp5c9z ;
 .
-
 
 ##### Second Branch #####
 :Revision_3lkg1bv
   a :BranchRevision ;
   rdfs:comment "Added a second branch with fish recipes to the dataset."@en-gb ;
   :author "Max van Dijk" ;
-  :createdAt "2021-06-24T08:00:00+00:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-24T08:00:00+02:00"^^xsd:dateTimeStamp ;
   :branch :Branch_38ld2gh ;
+  :revisionNumber "12"^^xsd:nonNegativeInteger ;
   :hash "3lkg1bv" ;
   :precedingRevision :Revision_ipm42rv ;
 .
@@ -226,9 +227,9 @@
   a :UpdateRevision ;
   rdfs:comment "Added recipes for Penang fish curry, and ladies' kisses to the dataset."@en-gb ;
   :author "Cato Vos" ;
-  :createdAt "2021-06-26T11:49:00+00:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-26T11:49:00+02:00"^^xsd:dateTimeStamp ;
   :branch :Branch_38ld2gh ;
-  :update :Update_r52c7p ;
+  :revisionNumber "13"^^xsd:nonNegativeInteger ;
   :hash "lav972q" ;
   :precedingRevision :Revision_3lkg1bv ;
 .
@@ -236,9 +237,9 @@
   a :UpdateRevision ;
   rdfs:comment "Added a recipe for sea bass fishcakes to the dataset."@en-gb ;
   :author "Thomas Janssen" ;
-  :createdAt "2021-06-26T17:31:00+00:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-26T17:31:00+02:00"^^xsd:dateTimeStamp ;
   :branch :Branch_38ld2gh ;
-  :update :Update_4ey1fj ;
+  :revisionNumber "14"^^xsd:nonNegativeInteger ;
   :hash "30fhp34" ;
   :precedingRevision :Revision_lav972q ;
 .
@@ -246,9 +247,9 @@
   a :UpdateRevision ;
   rdfs:comment "Added a recipe for green chicken curry  to the dataset."@en-gb ;
   :author "Lisa Meijer" ;
-  :createdAt "2021-06-26T13:13:00+00:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-26T13:13:00+02:00"^^xsd:dateTimeStamp ;
   :branch :Branch_38ld2gh ;
-  :update :Update_5l7ru1 ;
+  :revisionNumber "15"^^xsd:nonNegativeInteger ;
   :hash "3ignb40" ;
   :precedingRevision :Revision_30fhp34 ;
 .
@@ -256,9 +257,9 @@
   a :SnapshotRevision ;
   rdfs:comment "Create a snapshot of the dataset in this branch."@en-gb ;
   :author "Floris Steenhuis" ;
-  :createdAt "2021-06-30T15:11:00+00:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-30T15:11:00+02:00"^^xsd:dateTimeStamp ;
   :branch :Branch_38ld2gh ;
-  :snapshot :Snapshot_93gqyi5 ;
+  :revisionNumber "16"^^xsd:nonNegativeInteger ;
   :hash "dk1lbv3" ;
   :precedingRevision :Revision_3ignb40 ;
 .
@@ -270,6 +271,7 @@
   :author "Dirk Blommers" ;
   :createdAt "2021-07-08T09:16:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_92pivn0 ;
+  :revisionNumber "12"^^xsd:nonNegativeInteger ;
   :hash "93dkj7y" ;
   :precedingRevision :Revision_93lgkac ;
 .
@@ -279,7 +281,7 @@
   :author "Cato Vos" ;
   :createdAt "2021-07-09T13:55:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_92pivn0 ;
-  :update :Update_94wqpl ;
+  :revisionNumber "13"^^xsd:nonNegativeInteger ;
   :hash "ieh32pv" ;
   :precedingRevision :Revision_93dkj7y ;
 .
@@ -289,7 +291,7 @@
   :author "Barbara Koning" ;
   :createdAt "2021-07-11T16:14:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_92pivn0 ;
-  :update :Update_9wr9po ;
+  :revisionNumber "14"^^xsd:nonNegativeInteger ;
   :hash "pic83mn" ;
   :precedingRevision :Revision_ieh32pv ;
 .
@@ -299,7 +301,7 @@
   :author "Jan Knip" ;
   :createdAt "2021-07-11T18:40:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_92pivn0 ;
-  :update :Update_yt2l81 ;
+  :revisionNumber "15"^^xsd:nonNegativeInteger ;
   :hash "ifds84" ;
   :precedingRevision :Revision_pic83mn ;
 .
@@ -309,7 +311,7 @@
   :author "Sander Dekker" ;
   :createdAt "2021-07-16T12:11:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_92pivn0 ;
-  :update :Update_hg01vc ;
+  :revisionNumber "16"^^xsd:nonNegativeInteger ;
   :hash "pqb91e3" ;
   :precedingRevision :Revision_ifds84 ;
 .
@@ -321,6 +323,7 @@
   :author "Pepijn Winter" ;
   :createdAt "2021-07-15T10:46:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_jhf06eg ;
+  :revisionNumber "6"^^xsd:nonNegativeInteger ;
   :hash "0nvwq08" ;
   :precedingRevision :Revision_d92ghv9 ;
 .
@@ -330,7 +333,7 @@
   :author "Tom Scholten" ;
   :createdAt "2021-07-15T14:31:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_jhf06eg ;
-  :update :Update_bce34v ;
+  :revisionNumber "7"^^xsd:nonNegativeInteger ;
   :hash "sl2vb01" ;
   :precedingRevision :Revision_0nvwq08 ;
 .
@@ -340,7 +343,7 @@
   :author "Marin Gerritsen" ;
   :createdAt "2021-07-18T17:19:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_jhf06eg ;
-  :update :Update_trio32 ;
+  :revisionNumber "8"^^xsd:nonNegativeInteger ;
   :hash "1qplv90" ;
   :precedingRevision :Revision_sl2vb01 ;
 .
@@ -350,7 +353,7 @@
   :author "Jara Kroon" ;
   :createdAt "2021-07-19T08:02:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_jhf06eg ;
-  :update :Update_iuvm67 ;
+  :revisionNumber "9"^^xsd:nonNegativeInteger ;
   :hash "iusa876" ;
   :precedingRevision :Revision_1qplv90 ;
 .
@@ -360,7 +363,7 @@
   :author "Sander Dekker" ;
   :createdAt "2021-07-19T15:43:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_jhf06eg ;
-  :update :Update_53hlf1 ;
+  :revisionNumber "10"^^xsd:nonNegativeInteger ;
   :hash "axz0pb4" ;
   :precedingRevision :Revision_iusa876 ;
 .
@@ -369,6 +372,10 @@
 
 :Update_k2j2ft
   a :Update ;
+  :startedAt "2021-06-14T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :hash "k2j2ft" ;
+  :revisionNumber "1"^^xsd:nonNegativeInteger ;
+  :branchIndex "0"^^xsd:nonNegativeInteger ;
   :inserts << recipes:Recipe a rdfs:Class >> ;
   :inserts << recipes:Recipe rdfs:comment "A Recipe is a combination of ingredients and a method, created by a chef, that produces a recipes."@en-gb  >> ;
   :inserts << recipes:Recipe rdfs:label "Recept"@nl >> ;
@@ -419,11 +426,13 @@
   :inserts << recipes:produces rdfs:domain recipes:Recipe >> ;
   :inserts << recipes:produces rdfs:label "produces"@en-gb >> ;
   :inserts << recipes:produces rdfs:range recipes:Food >> ;
-  :startedAt "2021-06-14T00:00:00+00:00"^^xsd:dateTimeStamp ;
-  :hash "k2j2ft" ;
 .
 :Update_k3g1v4
   a :Update ;
+  :startedAt "2021-06-16T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :hash "k3g1v4" ;
+  :revisionNumber "2"^^xsd:nonNegativeInteger ;
+  :branchIndex "0"^^xsd:nonNegativeInteger ;
   :inserts << recipes:ChineseCuisine a recipes:Cuisine >> ;
   :inserts << recipes:ChineseCuisine rdfs:label "Chinees"@nl >> ;
   :inserts << recipes:ChineseCuisine rdfs:label "Chinese keuken"@nl >> ;
@@ -454,11 +463,13 @@
   :inserts << recipes:MexicanCuisine rdfs:label "Mexicaanse keuken"@nl >> ;
   :inserts << recipes:MexicanCuisine rdfs:label "Mexican"@en-gb >> ;
   :inserts << recipes:MexicanCuisine rdfs:label "Mexican cuisine"@en-gb >> ;
-  :startedAt "2021-06-16T00:00:00+00:00"^^xsd:dateTimeStamp ;
-  :hash "k3g1v4" ;
 .
 :Update_ke2gw0
   a :Update ;
+  :startedAt "2021-06-16T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :hash "ke2gw0" ;
+  :revisionNumber "3"^^xsd:nonNegativeInteger ;
+  :branchIndex "0"^^xsd:nonNegativeInteger ;
   :inserts << recipes:GlutenFree a recipes:Diet >> ;
   :inserts << recipes:GlutenFree rdfs:label "Glutenvrij"@nl >> ;
   :inserts << recipes:GlutenFree rdfs:label "Gluten-free"@en-gb >> ;
@@ -474,11 +485,13 @@
   :inserts << recipes:Vegetarian a recipes:Diet >> ;
   :inserts << recipes:Vegetarian rdfs:label "Vegetarisch"@nl >> ;
   :inserts << recipes:Vegetarian rdfs:label "Vegetarian"@en-gb >> ;
-  :startedAt "2021-06-16T00:00:00+00:00"^^xsd:dateTimeStamp ;
-  :hash "ke2gw0" ;
 .
 :Update_9k2ghp
   a :Update ;
+  :startedAt "2021-06-16T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :hash "9k2ghp" ;
+  :revisionNumber "4"^^xsd:nonNegativeInteger ;
+  :branchIndex "0"^^xsd:nonNegativeInteger ;
   :inserts << recipes:Lunch a recipes:Meal >> ;
   :inserts << recipes:Lunch rdfs:comment "Lunch is a meal eaten around midday. It is commonly the second meal of the day, after breakfast, and varies in size by culture and region."@en-gb >> ;
   :inserts << recipes:Lunch rdfs:label "Lunch"@nl >> ;
@@ -500,14 +513,14 @@
   :inserts << recipes:Starter rdfs:comment "A starter is a dish served before the main course of a meal."@en-gb >> ;
   :inserts << recipes:Starter rdfs:label "Voorgerecht"@nl >> ;
   :inserts << recipes:Starter rdfs:label "Starter"@en-gb >> ;
-  :startedAt "2021-06-16T00:00:00+00:00"^^xsd:dateTimeStamp ;
-  :hash "9k2ghp" ;
 .
 :Update_dio23e
   a :Update ;
   :hash "dio23e" ;
-  :startedAt "2021-08-04T00:00:00+00:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-10-09T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-08-04T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-10-09T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "6"^^xsd:nonNegativeInteger ;
+  :branchIndex "0"^^xsd:nonNegativeInteger ;
   :inserts << recipes:ChickenBreast a recipes:Food >> ;
   :inserts << recipes:ChickenBreast rdfs:label "Chicken breast"@en-gb >> ;
   :inserts << recipes:ChickenBreast rdfs:label "Kipfilet"@nl >> ;
@@ -535,7 +548,9 @@ recipes:GreatCurries {
 :Update_mv83lv
   a :Update ;
   :hash "mv83lv" ;
-  :endedAt "2021-12-30T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-12-30T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "8"^^xsd:nonNegativeInteger ;
+  :branchIndex "0"^^xsd:nonNegativeInteger ;
   :inserts << recipes:BlackMustardSeed a recipes:Food >> ;
   :inserts << recipes:BlackMustardSeed rdfs:label "Black mustard seed"@en-gb >> ;
   :inserts << recipes:BlackMustardSeed rdfs:label "Zwarte mosterdzaad"@nl >> ;
@@ -643,8 +658,10 @@ recipes:GreatCurries {
 :Update_84kanv
   a :Update ;
   :hash "84kanv" ;
-  :startedAt "2021-06-22T00:00:00+00:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-07-12T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-06-22T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-07-12T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "10"^^xsd:nonNegativeInteger ;
+  :branchIndex "0"^^xsd:nonNegativeInteger ;
   :inserts << recipes:RecipeChocolateFudgeBrownies a recipes:Recipe >> ;
   :inserts << recipes:RecipeChocolateFudgeBrownies rdfs:label "Chocolate fudge brownies"@en-gb >> ;
   :inserts << recipes:RecipeChocolateFudgeBrownies recipes:cuisine recipes:EnglishCuisine >> ;
@@ -689,8 +706,10 @@ recipes:GreatCurries {
 :Update_dk2b0o
   a :Update ;
   :hash "dk2b0o" ;
-  :startedAt "2021-07-01T00:00:00+00:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-08-30T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-07-01T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-08-30T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "12"^^xsd:nonNegativeInteger ;
+  :branchIndex "0"^^xsd:nonNegativeInteger ;
   :inserts << recipes:CourgetteGratin a recipes:Food >> ;
   :inserts << recipes:CourgetteGratin rdfs:label "Courgette gratin"@en-gb >> ;
   :inserts << recipes:CourgetteGratin rdfs:label "Courgette gratin"@nl >> ;
@@ -710,7 +729,6 @@ recipes:VegetableBible {
                    :inserts << recipes:RecipeCourgetteGratin rdfs:comment "This simple courgette gratin makes a great side dish as it’s creamy and flavoursome without being too rich. Serve with a salad for a light supper."@en-gb >> ;
                    :inserts << recipes:RecipeCourgetteGratin recipes:ingredients recipes:Courgette >> ;
                    :inserts << recipes:RecipeCourgetteGratin recipes:produces recipes:CourgetteGratin >> ;
-
 . }
 recipes:GreatCurries {
   :Update_dk2b0o   :inserts << recipes:RecipeKingPrawnPakoras a recipes:Recipe >> ;
@@ -731,11 +749,15 @@ recipes:GreatCurries {
                    :inserts << recipes:RecipeKingPrawnPakoras recipes:produces recipes:Pakora >> ;
 . }
 
+
+
 :Update_p2bx1d
   a :Update ;
   :hash "p2bx1d" ;
-  :startedAt "2021-06-14T00:00:00+00:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-09-18T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-06-14T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-09-18T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "14"^^xsd:nonNegativeInteger ;
+  :branchIndex "0"^^xsd:nonNegativeInteger ;
   :inserts << recipes:LambDhansak a recipes:Food >> ;
   :inserts << recipes:LambDhansak rdfs:label "Lamb dhansak"@en-gb >> ;
   :inserts << recipes:LambDhansak rdfs:label "Lams dhansak"@nl >> ;
@@ -812,8 +834,10 @@ recipes:GreatCurries {
 :Update_ljs29c
   a :Update ;
   :hash "ljs29c" ;
-  :startedAt "2021-06-22T00:00:00+00:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-10-08T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-06-22T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-10-08T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "15"^^xsd:nonNegativeInteger ;
+  :branchIndex "0"^^xsd:nonNegativeInteger ;
   :inserts << recipes:ChinesePrawnCurry a recipes:Food >> ;
   :inserts << recipes:ChinesePrawnCurry rdfs:label "Chinese prawn curry"@en-gb >> ;
   :inserts << recipes:ChinesePrawnCurry rdfs:label "Chinese garnalen curry"@nl >> ;
@@ -866,8 +890,10 @@ recipes:DownToEarth {
 :Update_7yv3wq
   a :Update ;
   :hash "7yv3wq" ;
-  :startedAt "2021-06-01T00:00:00+00:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-06-30T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-06-01T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-06-30T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "11"^^xsd:nonNegativeInteger ;
+  :branchIndex "1"^^xsd:nonNegativeInteger ;
   :inserts << recipes:RecipeOrangeCrushCookies a recipes:Recipe >> ;
   :inserts << recipes:RecipeOrangeCrushCookies rdfs:label "Orange crush cookies"@en-gb >> ;
   :inserts << recipes:RecipeOrangeCrushCookies recipes:cuisine recipes:EnglishCuisine >> ;
@@ -888,8 +914,10 @@ recipes:DownToEarth {
 :Update_do8t42
   a :Update ;
   :hash "do8t42" ;
-  :startedAt "2021-08-25T00:00:00+00:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-11-01T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-08-25T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-11-01T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "13"^^xsd:nonNegativeInteger ;
+  :branchIndex "1"^^xsd:nonNegativeInteger ;
   :inserts << recipes:RecipeHazelnutMacaroons a recipes:Recipe >> ;
   :inserts << recipes:RecipeHazelnutMacaroons rdfs:label "Hazelnut macaroons"@en-gb >> ;
   :inserts << recipes:RecipeHazelnutMacaroons recipes:cuisine recipes:FrenchCuisine >> ;
@@ -917,144 +945,38 @@ recipes:DownToEarth {
   :hash "45hgxa" ;
   :startedAt "2021-06-25T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :endedAt "2021-10-09T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "14"^^xsd:nonNegativeInteger ;
+  :branchIndex "1"^^xsd:nonNegativeInteger ;
   :precedingUpdate :Update_dio23e ;
-  :inserts << recipes:JapanesePankoBreadcrumbs a recipes:Food >> ;
-  :inserts << recipes:JapanesePankoBreadcrumbs rdfs:label "Japanese panko breadcrumbs"@en-gb >> ;
-  :inserts << recipes:JapanesePankoBreadcrumbs rdfs:label "Japanse panko paneermeel"@nl >> ;
-  :inserts << recipes:KatsuCurry a recipes:Food >> ;
-  :inserts << recipes:KatsuCurry rdfs:label "Katsu curry"@en-gb >> ;
-  :inserts << recipes:KatsuCurry rdfs:label "Katsu curry"@nl >> ;
+  :deletes << recipes:ChickenBreast a recipes:Food >> ;
+  :deletes << recipes:ChickenBreast rdfs:label "Chicken breast"@en-gb >> ;
+  :deletes << recipes:ChickenBreast rdfs:label "Kipfilet"@nl >> ;
 .
 recipes:GreatCurries {
-  :Update_45hgxa   :inserts << recipes:RecipeKatsuCurry a recipes:Recipe >> ;
-                   :inserts << recipes:RecipeKatsuCurry rdfs:label "Katsu curry"@en-gb >> ;
-                   :inserts << recipes:RecipeKatsuCurry recipes:cuisine recipes:JapaneseCuisine >> ;
-                   :inserts << recipes:RecipeKatsuCurry recipes:meal recipes:MainCourse >> ;
-                   :inserts << recipes:RecipeKatsuCurry recipes:diet recipes:GlutenFree >> ;
-                   :inserts << recipes:RecipeKatsuCurry rdfs:comment "Bruce Lee meets Colonel Sanders - this is one of those dishes that just works. We've experimented with losts of variations and this is our favourite - it has a lovely slightly aniseedy taste. Panko breadcrumbs are a must so keep some in your store cupboard."@en-gb >> ;
+  :Update_45hgxa   :inserts << recipes:RecipeKatsuCurry recipes:diet recipes:GlutenFree >> ;
                    :inserts << recipes:RecipeKatsuCurry recipes:ingredients recipes:Chicken >> ;
-                   :inserts << recipes:RecipeKatsuCurry recipes:ingredients recipes:Egg >> ;
-                   :inserts << recipes:RecipeKatsuCurry recipes:ingredients recipes:SunflowerOil >> ;
-                   :inserts << recipes:RecipeKatsuCurry recipes:produces recipes:KatsuCurry >> ;
+                   :deletes << recipes:RecipeKatsuCurry recipes:ingredients recipes:ChickenBreast >> ;
+                   :deletes << recipes:RecipeKatsuCurry recipes:ingredients recipes:Flour >> ;
+                   :deletes << recipes:RecipeKatsuCurry recipes:ingredients recipes:JapanesePankoBreadcrumbs >> ;
 . }
 :Update_6gclpo
   a :Update ;
   :hash "6gclpo" ;
   :precedingUpdate :Update_mv83lv ;
   :endedAt "2021-11-30T00:00:00+00:00"^^xsd:dateTimeStamp ;
-  :inserts << recipes:BlackMustardSeed a recipes:Food >> ;
-  :inserts << recipes:BlackMustardSeed rdfs:label "Black mustard seed"@en-gb >> ;
-  :inserts << recipes:BlackMustardSeed rdfs:label "Zwarte mosterdzaad"@nl >> ;
-  :inserts << recipes:Butter a recipes:Food >> ;
-  :inserts << recipes:Butter rdfs:label "Butter"@en-gb >> ;
-  :inserts << recipes:Butter rdfs:label "Boter"@nl >> ;
-  :inserts << recipes:Cashewnut a recipes:Food >> ;
-  :inserts << recipes:Cashewnut rdfs:label "Cashewnut"@en-gb >> ;
-  :inserts << recipes:Cashewnut rdfs:label "Cashewnoot"@nl >> ;
-  :inserts << recipes:CasterSugar a recipes:Food >> ;
-  :inserts << recipes:CasterSugar rdfs:label "Caster sugar"@en-gb >> ;
-  :inserts << recipes:CasterSugar rdfs:label "Basterdsuiker"@nl >> ;
-  :inserts << recipes:Chicken a recipes:Food >> ;
-  :inserts << recipes:Chicken rdfs:label "Chicken"@en-gb >> ;
-  :inserts << recipes:Chicken rdfs:label "Kip"@nl >> ;
-  :inserts << recipes:ChickpeaFlour a recipes:Food >> ;
-  :inserts << recipes:ChickpeaFlour rdfs:label "Chickpea flour"@en-gb >> ;
-  :inserts << recipes:ChickpeaFlour rdfs:label "Kikkererwtenbloem"@nl >> ;
-  :inserts << recipes:ChilliPowder a recipes:Food >> ;
-  :inserts << recipes:ChilliPowder rdfs:label "Chilli powder"@en-gb >> ;
-  :inserts << recipes:ChilliPowder rdfs:label "Chilipoeder"@nl >> ;
-  :inserts << recipes:CorianderLeaves a recipes:Food >> ;
-  :inserts << recipes:CorianderLeaves rdfs:label "Coriander leaves"@en-gb >> ;
-  :inserts << recipes:CorianderLeaves rdfs:label "Koriander blaadjes"@nl >> ;
-  :inserts << recipes:Egg a recipes:Food >> ;
-  :inserts << recipes:Egg rdfs:label "Egg"@en-gb >> ;
-  :inserts << recipes:Egg rdfs:label "Ei"@nl >> ;
-  :inserts << recipes:EggNoodles a recipes:Food >> ;
-  :inserts << recipes:EggNoodles rdfs:label "Egg noodles"@en-gb >> ;
-  :inserts << recipes:EggNoodles rdfs:label "Eiernoedels"@nl >> ;
-  :inserts << recipes:Flour a recipes:Food >> ;
-  :inserts << recipes:Flour rdfs:label "Flour"@en-gb >> ;
-  :inserts << recipes:Flour rdfs:label "Bloem"@nl >> ;
-  :inserts << recipes:GaramMasala a recipes:Food >> ;
-  :inserts << recipes:GaramMasala rdfs:label "Garam masala"@en-gb >> ;
-  :inserts << recipes:GaramMasala rdfs:label "Garam masala"@nl >> ;
-  :inserts << recipes:Garlic a recipes:Food >> ;
-  :inserts << recipes:Garlic rdfs:label "Garlic"@en-gb >> ;
-  :inserts << recipes:Garlic rdfs:label "Knoflook"@nl >> ;
-  :inserts << recipes:Ginger a recipes:Food >> ;
-  :inserts << recipes:Ginger rdfs:label "Ginger"@en-gb >> ;
-  :inserts << recipes:Ginger rdfs:label "Gember"@nl >> ;
-  :inserts << recipes:Gourgette a recipes:Food >> ;
-  :inserts << recipes:Gourgette rdfs:label "Gourgette"@en-gb >> ;
-  :inserts << recipes:Gourgette rdfs:label "Gourgette"@nl >> ;
-  :inserts << recipes:GreenChilli a recipes:Food >> ;
-  :inserts << recipes:GreenChilli rdfs:label "Green chilli"@en-gb >> ;
-  :inserts << recipes:GreenChilli rdfs:label "Groene peper"@nl >> ;
-  :inserts << recipes:HotChilliPowder a recipes:Food >> ;
-  :inserts << recipes:HotChilliPowder rdfs:label "Hot chilli powder"@en-gb >> ;
-  :inserts << recipes:HotChilliPowder rdfs:label "Hete chilipoeder"@nl >> ;
-  :inserts << recipes:Lamb a recipes:Food >> ;
-  :inserts << recipes:Lamb rdfs:label "Lamb"@en-gb >> ;
-  :inserts << recipes:Lamb rdfs:label "Lams"@nl >> ;
-  :inserts << recipes:Lemon a recipes:Food >> ;
-  :inserts << recipes:Lemon rdfs:label "Lemon"@en-gb >> ;
-  :inserts << recipes:Lemon rdfs:label "Citroen"@nl >> ;
-  :inserts << recipes:Milk a recipes:Food >> ;
-  :inserts << recipes:Milk rdfs:label "Milk"@en-gb >> ;
-  :inserts << recipes:Milk rdfs:label "Melk"@nl >> ;
-  :inserts << recipes:Onion a recipes:Food >> ;
-  :inserts << recipes:Onion rdfs:label "Onion"@en-gb >> ;
-  :inserts << recipes:Onion rdfs:label "Ui"@nl >> ;
-  :inserts << recipes:Potato a recipes:Food >> ;
-  :inserts << recipes:Potato rdfs:label "Potato"@en-gb >> ;
-  :inserts << recipes:Potato rdfs:label "Aardappel"@nl >> ;
-  :inserts << recipes:RedChilli a recipes:Food >> ;
-  :inserts << recipes:RedChilli rdfs:label "Red chilli"@en-gb >> ;
-  :inserts << recipes:RedChilli rdfs:label "Rode peper"@nl >> ;
-  :inserts << recipes:RedLentils a recipes:Food >> ;
-  :inserts << recipes:RedLentils rdfs:label "Red lentils"@en-gb >> ;
-  :inserts << recipes:RedLentils rdfs:label "Rode linzen"@nl >> ;
-  :inserts << recipes:RedWineVinegar a recipes:Food >> ;
-  :inserts << recipes:RedWineVinegar rdfs:label "Red wine vinegar"@en-gb >> ;
-  :inserts << recipes:RedWineVinegar rdfs:label "Rode wijnazijn"@nl >> ;
-  :inserts << recipes:Salt a recipes:Food >> ;
-  :inserts << recipes:Salt rdfs:label "Salt"@en-gb >> ;
-  :inserts << recipes:Salt rdfs:label "Zout"@nl >> ;
-  :inserts << recipes:SelfRaisingFlour a recipes:Food >> ;
-  :inserts << recipes:SelfRaisingFlour rdfs:label "Self raising flour"@en-gb >> ;
-  :inserts << recipes:SelfRaisingFlour rdfs:label "Zelfrijzend bakmeel"@nl >> ;
-  :inserts << recipes:Shallot a recipes:Food >> ;
-  :inserts << recipes:Shallot rdfs:label "Shallot"@en-gb >> ;
-  :inserts << recipes:Shallot rdfs:label "Sjalot"@nl >> ;
-  :inserts << recipes:StarAnise a recipes:Food >> ;
-  :inserts << recipes:StarAnise rdfs:label "StarAnise"@en-gb >> ;
-  :inserts << recipes:StarAnise rdfs:label "Steranijs"@nl >> ;
-  :inserts << recipes:SunflowerOil a recipes:Food >> ;
-  :inserts << recipes:SunflowerOil rdfs:label "Sunflower oil"@en-gb >> ;
-  :inserts << recipes:SunflowerOil rdfs:label "Zonnebloemolie"@nl >> ;
-  :inserts << recipes:TomatoPuree a recipes:Food >> ;
-  :inserts << recipes:TomatoPuree rdfs:label "Tomato purée"@en-gb >> ;
-  :inserts << recipes:TomatoPuree rdfs:label "Tomatenpuree"@nl >> ;
-  :inserts << recipes:Turmeric a recipes:Food >> ;
-  :inserts << recipes:Turmeric rdfs:label "Turmeric"@en-gb >> ;
-  :inserts << recipes:Turmeric rdfs:label "Kurkuma"@nl >> ;
-  :inserts << recipes:Turmeric rdfs:label "Geelwortel"@nl >> ;
-  :inserts << recipes:Yeast a recipes:Food >> ;
-  :inserts << recipes:Yeast rdfs:label "Yeast"@en-gb >> ;
-  :inserts << recipes:Yeast rdfs:label "Gist"@nl >> ;
-  :inserts << recipes:Yoghurt a recipes:Food >> ;
-  :inserts << recipes:Yoghurt rdfs:label "Yoghurt"@en-gb >> ;
-  :inserts << recipes:Yoghurt rdfs:label "Yoghurt"@nl >> ;
+  :revisionNumber "15"^^xsd:nonNegativeInteger ;
+  :branchIndex "1"^^xsd:nonNegativeInteger ;
 .
-
 
 #### Second Branch #####
 
 :Update_r52c7p
   a :Update ;
   :hash "r52c7p" ;
-  :startedAt "2021-06-25T00:00:00+00:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-11-29T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-06-25T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-11-29T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "13"^^xsd:nonNegativeInteger ;
+  :branchIndex "2"^^xsd:nonNegativeInteger ;
   :inserts << recipes:RecipeLadiesKisses a recipes:Recipe >> ;
   :inserts << recipes:RecipeLadiesKisses rdfs:label "Ladies' kisses"@en-gb >> ;
   :inserts << recipes:RecipeLadiesKisses recipes:cuisine recipes:FrenchCuisine >> ;
@@ -1113,8 +1035,10 @@ recipes:GreatCurries {
 :Update_4ey1fj
   a :Update ;
   :hash "4ey1fj" ;
-  :startedAt "2021-06-26T00:00:00+00:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-11-05T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-06-26T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-11-05T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "14"^^xsd:nonNegativeInteger ;
+  :branchIndex "2"^^xsd:nonNegativeInteger ;
   :inserts << recipes:SeaBassFishcake a recipes:Food >> ;
   :inserts << recipes:SeaBassFishcake rdfs:label "Sea bass fishcake"@en-gb >> ;
   :inserts << recipes:SeaBassFishcake rdfs:label "Zeebaars viskoekje"@nl >> ;
@@ -1151,8 +1075,10 @@ recipes:GreatCurries {
 :Update_5l7ru1
   a :Update ;
   :hash "5l7ru1" ;
-  :startedAt "2021-07-21T00:00:00+00:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-11-04T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-07-21T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-11-04T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "15"^^xsd:nonNegativeInteger ;
+  :branchIndex "2"^^xsd:nonNegativeInteger ;
   :inserts << recipes:GreenChickenCurry a recipes:Food >> ;
   :inserts << recipes:GreenChickenCurry rdfs:label "Green chicken curry"@en-gb >> ;
   :inserts << recipes:GreenChickenCurry rdfs:label "Groene curry met kip"@nl >> ;
@@ -1182,6 +1108,8 @@ recipes:GreatCurries {
   :hash "94wqpl" ;
   :startedAt "2021-07-09T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :endedAt "2021-10-04T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "13"^^xsd:nonNegativeInteger ;
+  :branchIndex "3"^^xsd:nonNegativeInteger ;
   :inserts << recipes:CoqAuRiesling a recipes:Food >> ;
   :inserts << recipes:CoqAuRiesling rdfs:label "Coq au riesling"@en-gb >> ;
   :inserts << recipes:CoqAuRiesling rdfs:label "Coq au riesling"@nl >> ;
@@ -1205,27 +1133,14 @@ recipes:ChickenAndEgg {
   :hash "9wr9po" ;
   :startedAt "2021-07-09T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :endedAt "2021-10-04T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "14"^^xsd:nonNegativeInteger ;
+  :branchIndex "3"^^xsd:nonNegativeInteger ;
   :precedingUpdate :Update_94wqpl ;
-  :inserts << recipes:CoqAuRiesling a recipes:Food >> ;
-  :inserts << recipes:CoqAuRiesling rdfs:label "Coq au riesling"@en-gb >> ;
-  :inserts << recipes:CoqAuRiesling rdfs:label "Coq au riesling"@nl >> ;
-  :inserts << recipes:FrenchCuisine a recipes:Cuisine >> ;
-  :inserts << recipes:FrenchCuisine rdfs:label "Frans"@nl >> ;
-  :inserts << recipes:FrenchCuisine rdfs:label "Franse keuken"@nl >> ;
-  :inserts << recipes:FrenchCuisine rdfs:label "French"@en-gb >> ;
-  :inserts << recipes:FrenchCuisine rdfs:label "French cuisine"@en-gb >> ;
 .
 recipes:ChickenAndEgg {
-  :Update_9wr9po   :inserts << recipes:RecipeCoqAuRiesling a recipes:Recipe >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling rdfs:label "Coq au riesling"@en-gb >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:cuisine recipes:FrenchCuisine >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:meal recipes:MainCourse >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:diet recipes:GlutenFree >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling rdfs:comment "This is a twist on our beloved coq au vin. The creat thing is because you use white wine instead of red you can add cream and the dish doesn't go a funny color - and it tastes great."@en-gb >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Chicken >> ;
+  :Update_9wr9po   :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Chicken >> ;
                    :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Onion >> ;
                    :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Garlic >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:produces recipes:CoqAuRiesling >> ;
 . }
 :Update_yt2l81
   a :Update ;
@@ -1233,27 +1148,9 @@ recipes:ChickenAndEgg {
   :startedAt "2021-07-15T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :endedAt "2021-10-04T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :precedingUpdate :Update_9wr9po ;
-  :inserts << recipes:CoqAuRiesling a recipes:Food >> ;
-  :inserts << recipes:CoqAuRiesling rdfs:label "Coq au riesling"@en-gb >> ;
-  :inserts << recipes:CoqAuRiesling rdfs:label "Coq au riesling"@nl >> ;
-  :inserts << recipes:FrenchCuisine a recipes:Cuisine >> ;
-  :inserts << recipes:FrenchCuisine rdfs:label "Frans"@nl >> ;
-  :inserts << recipes:FrenchCuisine rdfs:label "Franse keuken"@nl >> ;
-  :inserts << recipes:FrenchCuisine rdfs:label "French"@en-gb >> ;
-  :inserts << recipes:FrenchCuisine rdfs:label "French cuisine"@en-gb >> ;
+  :revisionNumber "15"^^xsd:nonNegativeInteger ;
+  :branchIndex "3"^^xsd:nonNegativeInteger ;
 .
-recipes:ChickenAndEgg {
-  :Update_yt2l81   :inserts << recipes:RecipeCoqAuRiesling a recipes:Recipe >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling rdfs:label "Coq au riesling"@en-gb >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:cuisine recipes:FrenchCuisine >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:meal recipes:MainCourse >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:diet recipes:GlutenFree >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling rdfs:comment "This is a twist on our beloved coq au vin. The creat thing is because you use white wine instead of red you can add cream and the dish doesn't go a funny color - and it tastes great."@en-gb >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Chicken >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Onion >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Garlic >> ;
-                   :inserts << recipes:RecipeCoqAuRiesling recipes:produces recipes:CoqAuRiesling >> ;
-. }
 
 :Update_hg01vc
   a :Update ;
@@ -1261,18 +1158,12 @@ recipes:ChickenAndEgg {
   :startedAt "2021-06-01T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :endedAt "2021-07-01T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :precedingUpdate :Update_7yv3wq ;
-  :inserts << recipes:RecipeOrangeCrushCookies a recipes:Recipe >> ;
-  :inserts << recipes:RecipeOrangeCrushCookies rdfs:label "Orange crush cookies"@en-gb >> ;
-  :inserts << recipes:RecipeOrangeCrushCookies recipes:cuisine recipes:EnglishCuisine >> ;
-  :inserts << recipes:RecipeOrangeCrushCookies recipes:meal recipes:Snack  >> ;
-  :inserts << recipes:RecipeOrangeCrushCookies rdfs:comment "This may look like a classic chocolate chip cookie but take a bite and your taste buds will get a real treat. With orange extract and orange zest, this recipe is irresistible. Orange and dark/bittersweet chocolate are a match made in heaven and work magically in a cookie."@en-gb >> ;
-  :inserts << recipes:RecipeOrangeCrushCookies recipes:ingredients recipes:Butter >> ;
-  :inserts << recipes:RecipeOrangeCrushCookies recipes:ingredients recipes:CasterSugar >> ;
-  :inserts << recipes:RecipeOrangeCrushCookies recipes:ingredients recipes:Egg >> ;
-  :inserts << recipes:RecipeOrangeCrushCookies recipes:produces recipes:OrangeCrushCookie >> ;
-  :inserts << recipes:OrangeCrushCookie a recipes:Food >> ;
-  :inserts << recipes:OrangeCrushCookie rdfs:label "Orange crush cookie"@en-gb >> ;
-  :inserts << recipes:OrangeCrushCookie rdfs:label "Sinaasappel crush koekje"@nl >> ;
+  :revisionNumber "16"^^xsd:nonNegativeInteger ;
+  :branchIndex "3"^^xsd:nonNegativeInteger ;
+  :deletes << recipes:RecipeOrangeCrushCookies recipes:ingredients recipes:Muscovado >> ;
+  :deletes << recipes:Muscovado a recipes:Food >> ;
+  :deletes << recipes:Muscovado rdfs:label "Muscovado"@en-gb >> ;
+  :deletes << recipes:Muscovado rdfs:label "Muscovadosuiker"@nl >> ;
 .
 
 #### Fourth Branch #####
@@ -1282,6 +1173,8 @@ recipes:ChickenAndEgg {
   :hash "bce34v" ;
   :startedAt "2021-06-17T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :endedAt "2021-08-15T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "7"^^xsd:nonNegativeInteger ;
+  :branchIndex "4"^^xsd:nonNegativeInteger ;
   :inserts << recipes:Shakshuka a recipes:Food >> ;
   :inserts << recipes:Shakshuka rdfs:label "Shakshuka"@en-gb >> ;
   :inserts << recipes:Shakshuka rdfs:label "Shakshuka"@nl >> ;
@@ -1306,6 +1199,8 @@ recipes:ChickenAndEgg {
   :hash "trio32" ;
   :startedAt "2021-06-20T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :endedAt "2021-08-10T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "8"^^xsd:nonNegativeInteger ;
+  :branchIndex "4"^^xsd:nonNegativeInteger ;
 .
 recipes:ChickenAndEgg {
   :Update_trio32   :deletes << recipes:RecipeShakshuka a recipes:Recipe >> ;
@@ -1325,6 +1220,8 @@ recipes:ChickenAndEgg {
   :hash "iuvm67" ;
   :startedAt "2021-06-30T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :endedAt "2021-08-01T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "9"^^xsd:nonNegativeInteger ;
+  :branchIndex "4"^^xsd:nonNegativeInteger ;
 .
 recipes:ChickenAndEgg {
   :Update_iuvm67   :inserts << recipes:RecipeShakshuka a recipes:Recipe >> ;
@@ -1344,6 +1241,8 @@ recipes:ChickenAndEgg {
   :hash "53hlf1" ;
   :startedAt "2021-07-05T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :endedAt "2021-07-25T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :revisionNumber "10"^^xsd:nonNegativeInteger ;
+  :branchIndex "4"^^xsd:nonNegativeInteger ;
 .
 recipes:ChickenAndEgg {
   :Update_53hlf1   :deletes << recipes:RecipeShakshuka a recipes:Recipe >> ;
@@ -1359,6 +1258,7 @@ recipes:ChickenAndEgg {
                    :deletes << recipes:RecipeShakshuka recipes:produces recipes:Shakshuka >> ;
 . }
 
+
 #################### Branches ####################
 
 :Branch_ksjd3lq
@@ -1366,12 +1266,16 @@ recipes:ChickenAndEgg {
   :branchedOffAt :Revision_kd204df ;
   :branchName "SugaryRecipes"@en-gb ;
   :hash "ksjd3lq" ;
+  :revisionNumber "10"^^xsd:nonNegativeInteger ;
+  :branchIndex "1"^^xsd:nonNegativeInteger ;
 .
 :Branch_k301fkl
   a :Branch ;
   :branchedOffAt :Revision_kd204df ;
   :branchName "SweetRecipes" ;
   :hash "k301fkl" ;
+  :revisionNumber "12"^^xsd:nonNegativeInteger ;
+  :branchIndex "1"^^xsd:nonNegativeInteger ;
   :precedingBranch :Branch_ksjd3lq ;
 .
 
@@ -1380,6 +1284,8 @@ recipes:ChickenAndEgg {
   :branchedOffAt :Revision_ipm42rv ;
   :branchName "FishRecipes" ;
   :hash "38ld2gh" ;
+  :revisionNumber "12"^^xsd:nonNegativeInteger ;
+  :branchIndex "2"^^xsd:nonNegativeInteger ;
 .
 
 :Branch_92pivn0
@@ -1387,6 +1293,8 @@ recipes:ChickenAndEgg {
   :branchedOffAt :Revision_93lgkac ;
   :branchName "ChickenRecipes" ;
   :hash "92pivn0" ;
+  :revisionNumber "12"^^xsd:nonNegativeInteger ;
+  :branchIndex "3"^^xsd:nonNegativeInteger ;
 .
 
 :Branch_jhf06eg
@@ -1394,62 +1302,74 @@ recipes:ChickenAndEgg {
   :branchedOffAt :Revision_d92ghv9 ;
   :branchName "EggRecipes" ;
   :hash "jhf06eg" ;
+  :revisionNumber "6"^^xsd:nonNegativeInteger ;
+  :branchIndex "4"^^xsd:nonNegativeInteger ;
 .
 
 #################### Snapshots ####################
 
 :Snapshot_69ui2pt
   a :Snapshot ;
-  :validAt "2021-06-14T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :validAt "2021-06-14T00:00:00+02:00"^^xsd:dateTimeStamp ;
   :transactedAt :Revision_jd25eyq ;
   :nameDataset "Snapshot_69ui2pt" ;
   :urlDataset "http://localhost:3030" ;
   :hash "69ui2pt" ;
+  :revisionNumber "1"^^xsd:nonNegativeInteger ;
+  :branchIndex "0"^^xsd:nonNegativeInteger ;
 .
 :Snapshot_ksjd3lq
   a :Snapshot ;
-  :validAt "2021-06-17T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :validAt "2021-06-17T00:00:00+02:00"^^xsd:dateTimeStamp ;
   :transactedAt :Revision_d92ghv9 ;
   :nameDataset "Snapshot_ksjd3lq" ;
   :urlDataset "http://localhost:3030" ;
   :precedingSnapshot :Snapshot_69ui2pt ;
   :hash "ksjd3lq" ;
+  :revisionNumber "5"^^xsd:nonNegativeInteger ;
+  :branchIndex "0"^^xsd:nonNegativeInteger ;
 .
 :Snapshot_k301fkl
   a :Snapshot ;
-  :validAt "2021-07-02T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :validAt "2021-07-02T00:00:00+02:00"^^xsd:dateTimeStamp ;
   :transactedAt :Revision_ipm42rv ;
   :nameDataset "Snapshot_k301fkl" ;
   :urlDataset "http://localhost:3030" ;
   :precedingSnapshot :Snapshot_ksjd3lq ;
   :hash "k301fkl" ;
+  :revisionNumber "11"^^xsd:nonNegativeInteger ;
+  :branchIndex "0"^^xsd:nonNegativeInteger ;
 .
 :Snapshot_38ld2gh
   a :Snapshot ;
-  :validAt "2021-07-06T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :validAt "2021-07-06T00:00:00+02:00"^^xsd:dateTimeStamp ;
   :transactedAt :Revision_38gh2vh ;
   :nameDataset "Snapshot_38ld2gh" ;
   :urlDataset "http://localhost:3030" ;
   :precedingSnapshot :Snapshot_k301fkl ;
   :hash "38ld2gh" ;
+  :revisionNumber "16"^^xsd:nonNegativeInteger ;
+  :branchIndex "0"^^xsd:nonNegativeInteger ;
 .
-
 :Snapshot_kwo3c56
   a :Snapshot ;
-  :validAt "2021-06-28T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :validAt "2021-06-28T00:00:00+02:00"^^xsd:dateTimeStamp ;
   :transactedAt :Revision_kd204df ;
   :nameDataset "Snapshot_kwo3c56" ;
   :urlDataset "http://localhost:3030" ;
   :hash "kwo3c56" ;
+  :revisionNumber "9"^^xsd:nonNegativeInteger ;
+  :branchIndex "0"^^xsd:nonNegativeInteger ;
 .
-
 :Snapshot_93gqyi5
   a :Snapshot ;
-  :validAt "2021-07-03T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :validAt "2021-07-03T00:00:00+02:00"^^xsd:dateTimeStamp ;
   :transactedAt :Revision_dk1lbv3 ;
   :nameDataset "Snapshot_93gqyi5" ;
   :urlDataset "http://localhost:3030" ;
   :hash "93gqyi5" ;
+  :revisionNumber "16"^^xsd:nonNegativeInteger ;
+  :branchIndex "2"^^xsd:nonNegativeInteger ;
 .
 
 #################### Tags ####################
@@ -1457,17 +1377,21 @@ recipes:ChickenAndEgg {
 :Tag_ksjd3lq
   a :Tag ;
   :tagName "version1" ;
-  :validAt "2021-06-18T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :validAt "2021-06-18T00:00:00+02:00"^^xsd:dateTimeStamp ;
   :transactedAt :Revision_93jgc0p ;
   :hash "ksjd3lq" ;
+  :revisionNumber "7"^^xsd:nonNegativeInteger ;
+  :branchIndex "0"^^xsd:nonNegativeInteger ;
 .
 
 :Tag_38ld2gh
   a :Tag ;
   :tagName "version2" ;
-  :validAt "2021-06-25T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :validAt "2021-06-25T00:00:00+02:00"^^xsd:dateTimeStamp ;
   :transactedAt :Revision_03kvbi1 ;
   :hash "38ld2gh" ;
+  :revisionNumber "13"^^xsd:nonNegativeInteger ;
+  :branchIndex "0"^^xsd:nonNegativeInteger ;
 .
 
 #################### Head Revisions ####################
@@ -1475,24 +1399,29 @@ recipes:ChickenAndEgg {
 :HeadRevision_0
   a :HeadRevision ;
   :precedingRevision :Revision_38gh2vh ;
+  :revisionNumber "16"^^xsd:nonNegativeInteger ;
 .
 :HeadRevision_1
   a :HeadRevision ;
   :precedingRevision :Revision_20vqzxp ;
   :branch :Branch_k301fkl ;
+  :revisionNumber "15"^^xsd:nonNegativeInteger ;
 .
 :HeadRevision_2
   a :HeadRevision ;
   :precedingRevision :Revision_dk1lbv3 ;
   :branch :Branch_38ld2gh ;
+  :revisionNumber "16"^^xsd:nonNegativeInteger ;
 .
 :HeadRevision_3
   a :HeadRevision ;
   :precedingRevision :Revision_20vqzxp ;
   :branch :Branch_92pivn0 ;
+  :revisionNumber "16"^^xsd:nonNegativeInteger ;
 .
 :HeadRevision_4
   a :HeadRevision ;
   :precedingRevision :Revision_dk1lbv3 ;
   :branch :Branch_jhf06eg ;
+  :revisionNumber "10"^^xsd:nonNegativeInteger ;
 .
