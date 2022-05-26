@@ -43,11 +43,11 @@ class Update(ValidRevision):
         self._modifications = modifications
 
     @property
-    def start_date(self):
+    def start_date(self) -> Literal:
         return self._startDate
 
     @start_date.setter
-    def start_date(self, startDate):
+    def start_date(self, startDate: Literal):
         if startDate is not None:
             self._RDFPatterns.append(Triple((self._identifier, BITR4QS.startedAt, startDate)))
         self._startDate = startDate
@@ -167,7 +167,7 @@ class Update(ValidRevision):
             revisionNumber=revisionNumber, precedingRevision=self._identifier)
         return modifiedUpdate
 
-    def revert(self, revisionStore, revisionNumber=None, branchIndex=None, relatedContent=True):
+    def revert(self, revisionStore, headRevision, revisionNumber=None, branchIndex=None, relatedContent=True):
         # Check whether there exists a preceding snapshot
         if self._precedingRevision is not None:
             # Get the preceding update
@@ -190,7 +190,7 @@ class Update(ValidRevision):
 
             revertedUpdate = self.modify(revisionNumber=revisionNumber, branchIndex=branchIndex,
                                          otherStartDate=otherUpdate.start_date, otherEndDate=otherUpdate.end_date,
-                                         otherModifications=self._modifications, headRevision=...,
+                                         otherModifications=self._modifications, headRevision=headRevision,
                                          relatedContent=relatedContent, revisionStore=revisionStore)
         else:
             if relatedContent:

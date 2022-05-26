@@ -184,11 +184,31 @@
   a :UpdateRevision ;
   rdfs:comment "Added a recipe for hazelnut macaroons to the dataset."@en-gb ;
   :author "Cato Vos" ;
-  :createdAt "2021-07-01T13:35:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-07-08T13:35:00+02:00"^^xsd:dateTimeStamp ;
   :branch :Branch_k301fkl ;
   :update :Update_do8t42 ;
   :hash "20vqzxp" ;
   :precedingRevision :Revision_kd13bln ;
+.
+:Revision_bcp5c9z
+  a :UpdateRevision ;
+  rdfs:comment "Modify the start date and modifications in Update_dio23e."@en-gb ;
+  :author "Sammy Vonk" ;
+  :createdAt "2021-07-10T19:25:00+00:00"^^xsd:dateTimeStamp ;
+  :branch :Branch_k301fkl ;
+  :update :Update_do8t42 ;
+  :hash "20vqzxp" ;
+  :precedingRevision :Revision_20vqzxp ;
+.
+:Revision_2xm1g03
+  a :UpdateRevision ;
+  rdfs:comment "Modify the end date and modifications in Update_."@en-gb ;
+  :author "Cora Koopman" ;
+  :createdAt "2021-07-13T11:59:00+00:00"^^xsd:dateTimeStamp ;
+  :branch :Branch_k301fkl ;
+  :update :Update_do8t42 ;
+  :hash "20vqzxp" ;
+  :precedingRevision :Revision_bcp5c9z ;
 .
 
 
@@ -241,6 +261,108 @@
   :snapshot :Snapshot_93gqyi5 ;
   :hash "dk1lbv3" ;
   :precedingRevision :Revision_3ignb40 ;
+.
+
+##### Third Branch #####
+:Revision_93dkj7y
+  a :BranchRevision ;
+  rdfs:comment "Added a third branch with chicken recipes to the dataset."@en-gb ;
+  :author "Dirk Blommers" ;
+  :createdAt "2021-07-08T09:16:00+00:00"^^xsd:dateTimeStamp ;
+  :branch :Branch_92pivn0 ;
+  :hash "93dkj7y" ;
+  :precedingRevision :Revision_93lgkac ;
+.
+:Revision_ieh32pv
+  a :UpdateRevision ;
+  rdfs:comment "Added a recipe Coq au Riesling to the dataset."@en-gb ;
+  :author "Cato Vos" ;
+  :createdAt "2021-07-09T13:55:00+00:00"^^xsd:dateTimeStamp ;
+  :branch :Branch_92pivn0 ;
+  :update :Update_94wqpl ;
+  :hash "ieh32pv" ;
+  :precedingRevision :Revision_93dkj7y ;
+.
+:Revision_pic83mn
+  a :UpdateRevision ;
+  rdfs:comment "Modify the list of ingredients in update ."@en-gb ;
+  :author "Barbara Koning" ;
+  :createdAt "2021-07-11T16:14:00+00:00"^^xsd:dateTimeStamp ;
+  :branch :Branch_92pivn0 ;
+  :update :Update_9wr9po ;
+  :hash "pic83mn" ;
+  :precedingRevision :Revision_ieh32pv ;
+.
+:Revision_ifds84
+  a :UpdateRevision ;
+  rdfs:comment "Modify the start date of Update."@en-gb ;
+  :author "Jan Knip" ;
+  :createdAt "2021-07-11T18:40:00+00:00"^^xsd:dateTimeStamp ;
+  :branch :Branch_92pivn0 ;
+  :update :Update_yt2l81 ;
+  :hash "ifds84" ;
+  :precedingRevision :Revision_pic83mn ;
+.
+:Revision_pqb91e3
+  a :UpdateRevision ;
+  rdfs:comment "Modify the end date of Update_7yv3wq."@en-gb ;
+  :author "Sander Dekker" ;
+  :createdAt "2021-07-16T12:11:00+00:00"^^xsd:dateTimeStamp ;
+  :branch :Branch_92pivn0 ;
+  :update :Update_hg01vc ;
+  :hash "pqb91e3" ;
+  :precedingRevision :Revision_ifds84 ;
+.
+
+##### Fourth Branch #####
+:Revision_0nvwq08
+  a :BranchRevision ;
+  rdfs:comment "Added a fourth branch with egg recipes to the dataset."@en-gb ;
+  :author "Pepijn Winter" ;
+  :createdAt "2021-07-15T10:46:00+00:00"^^xsd:dateTimeStamp ;
+  :branch :Branch_jhf06eg ;
+  :hash "0nvwq08" ;
+  :precedingRevision :Revision_d92ghv9 ;
+.
+:Revision_sl2vb01
+  a :UpdateRevision ;
+  rdfs:comment "Add a recipe Shukshuka to the dataset."@en-gb ;
+  :author "Tom Scholten" ;
+  :createdAt "2021-07-15T14:31:00+00:00"^^xsd:dateTimeStamp ;
+  :branch :Branch_jhf06eg ;
+  :update :Update_bce34v ;
+  :hash "sl2vb01" ;
+  :precedingRevision :Revision_0nvwq08 ;
+.
+:Revision_1qplv90
+  a :UpdateRevision ;
+  rdfs:comment "Delete the recipe Shukshuka from the dataset."@en-gb ;
+  :author "Marin Gerritsen" ;
+  :createdAt "2021-07-18T17:19:00+00:00"^^xsd:dateTimeStamp ;
+  :branch :Branch_jhf06eg ;
+  :update :Update_trio32 ;
+  :hash "1qplv90" ;
+  :precedingRevision :Revision_sl2vb01 ;
+.
+:Revision_iusa876
+  a :UpdateRevision ;
+  rdfs:comment "Add the recipe Shukshuka to the dataset again."@en-gb ;
+  :author "Jara Kroon" ;
+  :createdAt "2021-07-19T08:02:00+00:00"^^xsd:dateTimeStamp ;
+  :branch :Branch_jhf06eg ;
+  :update :Update_iuvm67 ;
+  :hash "iusa876" ;
+  :precedingRevision :Revision_1qplv90 ;
+.
+:Revision_axz0pb4
+  a :UpdateRevision ;
+  rdfs:comment "Delete the recipe Shukshuka from the dataset again."@en-gb ;
+  :author "Sander Dekker" ;
+  :createdAt "2021-07-19T15:43:00+00:00"^^xsd:dateTimeStamp ;
+  :branch :Branch_jhf06eg ;
+  :update :Update_53hlf1 ;
+  :hash "axz0pb4" ;
+  :precedingRevision :Revision_iusa876 ;
 .
 
 #################### Updates ####################
@@ -609,8 +731,6 @@ recipes:GreatCurries {
                    :inserts << recipes:RecipeKingPrawnPakoras recipes:produces recipes:Pakora >> ;
 . }
 
-
-
 :Update_p2bx1d
   a :Update ;
   :hash "p2bx1d" ;
@@ -792,6 +912,65 @@ recipes:DownToEarth {
   :inserts << recipes:HazelnutMacaroon rdfs:label "Hazelnut macaroon"@en-gb >> ;
   :inserts << recipes:HazelnutMacaroon rdfs:label "Hazelnoot makroon"@nl >> ;
 .
+:Update_45hgxa
+  a :Update ;
+  :hash "45hgxa" ;
+  :startedAt "2021-06-25T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-10-09T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :precedingUpdate :Update_dio23e
+  :inserts << recipes:ChickenBreast a recipes:Food >> ;
+  :inserts << recipes:ChickenBreast rdfs:label "Chicken breast"@en-gb >> ;
+  :inserts << recipes:ChickenBreast rdfs:label "Kipfilet"@nl >> ;
+  :inserts << recipes:JapanesePankoBreadcrumbs a recipes:Food >> ;
+  :inserts << recipes:JapanesePankoBreadcrumbs rdfs:label "Japanese panko breadcrumbs"@en-gb >> ;
+  :inserts << recipes:JapanesePankoBreadcrumbs rdfs:label "Japanse panko paneermeel"@nl >> ;
+  :inserts << recipes:KatsuCurry a recipes:Food >> ;
+  :inserts << recipes:KatsuCurry rdfs:label "Katsu curry"@en-gb >> ;
+  :inserts << recipes:KatsuCurry rdfs:label "Katsu curry"@nl >> ;
+.
+recipes:GreatCurries {
+  :Update_45hgxa   :inserts << recipes:RecipeKatsuCurry a recipes:Recipe >> ;
+                   :inserts << recipes:RecipeKatsuCurry rdfs:label "Katsu curry"@en-gb >> ;
+                   :inserts << recipes:RecipeKatsuCurry recipes:cuisine recipes:JapaneseCuisine >> ;
+                   :inserts << recipes:RecipeKatsuCurry recipes:meal recipes:MainCourse >> ;
+                   :inserts << recipes:RecipeKatsuCurry recipes:diet recipes:GlutenFree >> ;
+                   :inserts << recipes:RecipeKatsuCurry rdfs:comment "Bruce Lee meets Colonel Sanders - this is one of those dishes that just works. We've experimented with losts of variations and this is our favourite - it has a lovely slightly aniseedy taste. Panko breadcrumbs are a must so keep some in your store cupboard."@en-gb >> ;
+                   :inserts << recipes:RecipeKatsuCurry recipes:ingredients recipes:Chicken >> ;
+                   :inserts << recipes:RecipeKatsuCurry recipes:ingredients recipes:Egg >> ;
+                   :inserts << recipes:RecipeKatsuCurry recipes:ingredients recipes:JapanesePankoBreadcrumbs >> ;
+                   :inserts << recipes:RecipeKatsuCurry recipes:ingredients recipes:SunflowerOil >> ;
+                   :inserts << recipes:RecipeKatsuCurry recipes:produces recipes:KatsuCurry >> ;
+. }
+:Update_6gclpo
+  a :Update ;
+  :hash "6gclpo" ;
+  :startedAt "2021-06-25T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-10-09T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :precedingUpdate :Update_dio23e
+  :inserts << recipes:ChickenBreast a recipes:Food >> ;
+  :inserts << recipes:ChickenBreast rdfs:label "Chicken breast"@en-gb >> ;
+  :inserts << recipes:ChickenBreast rdfs:label "Kipfilet"@nl >> ;
+  :inserts << recipes:JapanesePankoBreadcrumbs a recipes:Food >> ;
+  :inserts << recipes:JapanesePankoBreadcrumbs rdfs:label "Japanese panko breadcrumbs"@en-gb >> ;
+  :inserts << recipes:JapanesePankoBreadcrumbs rdfs:label "Japanse panko paneermeel"@nl >> ;
+  :inserts << recipes:KatsuCurry a recipes:Food >> ;
+  :inserts << recipes:KatsuCurry rdfs:label "Katsu curry"@en-gb >> ;
+  :inserts << recipes:KatsuCurry rdfs:label "Katsu curry"@nl >> ;
+.
+recipes:GreatCurries {
+  :Update_6gclpo   :inserts << recipes:RecipeKatsuCurry a recipes:Recipe >> ;
+                   :inserts << recipes:RecipeKatsuCurry rdfs:label "Katsu curry"@en-gb >> ;
+                   :inserts << recipes:RecipeKatsuCurry recipes:cuisine recipes:JapaneseCuisine >> ;
+                   :inserts << recipes:RecipeKatsuCurry recipes:meal recipes:MainCourse >> ;
+                   :inserts << recipes:RecipeKatsuCurry recipes:diet recipes:GlutenFree >> ;
+                   :inserts << recipes:RecipeKatsuCurry rdfs:comment "Bruce Lee meets Colonel Sanders - this is one of those dishes that just works. We've experimented with losts of variations and this is our favourite - it has a lovely slightly aniseedy taste. Panko breadcrumbs are a must so keep some in your store cupboard."@en-gb >> ;
+                   :inserts << recipes:RecipeKatsuCurry recipes:ingredients recipes:Chicken >> ;
+                   :inserts << recipes:RecipeKatsuCurry recipes:ingredients recipes:Egg >> ;
+                   :inserts << recipes:RecipeKatsuCurry recipes:ingredients recipes:JapanesePankoBreadcrumbs >> ;
+                   :inserts << recipes:RecipeKatsuCurry recipes:ingredients recipes:SunflowerOil >> ;
+                   :inserts << recipes:RecipeKatsuCurry recipes:produces recipes:KatsuCurry >> ;
+. }
+
 
 #### Second Branch #####
 
@@ -920,6 +1099,194 @@ recipes:GreatCurries {
                    :inserts << recipes:RecipeGreenChickenCurry recipes:produces recipes:GreenChickenCurry >> ;
 . }
 
+#### Third Branch #####
+
+:Update_94wqpl
+  a :Update ;
+  :hash "94wqpl" ;
+  :startedAt "2021-07-09T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-10-04T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :inserts << recipes:CoqAuRiesling a recipes:Food >> ;
+  :inserts << recipes:CoqAuRiesling rdfs:label "Coq au riesling"@en-gb >> ;
+  :inserts << recipes:CoqAuRiesling rdfs:label "Coq au riesling"@nl >> ;
+  :inserts << recipes:FrenchCuisine a recipes:Cuisine >> ;
+  :inserts << recipes:FrenchCuisine rdfs:label "Frans"@nl >> ;
+  :inserts << recipes:FrenchCuisine rdfs:label "Franse keuken"@nl >> ;
+  :inserts << recipes:FrenchCuisine rdfs:label "French"@en-gb >> ;
+  :inserts << recipes:FrenchCuisine rdfs:label "French cuisine"@en-gb >> ;
+.
+recipes:ChickenAndEgg {
+  :Update_94wqpl   :inserts << recipes:RecipeCoqAuRiesling a recipes:Recipe >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling rdfs:label "Coq au riesling"@en-gb >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:cuisine recipes:FrenchCuisine >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:meal recipes:MainCourse >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:diet recipes:GlutenFree >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling rdfs:comment "This is a twist on our beloved coq au vin. The creat thing is because you use white wine instead of red you can add cream and the dish doesn't go a funny color - and it tastes great."@en-gb >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:produces recipes:CoqAuRiesling >> ;
+. }
+:Update_9wr9po
+  a :Update ;
+  :hash "9wr9po" ;
+  :startedAt "2021-07-09T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-10-04T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :precedingUpdate :Update_94wqpl ;
+  :inserts << recipes:CoqAuRiesling a recipes:Food >> ;
+  :inserts << recipes:CoqAuRiesling rdfs:label "Coq au riesling"@en-gb >> ;
+  :inserts << recipes:CoqAuRiesling rdfs:label "Coq au riesling"@nl >> ;
+  :inserts << recipes:FrenchCuisine a recipes:Cuisine >> ;
+  :inserts << recipes:FrenchCuisine rdfs:label "Frans"@nl >> ;
+  :inserts << recipes:FrenchCuisine rdfs:label "Franse keuken"@nl >> ;
+  :inserts << recipes:FrenchCuisine rdfs:label "French"@en-gb >> ;
+  :inserts << recipes:FrenchCuisine rdfs:label "French cuisine"@en-gb >> ;
+.
+recipes:ChickenAndEgg {
+  :Update_9wr9po   :inserts << recipes:RecipeCoqAuRiesling a recipes:Recipe >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling rdfs:label "Coq au riesling"@en-gb >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:cuisine recipes:FrenchCuisine >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:meal recipes:MainCourse >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:diet recipes:GlutenFree >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling rdfs:comment "This is a twist on our beloved coq au vin. The creat thing is because you use white wine instead of red you can add cream and the dish doesn't go a funny color - and it tastes great."@en-gb >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Chicken >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Onion >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Garlic >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:produces recipes:CoqAuRiesling >> ;
+. }
+:Update_yt2l81
+  a :Update ;
+  :hash "yt2l81" ;
+  :startedAt "2021-07-15T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-10-04T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :precedingUpdate :Update_9wr9po ;
+  :inserts << recipes:CoqAuRiesling a recipes:Food >> ;
+  :inserts << recipes:CoqAuRiesling rdfs:label "Coq au riesling"@en-gb >> ;
+  :inserts << recipes:CoqAuRiesling rdfs:label "Coq au riesling"@nl >> ;
+  :inserts << recipes:FrenchCuisine a recipes:Cuisine >> ;
+  :inserts << recipes:FrenchCuisine rdfs:label "Frans"@nl >> ;
+  :inserts << recipes:FrenchCuisine rdfs:label "Franse keuken"@nl >> ;
+  :inserts << recipes:FrenchCuisine rdfs:label "French"@en-gb >> ;
+  :inserts << recipes:FrenchCuisine rdfs:label "French cuisine"@en-gb >> ;
+.
+recipes:ChickenAndEgg {
+  :Update_yt2l81   :inserts << recipes:RecipeCoqAuRiesling a recipes:Recipe >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling rdfs:label "Coq au riesling"@en-gb >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:cuisine recipes:FrenchCuisine >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:meal recipes:MainCourse >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:diet recipes:GlutenFree >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling rdfs:comment "This is a twist on our beloved coq au vin. The creat thing is because you use white wine instead of red you can add cream and the dish doesn't go a funny color - and it tastes great."@en-gb >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Chicken >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Onion >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:ingredients recipes:Garlic >> ;
+                   :inserts << recipes:RecipeCoqAuRiesling recipes:produces recipes:CoqAuRiesling >> ;
+. }
+
+:Update_hg01vc
+  a :Update ;
+  :hash "hg01vc" ;
+  :startedAt "2021-06-01T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-07-01T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :precedingUpdate :Update_7yv3wq ;
+  :inserts << recipes:RecipeOrangeCrushCookies a recipes:Recipe >> ;
+  :inserts << recipes:RecipeOrangeCrushCookies rdfs:label "Orange crush cookies"@en-gb >> ;
+  :inserts << recipes:RecipeOrangeCrushCookies recipes:cuisine recipes:EnglishCuisine >> ;
+  :inserts << recipes:RecipeOrangeCrushCookies recipes:meal recipes:Snack  >> ;
+  :inserts << recipes:RecipeOrangeCrushCookies rdfs:comment "This may look like a classic chocolate chip cookie but take a bite and your taste buds will get a real treat. With orange extract and orange zest, this recipe is irresistible. Orange and dark/bittersweet chocolate are a match made in heaven and work magically in a cookie."@en-gb >> ;
+  :inserts << recipes:RecipeOrangeCrushCookies recipes:ingredients recipes:Butter >> ;
+  :inserts << recipes:RecipeOrangeCrushCookies recipes:ingredients recipes:CasterSugar >> ;
+  :inserts << recipes:RecipeOrangeCrushCookies recipes:ingredients recipes:Muscovado >> ;
+  :inserts << recipes:RecipeOrangeCrushCookies recipes:ingredients recipes:Egg >> ;
+  :inserts << recipes:RecipeOrangeCrushCookies recipes:produces recipes:OrangeCrushCookie >> ;
+  :inserts << recipes:Muscovado a recipes:Food >> ;
+  :inserts << recipes:Muscovado rdfs:label "Muscovado"@en-gb >> ;
+  :inserts << recipes:Muscovado rdfs:label "Muscovadosuiker"@nl >> ;
+  :inserts << recipes:OrangeCrushCookie a recipes:Food >> ;
+  :inserts << recipes:OrangeCrushCookie rdfs:label "Orange crush cookie"@en-gb >> ;
+  :inserts << recipes:OrangeCrushCookie rdfs:label "Sinaasappel crush koekje"@nl >> ;
+.
+
+#### Fourth Branch #####
+
+:Update_bce34v
+  a :Update ;
+  :hash "bce34v" ;
+  :startedAt "2021-06-17T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-08-15T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :inserts << recipes:Shakshuka a recipes:Food >> ;
+  :inserts << recipes:Shakshuka rdfs:label "Shakshuka"@en-gb >> ;
+  :inserts << recipes:Shakshuka rdfs:label "Shakshuka"@nl >> ;
+  :inserts << recipes:MiddleEastCuisine a recipes:Cuisine >> ;
+  :inserts << recipes:MiddleEastCuisine rdfs:label "Middle East cuisine"@en-gb >> ;
+.
+recipes:ChickenAndEgg {
+  :Update_bce34v   :inserts << recipes:RecipeShakshuka a recipes:Recipe >> ;
+                   :inserts << recipes:RecipeShakshuka rdfs:label "Shakshuka recipe"@en-gb >> ;
+                   :inserts << recipes:RecipeShakshuka recipes:cuisine recipes:MiddleEastCuisine >> ;
+                   :inserts << recipes:RecipeShakshuka recipes:meal recipes:MainCourse >> ;
+                   :inserts << recipes:RecipeShakshuka recipes:diet recipes:GlutenFree >> ;
+                   :inserts << recipes:RecipeShakshuka rdfs:comment "This is a twist on our beloved coq au vin. The creat thing is because you use white wine instead of red you can add cream and the dish doesn't go a funny color - and it tastes great."@en-gb >> ;
+                   :inserts << recipes:RecipeShakshuka recipes:ingredients recipes:Egg >> ;
+                   :inserts << recipes:RecipeShakshuka recipes:ingredients recipes:CorianderLeaves >> ;
+                   :inserts << recipes:RecipeShakshuka recipes:ingredients recipes:TomatoPuree >> ;
+                   :inserts << recipes:RecipeShakshuka recipes:ingredients recipes:Garlic >> ;
+                   :inserts << recipes:RecipeShakshuka recipes:produces recipes:Shakshuka >> ;
+. }
+:Update_trio32
+  a :Update ;
+  :hash "trio32" ;
+  :startedAt "2021-06-20T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-08-10T00:00:00+00:00"^^xsd:dateTimeStamp ;
+.
+recipes:ChickenAndEgg {
+  :Update_trio32   :deletes << recipes:RecipeShakshuka a recipes:Recipe >> ;
+                   :deletes << recipes:RecipeShakshuka rdfs:label "Shakshuka recipe"@en-gb >> ;
+                   :deletes << recipes:RecipeShakshuka recipes:cuisine recipes:MiddleEastCuisine >> ;
+                   :deletes << recipes:RecipeShakshuka recipes:meal recipes:MainCourse >> ;
+                   :deletes << recipes:RecipeShakshuka recipes:diet recipes:GlutenFree >> ;
+                   :deletes << recipes:RecipeShakshuka rdfs:comment "This is a twist on our beloved coq au vin. The creat thing is because you use white wine instead of red you can add cream and the dish doesn't go a funny color - and it tastes great."@en-gb >> ;
+                   :deletes << recipes:RecipeShakshuka recipes:ingredients recipes:Egg >> ;
+                   :deletes << recipes:RecipeShakshuka recipes:ingredients recipes:CorianderLeaves >> ;
+                   :deletes << recipes:RecipeShakshuka recipes:ingredients recipes:TomatoPuree >> ;
+                   :deletes << recipes:RecipeShakshuka recipes:ingredients recipes:Garlic >> ;
+                   :deletes << recipes:RecipeShakshuka recipes:produces recipes:Shakshuka >> ;
+. }
+:Update_iuvm67
+  a :Update ;
+  :hash "iuvm67" ;
+  :startedAt "2021-06-30T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-08-01T00:00:00+00:00"^^xsd:dateTimeStamp ;
+.
+recipes:ChickenAndEgg {
+  :Update_iuvm67   :inserts << recipes:RecipeShakshuka a recipes:Recipe >> ;
+                   :inserts << recipes:RecipeShakshuka rdfs:label "Shakshuka recipe"@en-gb >> ;
+                   :inserts << recipes:RecipeShakshuka recipes:cuisine recipes:MiddleEastCuisine >> ;
+                   :inserts << recipes:RecipeShakshuka recipes:meal recipes:MainCourse >> ;
+                   :inserts << recipes:RecipeShakshuka recipes:diet recipes:GlutenFree >> ;
+                   :inserts << recipes:RecipeShakshuka rdfs:comment "This is a twist on our beloved coq au vin. The creat thing is because you use white wine instead of red you can add cream and the dish doesn't go a funny color - and it tastes great."@en-gb >> ;
+                   :inserts << recipes:RecipeShakshuka recipes:ingredients recipes:Egg >> ;
+                   :inserts << recipes:RecipeShakshuka recipes:ingredients recipes:CorianderLeaves >> ;
+                   :inserts << recipes:RecipeShakshuka recipes:ingredients recipes:TomatoPuree >> ;
+                   :inserts << recipes:RecipeShakshuka recipes:ingredients recipes:Garlic >> ;
+                   :inserts << recipes:RecipeShakshuka recipes:produces recipes:Shakshuka >> ;
+. }
+:Update_53hlf1
+  a :Update ;
+  :hash "53hlf1" ;
+  :startedAt "2021-07-05T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-07-25T00:00:00+00:00"^^xsd:dateTimeStamp ;
+.
+recipes:ChickenAndEgg {
+  :Update_53hlf1   :deletes << recipes:RecipeShakshuka a recipes:Recipe >> ;
+                   :deletes << recipes:RecipeShakshuka rdfs:label "Shakshuka recipe"@en-gb >> ;
+                   :deletes << recipes:RecipeShakshuka recipes:cuisine recipes:MiddleEastCuisine >> ;
+                   :deletes << recipes:RecipeShakshuka recipes:meal recipes:MainCourse >> ;
+                   :deletes << recipes:RecipeShakshuka recipes:diet recipes:GlutenFree >> ;
+                   :deletes << recipes:RecipeShakshuka rdfs:comment "This is a twist on our beloved coq au vin. The creat thing is because you use white wine instead of red you can add cream and the dish doesn't go a funny color - and it tastes great."@en-gb >> ;
+                   :deletes << recipes:RecipeShakshuka recipes:ingredients recipes:Egg >> ;
+                   :deletes << recipes:RecipeShakshuka recipes:ingredients recipes:CorianderLeaves >> ;
+                   :deletes << recipes:RecipeShakshuka recipes:ingredients recipes:TomatoPuree >> ;
+                   :deletes << recipes:RecipeShakshuka recipes:ingredients recipes:Garlic >> ;
+                   :deletes << recipes:RecipeShakshuka recipes:produces recipes:Shakshuka >> ;
+. }
+
 #################### Branches ####################
 
 :Branch_ksjd3lq
@@ -941,6 +1308,20 @@ recipes:GreatCurries {
   :branchedOffAt :Revision_ipm42rv ;
   :branchName "FishRecipes" ;
   :hash "38ld2gh" ;
+.
+
+:Branch_92pivn0
+  a :Branch ;
+  :branchedOffAt :Revision_93lgkac ;
+  :branchName "ChickenRecipes" ;
+  :hash "92pivn0" ;
+.
+
+:Branch_jhf06eg
+  a :Branch ;
+  :branchedOffAt :Revision_d92ghv9 ;
+  :branchName "EggRecipes" ;
+  :hash "jhf06eg" ;
 .
 
 #################### Snapshots ####################

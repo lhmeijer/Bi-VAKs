@@ -2,7 +2,7 @@ from rdflib.plugins.parsers.ntriples import W3CNTriplesParser
 from src.main.bitr4qs.tools.parser.Parser import TripleSink
 import numpy as np
 import gzip
-
+from datetime import datetime, timedelta
 
 class StoreCreator(object):
 
@@ -102,8 +102,20 @@ class StoreCreator(object):
                                                   self._updateIndex)
                 else:
                     randomInt = np.random.randint(1, self._updateIndex)
+
+                startDate = ''
+                if updateData[randomInt][4] != 'unknown':
+                    startTimestamp = datetime.strptime(updateData[randomInt][4], "%Y-%m-%dT%H:%M:%S+00:00")
+                    startDate = (startTimestamp + timedelta(seconds=1)).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+
+                endDate = ''
+                if updateData[randomInt][5] != 'unknown':
+                    endTimestamp = datetime.strptime(updateData[randomInt][5], "%Y-%m-%dT%H:%M:%S+00:00")
+                    endDate = (endTimestamp + timedelta(seconds=1)).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+
                 updateID = self._application.post('/update/{0}'.format(self._updateIDs[randomInt]), data=dict(
-                    author='Tom de Vries', description='Modify update.', branch=self._branch))
+                    author='Tom de Vries', description='Modify update.', branch=self._branch, startDate=startDate,
+                    endDate=endDate))
 
 
     # def _send_updates(self, updateData):

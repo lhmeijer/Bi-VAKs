@@ -133,12 +133,16 @@ class ModifiedRepeatedUpdateRequest(UpdateRequest):
         modifiedRevision = revision.modify(
             otherStartDate=self._startDate, otherEndDate=self._endDate, branchIndex=self._branchIndex,
             otherModifications=self._modifications, revisionNumber=self._revisionNumber, revisionStore=revisionStore,
-            relatedContent=False)
+            relatedContent=False, headRevision=self._headRevision.preceding_revision)
         return [modifiedRevision]
 
     def reversions_from_request(self, revision, revisionStore):
+
+        assert isinstance(revision, Update), "Valid Revision should be a Update"
+
         revertedRevision = revision.revert(revisionStore=revisionStore, revisionNumber=self._revisionNumber,
-                                           branchIndex=self._branchIndex, relatedContent=False)
+                                           branchIndex=self._branchIndex, relatedContent=False,
+                                           headRevision=self._headRevision.preceding_revision)
         return revertedRevision
 
 
@@ -146,17 +150,21 @@ class ModifiedRelatedUpdateRequest(UpdateRequest):
 
     def modifications_from_request(self, revision, revisionStore):
 
-        assert isinstance(revision, Update), "Valid Revision should be a Snapshot"
+        assert isinstance(revision, Update), "Valid Revision should be a Update"
         # AssertionError
 
         modifiedRevision = revision.modify(
             otherStartDate=self._startDate, otherEndDate=self._endDate, branchIndex=self._branchIndex,
             otherModifications=self._modifications, revisionNumber=self._revisionNumber, revisionStore=revisionStore,
-            relatedContent=True)
+            relatedContent=True, headRevision=self._headRevision.preceding_revision)
         return [modifiedRevision]
 
     def reversions_from_request(self, revision, revisionStore):
+
+        assert isinstance(revision, Update), "Valid Revision should be a Update"
+
         revertedRevision = revision.revert(revisionStore=revisionStore, revisionNumber=self._revisionNumber,
-                                           branchIndex=self._branchIndex, relatedContent=True)
+                                           branchIndex=self._branchIndex, relatedContent=True,
+                                           headRevision=self._headRevision.preceding_revision)
         return revertedRevision
 
