@@ -34,14 +34,14 @@ class Evaluator(object):
         numpyTriplesPerQuery = np.array(triplesPerQuery)
 
         meanTimePerVersion = np.mean(numpyTimePerQuery, axis=0)
-        results['MeanTimePerVersion'] = meanTimePerVersion.tolist()
+        results['MEAN_TimePerVersion'] = meanTimePerVersion.tolist()
         standardDeviationTimePerVersion = np.std(numpyTimePerQuery, axis=0)
-        results['StandardDeviationTimePerVersion'] = standardDeviationTimePerVersion.tolist()
+        results['STANDARD_DEVIATION_TimePerVersion'] = standardDeviationTimePerVersion.tolist()
 
         meanTriplesPerQuery = np.mean(numpyTriplesPerQuery, axis=0)
-        results['MeanTriplesPerVersion'] = meanTriplesPerQuery.tolist()
+        results['MEAN_TriplesPerVersion'] = meanTriplesPerQuery.tolist()
         standardDeviationTriplesPerQuery = np.std(numpyTriplesPerQuery, axis=0)
-        results['StandardDeviationTriplesPerVersion'] = standardDeviationTriplesPerQuery.tolist()
+        results['STANDARD_DEVIATION_TriplesPerVersion'] = standardDeviationTriplesPerQuery.tolist()
 
         with open(self._config.query_results_file_name, 'w') as file:
             json.dump(results, file)

@@ -27,12 +27,18 @@ class UpdateRequest(Request):
         # Obtain start date
         startDate = self._request.values.get('startDate', None) or None
         if startDate is not None:
-            self._startDate = Literal(str(startDate), datatype=XSD.dateTimeStamp)
+            if startDate == 'unknown':
+                self._startDate = None
+            else:
+                self._startDate = Literal(str(startDate), datatype=XSD.dateTimeStamp)
 
         # Obtain end date
         endDate = self._request.values.get('endDate', None) or None
         if endDate is not None:
-            self._endDate = Literal(str(endDate), datatype=XSD.dateTimeStamp)
+            if endDate == 'unknown':
+                self._endDate = None
+            else:
+                self._endDate = Literal(str(endDate), datatype=XSD.dateTimeStamp)
 
         # Obtain the modifications
         self._modifications = self._request.values.get('modifications', None) or None

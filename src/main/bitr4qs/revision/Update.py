@@ -131,20 +131,29 @@ class Update(ValidRevision):
                 for i in range(len(self._modifications)):
                     if otherModification.value == self._modifications[i].value:
                         if otherModification.deletion and self._modifications[i].insertion:
-                            canBeAdded = revisionStore.can_quad_be_modified(quad=otherModification.value, revisionA=transactionRevision,
-                                                                            revisionB=headRevision, startDate=startDate, endDate=endDate)
+                            canBeAdded = revisionStore.can_quad_be_modified(
+                                quad=otherModification.value, revisionA=headRevision, endDate=endDate, deletion=False,
+                                revisionB=transactionRevision.identifier, startDate=startDate)
                             index = i
                         elif otherModification.insertion and self._modifications[i].deletion:
                             canBeAdded = revisionStore.can_quad_be_modified(
-                                quad=otherModification.value, revisionA=transactionRevision, revisionB=headRevision,
-                                startDate=startDate, endDate=endDate)
+                                quad=otherModification.value, revisionA=headRevision, endDate=endDate, deletion=True,
+                                revisionB=transactionRevision.identifier, startDate=startDate)
                             index = i
                         elif otherModification.deletion and self._modifications[i].deletion:
                             canBeAdded = False
+                            index = i
                         else:
                             canBeAdded = False
+                            index = i
 
-                if index and canBeAdded:
+                if not index:
+                    canBeAdded = revisionStore.can_quad_be_added_or_deleted(
+                        quad=otherModification.value, headRevision=headRevision, startDate=startDate, endDate=endDate,
+                        deletion=otherModification.deletion)
+                    if canBeAdded:
+                        newModifications.append(otherModification)
+                elif index and canBeAdded:
                     _ = self._modifications.pop(index)
                     newModifications.append(otherModification)
                 else:
@@ -152,8 +161,9 @@ class Update(ValidRevision):
 
         for modification in self._modifications:
             canBeModified = revisionStore.can_quad_be_modified(
-                quad=modification.value, revisionA=transactionRevision, revisionB=headRevision, startDate=startDate,
-                endDate=endDate)
+                quad=modification.value, revisionA=headRevision, revisionB=transactionRevision.identifier,
+                revisionC=transactionRevision.preceding_revision, startDate=startDate, endDate=endDate,
+                deletion=modification.deletion)
             if not canBeModified:
                 raise Exception
 
@@ -168,7 +178,7 @@ class Update(ValidRevision):
         return modifiedUpdate
 
     def revert(self, revisionStore, headRevision, revisionNumber=None, branchIndex=None, relatedContent=True):
-        # Check whether there exists a preceding snapshot
+        # Check whether there exists a preceding update
         if self._precedingRevision is not None:
             # Get the preceding update
             otherUpdate = revisionStore.preceding_revision(self._identifier, revisionType='update')

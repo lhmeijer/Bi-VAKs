@@ -99,7 +99,9 @@ class BiTR4Qs(object):
         transactionRevision = request.transaction_revision_from_request()
 
         validRevisions = []
-        revisions = self._revisionStore.valid_revisions_from_transaction_revision(revisionID, revisionType=None)
+        revisions = self._revisionStore.transaction_from_valid_and_valid_from_transaction(
+            revisionID, revisionType=None, transactionFromValid=False)
+
         for revision in revisions:
             revertedRevisions = request.reversions_from_request(revision, revisionStore=self._revisionStore)
             validRevisions.extend(revertedRevisions)
@@ -155,6 +157,16 @@ class BiTR4Qs(object):
         # if node is not None:
         #     return node
         return query.apply_query(self._revisionStore)
+
+    def get_number_of_quads_in_revision_store(self):
+        try:
+            numberOfQuads = self._revisionStore.number_of_quads_in_revision_store()
+        except Exception as e:
+            raise e
+        return numberOfQuads
+
+    def get_revision_in_revision_store(self, revisionID):
+        pass
 
 
 class BiTR4QsImplicit(BiTR4Qs):

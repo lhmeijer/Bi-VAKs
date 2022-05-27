@@ -94,50 +94,54 @@ class RevisionStoreExplicit(RevisionStore):
         :param revisionB:
         :return:
         """
-        SPARQLString = """PREFIX : <{0}>
-        ASK {{ {1} :precedingRevision+ {2} }}
-        """.format(str(BITR4QS), revisionB.n3(), revisionA.n3())
-        result = self._revisionStore.execute_ask_query(SPARQLString)
+        SPARQLQuery = "ASK {{ {0} :precedingRevision+ {1} }}".format(revisionB.n3(), revisionA.n3())
+        result = self._revisionStore.execute_ask_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)))
         return result
 
-    def _transaction_revision(self, transactionRevisionA, transactionRevision, transactionRevisionB=None):
+    def _transaction_revision(self, transactionRevisionA, transactionRevisionID, transactionRevisionB=None):
+        """
+
+        :param transactionRevisionA:
+        :param transactionRevisionID:
+        :param transactionRevisionB:
+        :return:
+        """
         earlyStop = ""
         if transactionRevisionB is not None:
             earlyStop = "\n?revision :precedingRevision+ {0} .".format(transactionRevisionB.n3())
 
-        SPARQLQuery = """PREFIX : <{0}>
-        DESCRIBE ?revision
-        {{ {1} :precedingRevision* ?revision .{2}
-        FILTER ( {3} = ?revision ) }}""".format(str(BITR4QS), transactionRevisionA.n3(), earlyStop,
-                                                transactionRevision.n3())
-        return SPARQLQuery
+        SPARQLQuery = """CONSTRUCT {{ ?revision ?p ?o }}
+        {{ {0} :precedingRevision* ?revision .{1}
+        FILTER ( {2} = ?revision ) 
+        ?revision ?p ?o . }}""".format(transactionRevisionA.n3(), earlyStop, transactionRevisionID.n3())
+        return '\n'.join((self.prefixBiTR4Qs, SPARQLQuery))
 
     def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str,
                                   revisionB: URIRef = None, prefix=True, timeConstrain=""):
         """
 
         :param revisionA:
-        :param validRevisionType:
+        :param revisionType:
         :param revisionB:
         :return:
         """
         print("kom ik hier in")
         earlyStopA = earlyStopB = ""
         if revisionB is not None:
-            earlyStopA = "\n?revision :precedingRevision+ {0} .".format(revisionB.n3())
-            earlyStopB = "\n?otherRevision :precedingRevision+ {0} .".format(revisionB.n3())
+            earlyStopA = "\n?transactionRevision :precedingRevision+ {0} .".format(revisionB.n3())
+            earlyStopB = "\n?otherTransactionRevision :precedingRevision+ {0} .".format(revisionB.n3())
 
         queryString = "DESCRIBE" if queryType == 'DescribeQuery' else 'SELECT'
         prefixString = "PREFIX : <{0}>".format(str(BITR4QS)) if prefix else ""
 
         SPARQLQuery = """{0}
         {6} ?{1}
-        WHERE {{ {2} :precedingRevision* ?revision .{3}
-            ?revision :{1} ?{1} .{7}
+        WHERE {{ {2} :precedingRevision* ?transactionRevision .{3}
+            ?transactionRevision :{1} ?{1} .{7}
             MINUS {{
-                {2} :precedingRevision* ?otherRevision .{4}
-                ?otherRevision :{1} ?other .
-                ?other :preceding{5} ?{1} . 
+                {2} :precedingRevision* ?otherTransactionRevision .{4}
+                ?otherTransactionRevision :{1} ?otherValidRevision .
+                ?otherValidRevision :preceding{5} ?{1} . 
             }}
         }}""".format(prefixString, revisionType, revisionA.n3(), earlyStopA, earlyStopB, revisionType.title(),
                      queryString, timeConstrain)
@@ -149,32 +153,56 @@ class RevisionStoreExplicit(RevisionStore):
             return SPARQLQuery
 
     def _transaction_revision_from_valid_revision(self, validRevisionID, revisionType):
-        SPARQLQuery = """PREFIX : <{0}>
-        DESCRIBE ?revision
-        WHERE {{ ?revision :{1} {2} }}""".format(str(BITR4QS), revisionType, validRevisionID.n3())
-        return SPARQLQuery
+        """
+
+        :param validRevisionID:
+        :param revisionType:
+        :return:
+        """
+        SPARQLQuery = """
+        CONSTRUCT {{ ?revision ?p ?o }}
+        WHERE {{ 
+            ?revision :{0} {1} .
+            ?revision ?p ?o .
+        }}""".format(revisionType, validRevisionID.n3())
+        return '\n'.join((self.prefixBiTR4Qs, SPARQLQuery))
 
     def _valid_revisions_from_transaction_revision(self, transactionRevisionID, revisionType):
+        """
+
+        :param transactionRevisionID:
+        :param revisionType:
+        :return:
+        """
         if revisionType == 'update':
-            where = "{0} :update ?revision .".format(transactionRevisionID.n3())
+            where = """{0} :update ?revision .
+            {{ GRAPH ?g {{ ?revision ?p1 ?o1 }} }} UNION {{ ?revision ?p2 ?o2 }}""".format(transactionRevisionID.n3())
         elif revisionType == 'snapshot':
-            where = "{0} :snapshot ?revision .".format(transactionRevisionID.n3())
+            where = "{0} :snapshot ?revision .\n?revision ?p ?o .".format(transactionRevisionID.n3())
         elif revisionType == 'tag':
-            where = "{0} :tag ?revision .".format(transactionRevisionID.n3())
+            where = "{0} :tag ?revision\n?revision ?p ?o .".format(transactionRevisionID.n3())
         elif revisionType == 'branch':
-            where = "{0} :branch ?revision .\nOPTIONAL {{ {0} :update ?revision }}".format(transactionRevisionID.n3())
+            where = """{0} :branch ?revision .
+            OPTIONAL {{ {0} :update ?revision }}
+            ?revision ?p ?o .""".format(transactionRevisionID.n3())
         elif revisionType == 'revert':
             where = """
             {0} :revert ?revision .
             OPTIONAL {{ {0} :update ?revision }}
             OPTIONAL {{ {0} :tag ?revision }}
             OPTIONAL {{ {0} :snapshot ?revision }}
-            OPTIONAL {{ {0} :branch ?revision }}""".format(transactionRevisionID.n3())
+            OPTIONAL {{ {0} :branch ?revision }}
+            ?revision ?p ?o .""".format(transactionRevisionID.n3())
         else:
             where = ""
 
-        SPARQLQuery = """PREFIX : <{0}>
-        DESCRIBE ?revision
-        WHERE {{ {1} }}""".format(str(BITR4QS), where)
-        return SPARQLQuery
+        if revisionType == 'update':
+            construct = 'GRAPH ?g { ?revision ?p1 ?o1 }\n?revision ?p2 ?o2'
+        else:
+            construct = '?revision ?p ?o'
+
+        SPARQLQuery = """CONSTRUCT {{ {0} }}
+        WHERE {{ {1} }}""".format(construct, where)
+
+        return '\n'.join((self.prefixBiTR4Qs, SPARQLQuery))
 

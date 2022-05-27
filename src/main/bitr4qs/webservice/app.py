@@ -29,11 +29,13 @@ def register_blueprints(app):
 
     from src.main.bitr4qs.webservice.modules.SPARQLEndpoint import SPARQLEndpoint
     from src.main.bitr4qs.webservice.modules.VersioningEndpoint import versioningEndpoint
+    from src.main.bitr4qs.webservice.modules.ApplicationEndpoint import ApplicationEndpoint
 
     # origins = app.config.get('CORS_ORIGIN_WHITELIST', '*')
     # cors.init_app(endpoint, origins=CORS_ORIGIN_WHITELIST)
     app.register_blueprint(SPARQLEndpoint)
     app.register_blueprint(versioningEndpoint)
+    app.register_blueprint(ApplicationEndpoint)
 
     @app.route("/")
     def index():

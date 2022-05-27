@@ -12,26 +12,35 @@ class RevisionStoreImplicit(RevisionStore):
         return Literal(0, datatype=XSD.nonNegativeInteger)
 
     @staticmethod
-    def get_new_revision_number(revisionNumber=None):
+    def new_revision_number(revisionNumber=None):
+        """
+        Function to obtain a new revision number based on the existing revision number.
+        :param revisionNumber:
+        :return:
+        """
         if revisionNumber is not None:
             assert isinstance(revisionNumber, Literal)
             return Literal(revisionNumber.value + 1, datatype=revisionNumber.datatype)
         else:
             return Literal(1, datatype=XSD.nonNegativeInteger)
 
-    def get_new_branch_index(self):
-        SPARQLQuery = """PREFIX : <{0}>
-        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        SELECT ?branchIndex
+    def new_branch_index(self):
+        """
+        Function to obtain a new branch index based on the existing branches
+        :return:
+        """
+
+        SPARQLQuery = """SELECT ?branchIndex
         WHERE {{
           ?branch rdf:type :Branch .
           ?branch :branchIndex ?branchIndex .
         }}
         ORDER BY DESC(?branchIndex)
         LIMIT 1
-        """.format(str(BITR4QS))
+        """
         # Execute the SELECT query on the revision store
-        result = self._revisionStore.execute_select_query(SPARQLQuery, 'json')
+        result = self._revisionStore.execute_select_query(
+            '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'json')
         print("result ", result)
 
         if 'branchIndex' in result['results']['bindings'][0]:
@@ -51,38 +60,34 @@ class RevisionStoreImplicit(RevisionStore):
         pairs = []
         while revisionA is not None:
             if revisionB is not None:
-                SPARQLQuery = """PREFIX : <{0}>
-                SELECT ?revisionNumberA ?branchIndex ?revision ?stopRevisionNumber
+                SPARQLQuery = """SELECT ?revisionNumberA ?branchIndex ?revision ?stopRevisionNumber
                 WHERE {{
-                    {1} :revisionNumber ?revisionNumberA .
+                    {0} :revisionNumber ?revisionNumberA .
                     OPTIONAL {{ 
                         {1} :branch ?branch .
                         ?branch :branchedOffAt ?revision .
                         ?branch :branchIndex ?branchIndex. 
                     }}
-                    {2} :revisionNumber ?revisionNumberB .
+                    {1} :revisionNumber ?revisionNumberB .
                     BIND(IF( ?revisionNumberA < ?revisionNumberB, ?revisionNumberB, ?revisionNumberA) AS ?stopRevisionNumber) 
-                }}
-                """.format(str(BITR4QS), revisionA.n3(), revisionB.n3())
+                }}""".format(revisionA.n3(), revisionB.n3())
                 # Execute the SELECT query on the revision store
-                result = self._revisionStore.execute_select_query(SPARQLQuery, 'json')
+                result = self._revisionStore.execute_select_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'json')
                 revisionNumber = Literal(result['results']['bindings'][0]['revisionNumberA']['value'], datatype=XSD.nonNegativeInteger)
                 stopRevisionNumber = Literal(result['results']['bindings'][0]['stopRevisionNumber']['value'], datatype=XSD.nonNegativeInteger)
 
             else:
-                SPARQLQuery = """PREFIX : <{0}>
-                SELECT ?revisionNumber ?branchIndex ?revision
+                SPARQLQuery = """SELECT ?revisionNumber ?branchIndex ?revision
                 WHERE {{ 
-                    {1} :revisionNumber ?revisionNumber .
+                    {0} :revisionNumber ?revisionNumber .
                     OPTIONAL {{ 
-                        {1} :branch ?branch .
+                        {0} :branch ?branch .
                         ?branch :branchedOffAt ?revision .
                         ?branch :branchIndex ?branchIndex. 
                     }}
-                }}
-                """.format(str(BITR4QS), revisionA.n3())
+                }}""".format(revisionA.n3())
                 # Execute the SELECT query on the revision store
-                result = self._revisionStore.execute_select_query(SPARQLQuery, 'json')
+                result = self._revisionStore.execute_select_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'json')
                 print("result ", result)
                 revisionNumber = Literal(result['results']['bindings'][0]['revisionNumber']['value'], datatype=XSD.nonNegativeInteger)
                 stopRevisionNumber = revisionNumber
@@ -141,20 +146,18 @@ class RevisionStoreImplicit(RevisionStore):
         else:
             unions = "\nUNION\n".join("{{ {0} }}".format(self._select_transaction_revision(pair, variable)) for pair in pairs)
 
-        SPARQLQuery = """PREFIX : <{0}>
-        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        DESCRIBE {1}
-        WHERE {{ {2}
-        FILTER ( {3} = {1} )
-        }}""".format(str(BITR4QS), variable, unions, transactionRevision.n3())
-        return SPARQLQuery
+        SPARQLQuery = """CONSTRUCT {{ ?revision ?p ?o }}
+        WHERE {{ {0}
+        FILTER ( {1} = ?revision )
+        ?revision ?p ?o . }}""".format(unions, transactionRevision.n3())
+        return '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery))
 
     def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str,
                                   revisionB: URIRef = None, prefix=True, timeConstrain=""):
         """
 
         :param revisionA:
-        :param validRevisionType:
+        :param revisionType:
         :param revisionB:
         :return:
         """
@@ -194,14 +197,13 @@ class RevisionStoreImplicit(RevisionStore):
         :param revisionB:
         :return:
         """
-        SPARQLString = """PREFIX : <{0}>
-        ASK {{ 
-            {1} :revisionNumber ?revisionNumberA . 
-            {2} :revisionNumber ?revisionNumberB .
+        SPARQLQuery = """ASK {{ 
+            {0} :revisionNumber ?revisionNumberA . 
+            {1} :revisionNumber ?revisionNumberB .
             FILTER ( ?revisionNumberA < ?revisionNumberB )
         }}
-        """.format(str(BITR4QS), revisionA.n3(), revisionB.n3())
-        result = self._revisionStore.execute_ask_query(SPARQLString)
+        """.format(revisionA.n3(), revisionB.n3())
+        result = self._revisionStore.execute_ask_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)))
         return result
 
     def tags_in_revision_graph(self, revisionA: URIRef, revisionB: URIRef = None):
@@ -211,7 +213,7 @@ class RevisionStoreImplicit(RevisionStore):
         :param revisionB:
         :return:
         """
-        tags = self._valid_revisions_in_graph(revisionA=revisionA, validRevisionType='Tag', revisionB=revisionB,
+        tags = self._valid_revisions_in_graph(revisionA=revisionA, revisionType='tag', revisionB=revisionB,
                                               queryType='DescribeQuery')
         tags = parser.TagParser.parse_sorted_implicit(tags)
         return tags
@@ -267,23 +269,35 @@ class RevisionStoreImplicit(RevisionStore):
 
     def _transaction_revision_from_valid_revision(self, validRevisionID, revisionType):
         # TODO
-        SPARQLQuery = """PREFIX : <{0}>
-        DESCRIBE ?revision
+        SPARQLQuery = """CONSTRUCT {{ ?revision ?p ?o }}
         WHERE {{ 
-            {1} :branchIndex ?branchIndex .
-            {1} :revisionNumber ?revisionNumber .
+            {0} :branchIndex ?branchIndex .
+            {0} :revisionNumber ?revisionNumber .
             OPTIONAL {{ ?branch :branchIndex ?branchIndex }}
             ?revision :revisionNumber ?revisionNumber .
-        
-        ?revision :{1} {2} }}""".format(str(BITR4QS), revisionType, validRevisionID.n3())
-        return SPARQLQuery
+            ?revision ?p ?o }}""".format(validRevisionID.n3())
+        return '\n'.join((self.prefixBiTR4Qs, SPARQLQuery))
 
     def _valid_revisions_from_transaction_revision(self, transactionRevisionID, revisionType):
-        SPARQLQuery = """PREFIX : <{0}>
-        DESCRIBE ?revision
+        """
+
+        :param transactionRevisionID:
+        :param revisionType:
+        :return:
+        """
+
+        if revisionType == 'update':
+            construct = 'GRAPH ?g { ?revision ?p1 ?o1 }\n?revision ?p2 ?o2'
+            where = '{ GRAPH ?g { ?revision ?p1 ?o1 } } UNION { ?revision ?p2 ?o2 }'
+        else:
+            construct = where = '?revision ?p ?o'
+
+        SPARQLQuery = """
+        CONSTRUCT {{ {0} }}
         WHERE {{ {1} :revisionNumber ?revisionNumber .
         OPTIONAL {{ {1} :branch ?branch . }}
         ?branch :branchIndex ?branchIndex .
         ?revision :revisionNumber ?revisionNumber .
-        ?revision :branchIndex ?branchIndex .}}""".format(str(BITR4QS), transactionRevisionID.n3())
-        return SPARQLQuery
+        ?revision :branchIndex ?branchIndex .
+        {2} }}""".format(construct, transactionRevisionID.n3(), where)
+        return '\n'.join((self.prefixBiTR4Qs, SPARQLQuery))
