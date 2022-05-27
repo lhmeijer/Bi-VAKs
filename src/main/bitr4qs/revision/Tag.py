@@ -100,3 +100,12 @@ class Tag(ValidRevision):
         assert 'transactionRevision' in data, "transactionRevision should be in the data of the revision"
 
         return cls(**data)
+
+    def __dict__(self):
+        result = super().__dict__()
+        result['tagName'] = str(self._tagName)
+        result['effectiveDate'] = str(self._effectiveDate)
+        result['transactionRevision'] = str(self._transactionRevision)
+        return result
+
+

@@ -15,11 +15,20 @@ class Request(object):
         self._author = None
         self._description = None
         self._precedingTransactionRevision = None
+        self._currentTransactionRevision = None
 
         self._revisionNumber = None
         self._branchIndex = None
 
         self._headRevision = None
+
+    @property
+    def current_transaction_revision(self):
+        return self._currentTransactionRevision
+
+    @property
+    def revision_number(self):
+        return self._revisionNumber
 
     @property
     def head_revision(self):
@@ -45,7 +54,7 @@ class Request(object):
         # Obtain the branch based on the branch name
         branchName = self._request.values.get('branch', None) or None
         print("branchName ", branchName)
-        if branchName is not None:
+        if branchName:
             try:
                 branch = revisionStore.branch_from_name(Literal(branchName))
                 self._branch = branch.identifier
@@ -56,15 +65,14 @@ class Request(object):
             self._branchIndex = revisionStore.main_branch_index()
 
         # Obtain the head of the transaction revisions and its revision number
-        headRevision = revisionStore.head_revision(self._branch)
-        print("headRevision ", headRevision)
-        if headRevision is not None:
-            self._headRevision = headRevision
-            self._precedingTransactionRevision = headRevision.preceding_revision
-            self._revisionNumber = revisionStore.get_new_revision_number(headRevision.revision_number)
-        else:
-            # TODO headRevision is not given return an error
-            pass
+        try:
+            self._headRevision = revisionStore.head_revision(self._branch)
+            self._precedingTransactionRevision = self._headRevision.preceding_revision
+            self._revisionNumber = revisionStore.new_revision_number(self._headRevision.revision_number)
+        except Exception as e:
+            raise e
+
+        print("headRevision ", self._headRevision)
 
         # Obtain the creation date of the transaction revision
         time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02.00")
@@ -78,6 +86,7 @@ class Request(object):
         revision = TransactionRevision.revision_from_data(
             precedingRevision=self._precedingTransactionRevision, creationDate=self._creationDate, author=self._author,
             description=self._description, branch=self._branch, revisionNumber=self._revisionNumber)
+        self._currentTransactionRevision = revision.identifier
         return revision
 
     def valid_revisions_from_request(self):

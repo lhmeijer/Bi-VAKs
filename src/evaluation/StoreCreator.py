@@ -5,6 +5,7 @@ import gzip
 from datetime import datetime, timedelta
 from timeit import default_timer as timer
 import json
+from src.main.bitr4qs.namespace import BITR4QS
 
 
 class StoreCreator(object):
@@ -132,13 +133,14 @@ class StoreCreator(object):
             SPARQLUpdateQuery = self._update_sparql_from_modifications(updateInsertions + updateDeletions)
 
             start = timer()
-            updateID = self._application.post('/update', data=dict(
+            updateResponse = self._application.post('/update', data=dict(
                 update=SPARQLUpdateQuery, author='Tom de Vries', startDate=updateData[self._updateIndex][4],
                 endDate=updateData[self._updateIndex][5], description='Add new update.', branch=self._branch))
             end = timer()
             self._runtimeUpdates.append(str(timedelta(seconds=end - start)))
 
-            self._updateIDs.append(updateID)
+            update = json.loads(updateResponse.data.decode("utf-8"))
+            self._updateIDs.append(update["identifier"])
 
             self._updateIndex += 1
             if self._config.NUMBER_UPDATES_TO_MODIFIED_UPDATE is not None \
@@ -161,7 +163,8 @@ class StoreCreator(object):
                     endDate = (endTimestamp + timedelta(seconds=1)).strftime("%Y-%m-%dT%H:%M:%S+00:00")
 
                 start = timer()
-                updateID = self._application.post('/update/{0}'.format(self._updateIDs[randomInt]), data=dict(
+                updateID = self._updateIDs[randomInt].replace(str(BITR4QS), '')
+                update = self._application.post('/update/{0}'.format(updateID), data=dict(
                     author='Tom de Vries', description='Modify update.', branch=self._branch, startDate=startDate,
                     endDate=endDate))
                 end = timer()

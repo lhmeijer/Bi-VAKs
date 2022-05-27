@@ -26,13 +26,11 @@ class Version(object):
 
         :param validA:
         :param validB:
-        :param revisionStore:
-        :param quadPattern:
         :param transactionTime:
         :return:
         """
-        validTimeA = datetime.strptime(str(validA), "%Y-%m-%dT%H:%M:%S+02:00")
-        validTimeB = datetime.strptime(str(validB), "%Y-%m-%dT%H:%M:%S+02:00")
+        validTimeA = datetime.strptime(str(validA), "%Y-%m-%dT%H:%M:%S+00:00")
+        validTimeB = datetime.strptime(str(validB), "%Y-%m-%dT%H:%M:%S+00:00")
 
         if validTimeA < validTimeB:
             # Get the modification to fastforward
@@ -70,18 +68,18 @@ class Version(object):
         print("validA ", validA)
         print("validB ", validB)
         if transactionA == transactionB:
-            self.modifications_between_valid_states(validA, validB, transactionA)
+            self.modifications_between_valid_states(validA=validA, validB=validB, transactionTime=transactionA)
 
         elif self._revisionStore.is_transaction_time_a_earlier(revisionA=transactionA, revisionB=transactionB):  # t(a) < t(b)
             # [a] <- [] <- [] <- [] <- [b]
             print('[a] <- [] <- [] <- [] <- [b]')
             # First bring state A into a new state with valid time B
-            self.modifications_between_valid_states(validA, validB, transactionA)
+            # self.modifications_between_valid_states(validA=validA, validB=validB, transactionTime=transactionA)
 
             # Rewind all the updates which are modifications of the updates within the transaction revisions
             # Otherwise some updates will be taken into account twice.
-            self._revisionStore.get_modifications_of_updates_between_revisions(
-                transactionB, transactionA, validA, self._updateParser, self._quadPattern, forward=False)
+            # self._revisionStore.get_modifications_of_updates_between_revisions(
+            #     transactionB, transactionA, validA, self._updateParser, self._quadPattern, forward=False)
             # Fastforward the updates within the transaction revisions
             self._revisionStore.get_updates_in_revision_graph(
                 date=validB, forward=True, quadPattern=self._quadPattern, updateParser=self._updateParser,
@@ -100,7 +98,7 @@ class Version(object):
                 transactionA, transactionB, validA, self._updateParser, self._quadPattern, forward=True)
 
             # Bring state A into a new state with valid time B
-            self.modifications_between_valid_states(validA, validB, transactionA)
+            self.modifications_between_valid_states(validA=validA, validB=validB, transactionTime=transactionA)
 
         else:
             pass

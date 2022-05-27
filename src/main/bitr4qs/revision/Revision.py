@@ -124,3 +124,11 @@ class Revision(object):
         revision.hexadecimal_of_hash = Literal(hashOfRevision)
         return revision
 
+    def __dict__(self):
+        result = {'identifier': str(self._identifier), 'hexadecimalOfHash': str(self._hexadecimalOfHash)}
+        if self._precedingRevision:
+            result['precedingRevision'] = str(self._precedingRevision)
+        if self._revisionNumber:
+            result['revisionNumber'] = str(self._revisionNumber)
+        return result
+

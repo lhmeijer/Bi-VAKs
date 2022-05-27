@@ -24,7 +24,7 @@ class DMQuery(Query):
         super().evaluate_query(revisionStore)
 
         tagNameA = self._request.values.get('tagA', None) or None
-        if tagNameA is not None:
+        if tagNameA:
             try:
                 tagA = revisionStore.tag_from_name(Literal(tagNameA))
                 self._transactionTimeA = tagA.transaction_revision
@@ -34,7 +34,7 @@ class DMQuery(Query):
             # TODO Tag does not exist
 
         tagNameB = self._request.values.get('tagB', None) or None
-        if tagNameB is not None:
+        if tagNameB:
             try:
                 tagB = revisionStore.tag_from_name(Literal(tagNameA))
                 self._transactionTimeB = tagB.transaction_revision
@@ -43,14 +43,14 @@ class DMQuery(Query):
                 raise e
             # TODO Tag does not exist
 
-        revisionIDB = self._request.view_args.get('revisionB', None) or None
+        revisionIDB = self._request.values.get('revisionB', None) or None
         # TODO RevisionB does not exist or is not given.
-        if revisionIDB is not None:
+        if revisionIDB:
             self._transactionTimeB = URIRef(revisionIDB)
 
-        revisionIDA = self._request.view_args.get('revisionA', None) or None
+        revisionIDA = self._request.values.get('revisionA', None) or None
         # TODO RevisionA does not exist or is not given.
-        if revisionIDA is not None:
+        if revisionIDA:
             try:
                 revisionA = revisionStore.revision(revisionID=URIRef(revisionIDA), isValidRevision=False,
                                                    transactionRevisionA=self._transactionTimeB)
@@ -58,14 +58,14 @@ class DMQuery(Query):
             except Exception as e:
                 raise e
 
-        validDateA = self._request.view_args.get('dateA', None) or None
+        validDateA = self._request.values.get('dateA', None) or None
         # TODO no valid date A is given.
-        if validDateA is not None:
+        if validDateA:
             self._validTimeA = Literal(validDateA, datatype=XSD.dateTimeStamp)
 
-        validDateB = self._request.view_args.get('dateB', None) or None
+        validDateB = self._request.values.get('dateB', None) or None
         # TODO no valid date B is given.
-        if validDateB is not None:
+        if validDateB:
             self._validTimeB = Literal(validDateB, datatype=XSD.dateTimeStamp)
 
     def apply_query(self, revisionStore):
@@ -83,6 +83,7 @@ class DMQuery(Query):
         self._numberOfProcessedQuads = version.number_of_processed_quads()
 
         modifications = version.update_parser.get_list_of_modifications()
+        print("modifications ", modifications)
 
         # TODO check which queryType -> return a result for each queryType
         if self._queryType == 'SelectQuery':
@@ -104,12 +105,18 @@ class DMQuery(Query):
         """
         # Check the variables in the SPARQL query, and returns these and separate them based on insertions and deletions
         variables = self._quadPattern.get_variables()
+        print("variables ", variables)
         results = {'head': {'vars': [var for var, _ in variables]}, 'results': {'insertions': [], 'deletions': []}}
+        print("results ", results)
         for modification in modifications:
+            print("modification ", modification)
             result = {}
             for variable, index in variables:
+                print("variable ", variable)
+                print('index ', index)
                 if index == 0:
                     value = modification.value.subject
+                    print('modification.value.subject ', modification.value.subject)
                 elif index == 1:
                     value = modification.value.predicate
                 elif index == 2:
@@ -119,12 +126,15 @@ class DMQuery(Query):
 
                 if isinstance(value, URIRef):
                     result[variable] = {'type': 'uri', 'value': str(value)}
+                    print("result ", result)
                 elif isinstance(value, Literal):
+                    print(value.datatype)
+                    print(value.language)
                     result[variable] = {'type': 'literal', 'value': str(value)}
 
             if modification.deletion:
-                results['result']['deletions'].append(result)
+                results['results']['deletions'].append(result)
             else:
-                results['result']['insertions'].append(result)
+                results['results']['insertions'].append(result)
 
         return results

@@ -47,7 +47,7 @@ class BranchRequest(Request):
         revision = BranchRevision.revision_from_data(
             precedingRevision=self._precedingTransactionRevision, creationDate=self._creationDate, author=self._author,
             description=self._description, branch=self._branch, revisionNumber=self._revisionNumber)
-
+        self._currentTransactionRevision = revision.identifier
         return revision
 
     def valid_revisions_from_request(self):

@@ -1,6 +1,6 @@
 from src.main.bitr4qs.core.BiTR4Qs import BiTR4QsSingleton
 from src.main.bitr4qs.namespace import BITR4QS
-from flask import Blueprint, request, make_response, current_app
+from flask import Blueprint, request, make_response, current_app, jsonify
 import src.main.bitr4qs.request as requests
 from rdflib.term import Literal, URIRef
 
@@ -86,21 +86,21 @@ def versioning_operation(revisionRequest, revisionID=None):
     BiTR4QsConfiguration = current_app.config['BiTR4QsConfiguration']
     BiTR4QsCore = BiTR4QsSingleton.get(BiTR4QsConfiguration)
 
-    if not revisionID:
+    if revisionID:
         try:
             revisionID = URIRef(str(BITR4QS) + revisionID)
-            revisionIDs = BiTR4QsCore.modify_versioning_operation(revisionID, revisionRequest)
-
+            revisions = BiTR4QsCore.modify_versioning_operation(revisionID, revisionRequest)
         except Exception as e:
             return make_response('Error after executing the tag query.', 400)
     else:
         try:
-            revisionIDs = BiTR4QsCore.apply_versioning_operation(revisionRequest)
+            revisions = BiTR4QsCore.apply_versioning_operation(revisionRequest)
         except Exception as e:
+            print("e ", e)
             return make_response('Error after executing the tag query.', 400)
 
-    response = make_response(str(revisionIDs[0]), 200)
-    response.headers['X-CurrentRevision'] = revisionRequest.head_revision.preceding_revision
-    if revisionRequest.head_revision.revision_number:
-        response.headers['X-CurrentRevisionNumber'] = revisionRequest.head_revision.revision_number
+    response = make_response(jsonify(revisions[0]), 200)
+    response.headers['X-CurrentRevision'] = str(revisionRequest.current_transaction_revision)
+    if revisionRequest.revision_number:
+        response.headers['X-CurrentRevisionNumber'] = str(revisionRequest.revision_number)
     return response

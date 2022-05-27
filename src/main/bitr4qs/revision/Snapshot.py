@@ -163,3 +163,11 @@ class Snapshot(ValidRevision):
         return cls(nameDataset=request.name_dataset, urlDataset=request.url_dataset,
                    effectiveDate=request.effective_date, transactionRevision=request.transaction_revision,
                    precedingRevision=request.preceding_snapshot.identifier)
+
+    def __dict__(self):
+        result = super().__dict__()
+        result['nameDataset'] = str(self._nameDataset)
+        result['urlDataset'] = str(self._urlDataset)
+        result['effectiveDate'] = str(self._effectiveDate)
+        result['transactionRevision'] = str(self._transactionRevision)
+        return result

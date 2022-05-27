@@ -59,12 +59,14 @@ class SnapshotRequest(Request):
             precedingRevision=self._precedingTransactionRevision, creationDate=self._creationDate, author=self._author,
             description=self._description, branch=self._branch, revisionNumber=self._revisionNumber)
 
-        if self._transactionRevision == 'HEAD':
-            self._transactionRevision = revision.identifier
+        self._currentTransactionRevision = revision.identifier
 
         return revision
 
     def valid_revisions_from_request(self):
+
+        if self._transactionRevision == 'HEAD':
+            self._transactionRevision = self._currentTransactionRevision
         print("self._transactionRevision , ", self._transactionRevision)
         revision = Snapshot.revision_from_data(
             nameDataset=self._nameDataset, revisionNumber=self._revisionNumber, effectiveDate=self._effectiveDate,

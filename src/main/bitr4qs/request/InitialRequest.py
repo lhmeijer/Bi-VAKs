@@ -15,15 +15,6 @@ class InitialRequest(Request):
         self._nameDataset = None
         self._urlDataset = None
         self._effectiveDate = None
-        self._transactionRevision = None
-
-    @property
-    def transaction_revision(self):
-        return self._transactionRevision
-
-    @property
-    def revision_number(self):
-        return self._revisionNumber
 
     def evaluate_request(self, revisionStore):
 
@@ -56,8 +47,7 @@ class InitialRequest(Request):
         revision = InitialRevision.revision_from_data(creationDate=self._creationDate, author=self._author,
                                                       description=self._description, branch=self._branch,
                                                       revisionNumber=self._revisionNumber)
-        self._transactionRevision = revision.identifier
-
+        self._currentTransactionRevision = revision.identifier
         return revision
 
     def valid_revisions_from_request(self):
@@ -66,7 +56,7 @@ class InitialRequest(Request):
             snapshot = Snapshot.revision_from_data(
                 revisionNumber=self._revisionNumber, branchIndex=self._branchIndex, nameDataset=self._nameDataset,
                 urlDataset=self._urlDataset, effectiveDate=self._effectiveDate,
-                transactionRevision=self._transactionRevision)
+                transactionRevision=self._currentTransactionRevision)
             update = snapshot.update_from_snapshot()
             return [snapshot, update]
         else:

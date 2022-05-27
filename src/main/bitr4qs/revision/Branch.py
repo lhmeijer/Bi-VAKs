@@ -95,3 +95,9 @@ class Branch(ValidRevision):
         assert 'branchIndex' in data, "branchIndex should be in the data of the revision"
 
         return cls(**data)
+
+    def __dict__(self):
+        result = super().__dict__()
+        result['branchName'] = str(self._branchName)
+        result['branchedOffRevision'] = str(self._branchedOffRevision)
+        return result

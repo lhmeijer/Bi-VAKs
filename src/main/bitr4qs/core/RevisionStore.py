@@ -29,10 +29,36 @@ class RevisionStore(object):
         """
         SPARQLQuery = """SELECT (Count(*) AS ?numQuads) 
         WHERE { { GRAPH ?g { ?s ?p ?o } } UNION { ?s ?p ?o } }"""
-        results = self._revisionStore.execute_select_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'json')
+        results = self._revisionStore.execute_select_query(SPARQLQuery, 'json')
         if 'numQuads' in results['results']['bindings'][0]:
             return int(results['results']['bindings'][0]['numQuads']['value'])
+        else:
+            raise Exception
 
+    def revision_from_identifier(self, revisionID):
+        """
+
+        :param revisionID:
+        :return:
+        """
+        isValidRevision = True
+        if 'Revision' in revisionID:
+            isValidRevision = False
+
+        revisionType = self._get_revision_type(revisionID)
+        if revisionType == 'update':
+            construct = 'GRAPH ?g { ?revision ?p1 ?o1 }\n?revision ?p2 ?o2'
+            where = '{ GRAPH ?g { ?revision ?p1 ?o1 } } UNION { ?revision ?p2 ?o2 }'
+        else:
+            construct = where = '?revision ?p ?o'
+
+        SPARQLQuery = "CONSTRUCT {{ {0} }}\nWHERE {{ {1} }}".format(construct, where)
+
+        stringOfRevision = self._revisionStore.execute_construct_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)),
+                                                                       'nquads')
+        func = getattr(self, '_' + revisionType)
+        revisions = func(stringOfRevision, isValidRevision=isValidRevision)
+        return self._fetch_revision(revisions)
 
     @staticmethod
     def _fetch_revision(revisions):
@@ -64,7 +90,7 @@ class RevisionStore(object):
         :param branch: the given branch for which one would like to have the HEAD Revision.
         :return: an HEAD revision object containing all data of the HEAD Revision.
         """
-        branchString = "?revision :branch {0} .".format(branch.n3()) if not branch else \
+        branchString = "?revision :branch {0} .".format(branch.n3()) if branch else \
             "FILTER NOT EXISTS { ?revision :branch ?branch . }"
 
         SPARQLQuery = """DESCRIBE ?revision
@@ -490,8 +516,8 @@ class RevisionStore(object):
             }} UNION {{
                 {2} :startedAt ?startDate .
                 NOT EXISTS {{ ?update :endedAt ?endDate . }}
-                FILTER (  ?startDate > {0} && ?startDate <= {1} ) }}
-                """.format(leftOfInterval.n3(), rightOfInterval.n3(), variableName)
+                FILTER (  ?startDate > {0} && ?startDate <= {1} ) 
+                }}""".format(leftOfInterval.n3(), rightOfInterval.n3(), variableName)
         elif date is None and endTimeInBetween and not startTimeInBetween:
             timeConstrains = """
             {{  {2} :startedAt ?startDate .
@@ -500,8 +526,8 @@ class RevisionStore(object):
             }} UNION {{
                 {2} :endedAt ?endDate .
                 NOT EXISTS {{ ?update :startedAt ?startDate . }}
-                FILTER (  ?endDate >= {0} && ?endDate < {1} ) }}
-                """.format(leftOfInterval.n3(), rightOfInterval.n3(), variableName)
+                FILTER (  ?endDate >= {0} && ?endDate < {1} ) 
+                }}""".format(leftOfInterval.n3(), rightOfInterval.n3(), variableName)
         return timeConstrains
 
     def _construct_where_for_update(self, quadPattern):
@@ -537,6 +563,7 @@ class RevisionStore(object):
         """
         timeConstrain = self._update_time_string(date, leftOfInterval, rightOfInterval, startTimeInBetween,
                                                  endTimeInBetween)
+
         updateWhere = self._valid_revisions_in_graph(revisionA=revisionA, revisionB=revisionB, queryType='SelectQuery',
                                                      revisionType='update', prefix=False, timeConstrain=timeConstrain)
         construct, where = self._construct_where_for_update(quadPattern=quadPattern)

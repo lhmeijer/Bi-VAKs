@@ -103,6 +103,13 @@ class Update(ValidRevision):
 
         return cls(**data)
 
+    def __dict__(self):
+        result = super().__dict__()
+        result['startDate'] = str(self._startDate)
+        result['endDate'] = str(self._endDate)
+        # TODO return result of modifications
+        return result
+
     def modify(self, revisionStore, headRevision, otherModifications=None, otherStartDate=None, otherEndDate=None,
                revisionNumber=None, branchIndex=None, relatedContent=False):
 

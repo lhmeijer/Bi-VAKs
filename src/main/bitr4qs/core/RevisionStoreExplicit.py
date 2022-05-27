@@ -125,7 +125,6 @@ class RevisionStoreExplicit(RevisionStore):
         :param revisionB:
         :return:
         """
-        print("kom ik hier in")
         earlyStopA = earlyStopB = ""
         if revisionB is not None:
             earlyStopA = "\n?transactionRevision :precedingRevision+ {0} .".format(revisionB.n3())
@@ -145,7 +144,6 @@ class RevisionStoreExplicit(RevisionStore):
             }}
         }}""".format(prefixString, revisionType, revisionA.n3(), earlyStopA, earlyStopB, revisionType.title(),
                      queryString, timeConstrain)
-        print("SPARQLQuery ", SPARQLQuery)
         if prefix and queryType == 'DescribeQuery':
             stringOfValidRevisions = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
             return stringOfValidRevisions

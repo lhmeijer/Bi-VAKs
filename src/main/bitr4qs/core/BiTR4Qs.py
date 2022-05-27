@@ -46,11 +46,11 @@ class BiTR4Qs(object):
         for revision in revisions:
             revision.add_to_revision_store(self._revisionStore)
 
-    def _head_revision(self, precedingHeadRevision, transactionRevision):
+    def _head_revision(self, precedingHeadRevision, revision):
         """
 
         :param precedingHeadRevision:
-        :param transactionRevision:
+        :param revision:
         :return:
         """
         # Check whether there exists a head revision. If yes -> remove entirely from the revision store.
@@ -58,9 +58,8 @@ class BiTR4Qs(object):
             precedingHeadRevision.delete_to_revision_store(self._revisionStore)
 
         # Create new head revision and add it to the revision store.
-        headRevision = HeadRevision.revision_from_data(branch=transactionRevision.branch,
-                                                       precedingRevision=transactionRevision.identifier,
-                                                       revisionNumber=transactionRevision.revision_number)
+        headRevision = HeadRevision.revision_from_data(branch=revision.branch, precedingRevision=revision.identifier,
+                                                       revisionNumber=revision.revision_number)
         headRevision.add_to_revision_store(self._revisionStore)
 
     def modify_versioning_operation(self, revisionID, request):
@@ -144,8 +143,8 @@ class BiTR4Qs(object):
         # Delete the old HEAD revision and add a new HEAD revision.
         self._head_revision(request.head_revision, transactionRevision)
 
-        # Return identifiers of valid revisions.
-        return [validRevision.identifier for validRevision in validRevisions]
+        # Return the valid revisions.
+        return [validRevision.__dict__() for validRevision in validRevisions]
 
     def apply_query(self, query):
         try:
@@ -164,9 +163,6 @@ class BiTR4Qs(object):
         except Exception as e:
             raise e
         return numberOfQuads
-
-    def get_revision_in_revision_store(self, revisionID):
-        pass
 
 
 class BiTR4QsImplicit(BiTR4Qs):

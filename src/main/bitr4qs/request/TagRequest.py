@@ -22,6 +22,10 @@ class TagRequest(Request):
         if self._effectiveDate is None:
             self._effectiveDate = self._creationDate
 
+        print("self._effectiveDate ", self._effectiveDate)
+        print("self._tagName ", self._tagName)
+        print("self._transactionRevision ", self._transactionRevision)
+
         # TODO throw error if not all variables have a value
 
     def evaluate_request_to_modify(self, revisionStore):
@@ -52,12 +56,13 @@ class TagRequest(Request):
             precedingRevision=self._precedingTransactionRevision, creationDate=self._creationDate, author=self._author,
             description=self._description, branch=self._branch, revisionNumber=self._revisionNumber)
 
-        if self._transactionRevision == 'HEAD':
-            self._transactionRevision = revision.identifier
-
+        self._currentTransactionRevision = revision.identifier
+        print("self._currentTransactionRevision ", self._currentTransactionRevision)
         return revision
 
     def valid_revisions_from_request(self):
+        if self._transactionRevision == 'HEAD':
+            self._transactionRevision = self._currentTransactionRevision
         print("self._tagName ", self._tagName)
         print("self._effectiveDate ", self._effectiveDate)
         print("self._transactionRevision ", self._transactionRevision)

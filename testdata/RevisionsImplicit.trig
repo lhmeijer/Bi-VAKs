@@ -9,7 +9,7 @@
 :Revision_jd25eyq
   a :InitialRevision ;
   rdfs:comment "Set up a new revision store." ;
-  :createdAt "2021-06-14T10:14:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-14T10:14:00+00:00"^^xsd:dateTimeStamp ;
   :author "Jonas Mathijsen" ;
   :hash "jd25eyq" ;
   :revisionNumber "1"^^xsd:nonNegativeInteger ;
@@ -18,7 +18,7 @@
   a :UpdateRevision ;
   rdfs:comment "Added the Cuisine instances indian, english, japanese, chinese, french and mexican cuisine to the dataset."@en-gb ;
   :author "Lisa Meijer" ;
-  :createdAt "2021-06-16T12:20:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-16T12:20:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "2"^^xsd:nonNegativeInteger ;
   :hash "jdl28o3" ;
   :precedingRevision :Revision_jd25eyq ;
@@ -27,7 +27,7 @@
   a :UpdateRevision ;
   rdfs:comment "Added the Diet instances gluten-free, lactose-free, vegetarian, vegan, and nut-free to the dataset."@en-gb ;
   :author "Thomas Janssen" ;
-  :createdAt "2021-06-16T12:25:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-16T12:25:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "3"^^xsd:nonNegativeInteger ;
   :hash "dk290vw" ;
   :precedingRevision :Revision_jdl28o3 ;
@@ -36,7 +36,7 @@
   a :UpdateRevision ;
   rdfs:comment "Added the Meal instances lunch, starter, main-course, snack, and side dish to the dataset."@en-gb ;
   :author "Floris Steenhuis" ;
-  :createdAt "2021-06-16T12:29:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-16T12:29:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "4"^^xsd:nonNegativeInteger ;
   :hash "u2d4pkm" ;
   :precedingRevision :Revision_dk290vw ;
@@ -45,7 +45,7 @@
   a :SnapshotRevision ;
   rdfs:comment "Added the Meal instances lunch, starter, main-course, snack, and side dish to the dataset."@en-gb ;
   :author "Julia Broekmans" ;
-  :createdAt "2021-06-17T15:40:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-17T15:40:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "5"^^xsd:nonNegativeInteger ;
   :hash "d92ghv9" ;
   :precedingRevision :Revision_u2d4pkm ;
@@ -54,7 +54,7 @@
   a :UpdateRevision ;
   rdfs:comment "Added the recipe for Katsu curry and its ingredients to the dataset."@en-gb ;
   :author "Lisa Meijer" ;
-  :createdAt "2021-06-17T17:55:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-17T17:55:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "6"^^xsd:nonNegativeInteger ;
   :hash "o301vhg" ;
   :precedingRevision :Revision_d92ghv9 ;
@@ -63,7 +63,7 @@
   a :TagRevision ;
   rdfs:comment "Create a tag that refers to all main properties of the dataset."@en-gb ;
   :author "Peter Visser" ;
-  :createdAt "2021-06-18T12:34:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-18T12:34:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "7"^^xsd:nonNegativeInteger ;
   :hash "93jgc0p" ;
   :precedingRevision :Revision_o301vhg ;
@@ -72,7 +72,7 @@
   a :UpdateRevision ;
   rdfs:comment "Added a list of common ingredients to the dataset."@en-gb ;
   :author "Sofie Hermans" ;
-  :createdAt "2021-06-19T10:22:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-19T10:22:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "8"^^xsd:nonNegativeInteger ;
   :hash "p2kgnv2" ;
   :precedingRevision :Revision_93jgc0p ;
@@ -81,7 +81,7 @@
   a :SnapshotRevision ;
   rdfs:comment "Create a new snapshot that differs from the main snapshot."@en-gb ;
   :author "Julia Broekmans" ;
-  :createdAt "2021-06-20T12:18:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-20T12:18:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "9"^^xsd:nonNegativeInteger ;
   :hash "kd204df" ;
   :precedingRevision :Revision_p2kgnv2 ;
@@ -90,7 +90,7 @@
   a :UpdateRevision ;
   rdfs:comment "Added the recipes for chocolate fudge brownies, chocolate sticks and mexican coffee buns to the dataset."@en-gb ;
   :author "Marjolein de Jong" ;
-  :createdAt "2021-06-21T15:50:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-21T15:50:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "10"^^xsd:nonNegativeInteger ;
   :hash "902ghcq" ;
   :precedingRevision :Revision_kd204df ;
@@ -99,7 +99,7 @@
   a :SnapshotRevision ;
   rdfs:comment "Create a new snapshot of the previous snapshot Snapshot_ksjd3lq."@en-gb ;
   :author "Julia Broekmans" ;
-  :createdAt "2021-06-22T08:39:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-22T08:39:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "11"^^xsd:nonNegativeInteger ;
   :hash "ipm42rv" ;
   :precedingRevision :Revision_902ghcq ;
@@ -108,7 +108,7 @@
   a :UpdateRevision ;
   rdfs:comment "Added recipes for courgette gratin and king prawn pakoras to the dataset."@en-gb ;
   :author "Sam Bakker" ;
-  :createdAt "2021-06-25T11:30:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-25T11:30:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "12"^^xsd:nonNegativeInteger ;
   :hash "39kdgpq" ;
   :precedingRevision :Revision_ipm42rv ;
@@ -117,7 +117,7 @@
   a :TagRevision ;
   rdfs:comment "Added second tag to the dataset."@en-gb ;
   :author "Eva de Vries" ;
-  :createdAt "2021-06-25T13:46:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-25T13:46:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "13"^^xsd:nonNegativeInteger ;
   :hash "03kvbi1" ;
   :precedingRevision :Revision_39kdgpq ;
@@ -126,7 +126,7 @@
   a :UpdateRevision ;
   rdfs:comment "Added recipes for lamb dhansak, lamb vindaloo, lamb kofta curry and spring onion pakoras to the dataset."@en-gb ;
   :author "Max van Dijk" ;
-  :createdAt "2021-06-29T10:26:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-29T10:26:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "14"^^xsd:nonNegativeInteger ;
   :hash "03kgqp9" ;
   :precedingRevision :Revision_03kvbi1 ;
@@ -135,7 +135,7 @@
   a :UpdateRevision ;
   rdfs:comment "Added recipes for chinese prawn curry, chow mein and dumplings to the dataset."@en-gb ;
   :author "Floris Steenhuis" ;
-  :createdAt "2021-07-01T10:48:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-07-01T10:48:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "15"^^xsd:nonNegativeInteger ;
   :hash "49bvls3" ;
   :precedingRevision :Revision_03kgqp9 ;
@@ -144,7 +144,7 @@
   a :SnapshotRevision ;
   rdfs:comment "Create a new snapshot of the current dataset."@en-gb ;
   :author "Sofie Hermans" ;
-  :createdAt "2021-07-06T11:15:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-07-06T11:15:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "16"^^xsd:nonNegativeInteger ;
   :hash "38gh2vh" ;
   :precedingRevision :Revision_49bvls3 ;
@@ -155,7 +155,7 @@
   a :BranchRevision ;
   rdfs:comment "Create a new branch to add more sweet recipes to the dataset."@en-gb ;
   :author "Marjolein de Jong" ;
-  :createdAt "2021-06-21T09:00:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-21T09:00:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_ksjd3lq ;
   :revisionNumber "10"^^xsd:nonNegativeInteger ;
   :hash "kd2ng30" ;
@@ -165,7 +165,7 @@
   a :UpdateRevision ;
   rdfs:comment "Added a recipe for orange crush cookies to the dataset."@en-gb ;
   :author "Max van Dijk" ;
-  :createdAt "2021-06-24T16:19:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-24T16:19:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_ksjd3lq ;
   :revisionNumber "11"^^xsd:nonNegativeInteger ;
   :hash "93lgkac" ;
@@ -175,7 +175,7 @@
   a :BranchRevision ;
   rdfs:comment "Changes the name of the branch."@en-gb ;
   :author "Stefan van den Berg" ;
-  :createdAt "2021-06-30T10:15:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-30T10:15:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_k301fkl ;
   :revisionNumber "12"^^xsd:nonNegativeInteger ;
   :hash "kd13bln" ;
@@ -185,7 +185,7 @@
   a :UpdateRevision ;
   rdfs:comment "Added a recipe for hazelnut macaroons to the dataset."@en-gb ;
   :author "Cato Vos" ;
-  :createdAt "2021-07-01T13:35:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-07-01T13:35:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_k301fkl ;
   :revisionNumber "13"^^xsd:nonNegativeInteger ;
   :hash "20vqzxp" ;
@@ -217,7 +217,7 @@
   a :BranchRevision ;
   rdfs:comment "Added a second branch with fish recipes to the dataset."@en-gb ;
   :author "Max van Dijk" ;
-  :createdAt "2021-06-24T08:00:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-24T08:00:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_38ld2gh ;
   :revisionNumber "12"^^xsd:nonNegativeInteger ;
   :hash "3lkg1bv" ;
@@ -227,7 +227,7 @@
   a :UpdateRevision ;
   rdfs:comment "Added recipes for Penang fish curry, and ladies' kisses to the dataset."@en-gb ;
   :author "Cato Vos" ;
-  :createdAt "2021-06-26T11:49:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-26T11:49:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_38ld2gh ;
   :revisionNumber "13"^^xsd:nonNegativeInteger ;
   :hash "lav972q" ;
@@ -237,7 +237,7 @@
   a :UpdateRevision ;
   rdfs:comment "Added a recipe for sea bass fishcakes to the dataset."@en-gb ;
   :author "Thomas Janssen" ;
-  :createdAt "2021-06-26T17:31:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-26T17:31:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_38ld2gh ;
   :revisionNumber "14"^^xsd:nonNegativeInteger ;
   :hash "30fhp34" ;
@@ -247,7 +247,7 @@
   a :UpdateRevision ;
   rdfs:comment "Added a recipe for green chicken curry  to the dataset."@en-gb ;
   :author "Lisa Meijer" ;
-  :createdAt "2021-06-26T13:13:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-26T13:13:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_38ld2gh ;
   :revisionNumber "15"^^xsd:nonNegativeInteger ;
   :hash "3ignb40" ;
@@ -257,7 +257,7 @@
   a :SnapshotRevision ;
   rdfs:comment "Create a snapshot of the dataset in this branch."@en-gb ;
   :author "Floris Steenhuis" ;
-  :createdAt "2021-06-30T15:11:00+02:00"^^xsd:dateTimeStamp ;
+  :createdAt "2021-06-30T15:11:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_38ld2gh ;
   :revisionNumber "16"^^xsd:nonNegativeInteger ;
   :hash "dk1lbv3" ;
@@ -372,7 +372,7 @@
 
 :Update_k2j2ft
   a :Update ;
-  :startedAt "2021-06-14T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-06-14T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :hash "k2j2ft" ;
   :revisionNumber "1"^^xsd:nonNegativeInteger ;
   :branchIndex "0"^^xsd:nonNegativeInteger ;
@@ -429,7 +429,7 @@
 .
 :Update_k3g1v4
   a :Update ;
-  :startedAt "2021-06-16T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-06-16T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :hash "k3g1v4" ;
   :revisionNumber "2"^^xsd:nonNegativeInteger ;
   :branchIndex "0"^^xsd:nonNegativeInteger ;
@@ -466,7 +466,7 @@
 .
 :Update_ke2gw0
   a :Update ;
-  :startedAt "2021-06-16T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-06-16T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :hash "ke2gw0" ;
   :revisionNumber "3"^^xsd:nonNegativeInteger ;
   :branchIndex "0"^^xsd:nonNegativeInteger ;
@@ -488,7 +488,7 @@
 .
 :Update_9k2ghp
   a :Update ;
-  :startedAt "2021-06-16T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-06-16T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :hash "9k2ghp" ;
   :revisionNumber "4"^^xsd:nonNegativeInteger ;
   :branchIndex "0"^^xsd:nonNegativeInteger ;
@@ -517,8 +517,8 @@
 :Update_dio23e
   a :Update ;
   :hash "dio23e" ;
-  :startedAt "2021-08-04T00:00:00+02:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-10-09T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-08-04T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-10-09T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "6"^^xsd:nonNegativeInteger ;
   :branchIndex "0"^^xsd:nonNegativeInteger ;
   :inserts << recipes:ChickenBreast a recipes:Food >> ;
@@ -548,7 +548,7 @@ recipes:GreatCurries {
 :Update_mv83lv
   a :Update ;
   :hash "mv83lv" ;
-  :endedAt "2021-12-30T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-12-30T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "8"^^xsd:nonNegativeInteger ;
   :branchIndex "0"^^xsd:nonNegativeInteger ;
   :inserts << recipes:BlackMustardSeed a recipes:Food >> ;
@@ -658,8 +658,8 @@ recipes:GreatCurries {
 :Update_84kanv
   a :Update ;
   :hash "84kanv" ;
-  :startedAt "2021-06-22T00:00:00+02:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-07-12T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-06-22T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-07-12T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "10"^^xsd:nonNegativeInteger ;
   :branchIndex "0"^^xsd:nonNegativeInteger ;
   :inserts << recipes:RecipeChocolateFudgeBrownies a recipes:Recipe >> ;
@@ -706,8 +706,8 @@ recipes:GreatCurries {
 :Update_dk2b0o
   a :Update ;
   :hash "dk2b0o" ;
-  :startedAt "2021-07-01T00:00:00+02:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-08-30T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-07-01T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-08-30T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "12"^^xsd:nonNegativeInteger ;
   :branchIndex "0"^^xsd:nonNegativeInteger ;
   :inserts << recipes:CourgetteGratin a recipes:Food >> ;
@@ -754,8 +754,8 @@ recipes:GreatCurries {
 :Update_p2bx1d
   a :Update ;
   :hash "p2bx1d" ;
-  :startedAt "2021-06-14T00:00:00+02:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-09-18T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-06-14T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-09-18T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "14"^^xsd:nonNegativeInteger ;
   :branchIndex "0"^^xsd:nonNegativeInteger ;
   :inserts << recipes:LambDhansak a recipes:Food >> ;
@@ -834,8 +834,8 @@ recipes:GreatCurries {
 :Update_ljs29c
   a :Update ;
   :hash "ljs29c" ;
-  :startedAt "2021-06-22T00:00:00+02:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-10-08T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-06-22T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-10-08T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "15"^^xsd:nonNegativeInteger ;
   :branchIndex "0"^^xsd:nonNegativeInteger ;
   :inserts << recipes:ChinesePrawnCurry a recipes:Food >> ;
@@ -890,8 +890,8 @@ recipes:DownToEarth {
 :Update_7yv3wq
   a :Update ;
   :hash "7yv3wq" ;
-  :startedAt "2021-06-01T00:00:00+02:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-06-30T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-06-01T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-06-30T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "11"^^xsd:nonNegativeInteger ;
   :branchIndex "1"^^xsd:nonNegativeInteger ;
   :inserts << recipes:RecipeOrangeCrushCookies a recipes:Recipe >> ;
@@ -914,8 +914,8 @@ recipes:DownToEarth {
 :Update_do8t42
   a :Update ;
   :hash "do8t42" ;
-  :startedAt "2021-08-25T00:00:00+02:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-11-01T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-08-25T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-11-01T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "13"^^xsd:nonNegativeInteger ;
   :branchIndex "1"^^xsd:nonNegativeInteger ;
   :inserts << recipes:RecipeHazelnutMacaroons a recipes:Recipe >> ;
@@ -1084,8 +1084,8 @@ recipes:GreatCurries {
 :Update_r52c7p
   a :Update ;
   :hash "r52c7p" ;
-  :startedAt "2021-06-25T00:00:00+02:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-11-29T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-06-25T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-11-29T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "13"^^xsd:nonNegativeInteger ;
   :branchIndex "2"^^xsd:nonNegativeInteger ;
   :inserts << recipes:RecipeLadiesKisses a recipes:Recipe >> ;
@@ -1146,8 +1146,8 @@ recipes:GreatCurries {
 :Update_4ey1fj
   a :Update ;
   :hash "4ey1fj" ;
-  :startedAt "2021-06-26T00:00:00+02:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-11-05T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-06-26T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-11-05T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "14"^^xsd:nonNegativeInteger ;
   :branchIndex "2"^^xsd:nonNegativeInteger ;
   :inserts << recipes:SeaBassFishcake a recipes:Food >> ;
@@ -1186,8 +1186,8 @@ recipes:GreatCurries {
 :Update_5l7ru1
   a :Update ;
   :hash "5l7ru1" ;
-  :startedAt "2021-07-21T00:00:00+02:00"^^xsd:dateTimeStamp ;
-  :endedAt "2021-11-04T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :startedAt "2021-07-21T00:00:00+00:00"^^xsd:dateTimeStamp ;
+  :endedAt "2021-11-04T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :revisionNumber "15"^^xsd:nonNegativeInteger ;
   :branchIndex "2"^^xsd:nonNegativeInteger ;
   :inserts << recipes:GreenChickenCurry a recipes:Food >> ;
@@ -1464,7 +1464,7 @@ recipes:ChickenAndEgg {
 
 :Snapshot_69ui2pt
   a :Snapshot ;
-  :validAt "2021-06-14T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :validAt "2021-06-14T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :transactedAt :Revision_jd25eyq ;
   :nameDataset "Snapshot_69ui2pt" ;
   :urlDataset "http://localhost:3030" ;
@@ -1474,7 +1474,7 @@ recipes:ChickenAndEgg {
 .
 :Snapshot_ksjd3lq
   a :Snapshot ;
-  :validAt "2021-06-17T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :validAt "2021-06-17T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :transactedAt :Revision_d92ghv9 ;
   :nameDataset "Snapshot_ksjd3lq" ;
   :urlDataset "http://localhost:3030" ;
@@ -1485,7 +1485,7 @@ recipes:ChickenAndEgg {
 .
 :Snapshot_k301fkl
   a :Snapshot ;
-  :validAt "2021-07-02T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :validAt "2021-07-02T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :transactedAt :Revision_ipm42rv ;
   :nameDataset "Snapshot_k301fkl" ;
   :urlDataset "http://localhost:3030" ;
@@ -1496,7 +1496,7 @@ recipes:ChickenAndEgg {
 .
 :Snapshot_38ld2gh
   a :Snapshot ;
-  :validAt "2021-07-06T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :validAt "2021-07-06T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :transactedAt :Revision_38gh2vh ;
   :nameDataset "Snapshot_38ld2gh" ;
   :urlDataset "http://localhost:3030" ;
@@ -1507,7 +1507,7 @@ recipes:ChickenAndEgg {
 .
 :Snapshot_kwo3c56
   a :Snapshot ;
-  :validAt "2021-06-28T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :validAt "2021-06-28T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :transactedAt :Revision_kd204df ;
   :nameDataset "Snapshot_kwo3c56" ;
   :urlDataset "http://localhost:3030" ;
@@ -1517,7 +1517,7 @@ recipes:ChickenAndEgg {
 .
 :Snapshot_93gqyi5
   a :Snapshot ;
-  :validAt "2021-07-03T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :validAt "2021-07-03T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :transactedAt :Revision_dk1lbv3 ;
   :nameDataset "Snapshot_93gqyi5" ;
   :urlDataset "http://localhost:3030" ;
@@ -1531,7 +1531,7 @@ recipes:ChickenAndEgg {
 :Tag_ksjd3lq
   a :Tag ;
   :tagName "version1" ;
-  :validAt "2021-06-18T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :validAt "2021-06-18T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :transactedAt :Revision_93jgc0p ;
   :hash "ksjd3lq" ;
   :revisionNumber "7"^^xsd:nonNegativeInteger ;
@@ -1541,7 +1541,7 @@ recipes:ChickenAndEgg {
 :Tag_38ld2gh
   a :Tag ;
   :tagName "version2" ;
-  :validAt "2021-06-25T00:00:00+02:00"^^xsd:dateTimeStamp ;
+  :validAt "2021-06-25T00:00:00+00:00"^^xsd:dateTimeStamp ;
   :transactedAt :Revision_03kvbi1 ;
   :hash "38ld2gh" ;
   :revisionNumber "13"^^xsd:nonNegativeInteger ;

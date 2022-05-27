@@ -21,3 +21,9 @@ class ValidRevision(Revision):
         if branchIndex is not None:
             self._RDFPatterns.append(Triple((self._identifier, BITR4QS.branchIndex, branchIndex)))
         self._branchIndex = branchIndex
+
+    def __dict__(self):
+        result = super().__dict__()
+        if self._branchIndex:
+            result['branchIndex'] = str(self._branchIndex)
+        return result
