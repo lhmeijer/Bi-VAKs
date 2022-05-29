@@ -1,5 +1,5 @@
 from .Triple import Triple
-from rdflib import URIRef
+from rdflib.term import URIRef, Literal
 
 
 class Quad(Triple):
@@ -20,9 +20,9 @@ class Quad(Triple):
     def graph(self, graph):
         self._graph = graph
 
-    def n_quad(self):
-        NQuad = ' '.join((self._subject.n3(), self._predicate.n3(), self._object.n3(), self._graph.n3())) + ' .\n'
-        return NQuad
+    # def n_quad(self):
+    #     NQuad = ' '.join((self._subject.n3(), self._predicate.n3(), self._object.n3(), self._graph.n3())) + ' .\n'
+    #     return NQuad
 
     def __hash__(self):
         return hash((self._subject, self._predicate, self._object, self._graph))
@@ -44,4 +44,20 @@ class Quad(Triple):
 
     def __str__(self):
         return '({0})'.format(','.join((self._subject.n3(), self._predicate.n3(), self._object.n3(), self._graph.n3())))
+
+    def _nq_row(self):
+        if isinstance(self._object, Literal):
+            return "%s %s %s %s .\n" % (
+                self._subject.n3(),
+                self._predicate.n3(),
+                self._quoteLiteral(self._object),
+                self._graph.n3(),
+            )
+        else:
+            return "%s %s %s %s .\n" % (
+                self._subject.n3(),
+                self._predicate.n3(),
+                self._object.n3(),
+                self._graph.n3(),
+            )
 

@@ -590,10 +590,9 @@ class RevisionStore(object):
             }}
             {2}{3}
         }}""".format(construct, updateWhere, where, content)
-        # print("SPARQLQuery ", SPARQLQuery)
+        print("SPARQLQuery ", SPARQLQuery)
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
-        # print("stringOfUpdates ", stringOfUpdates)
         updateParser.parse_aggregate(stringOfUpdates, forward)
 
     def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str,

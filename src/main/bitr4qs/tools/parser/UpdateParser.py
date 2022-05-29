@@ -137,6 +137,7 @@ class UpdateParser(Parser):
 
             if splitQuad[1] == str(BITR4QS.inserts):
                 modification = self.parse_inserts_or_deletes(sink=sink, NQuad=NQuad, forward=forward)
+
             elif splitQuad[1] == str(BITR4QS.deletes):
                 modification = self.parse_inserts_or_deletes(sink=sink, NQuad=NQuad, deletion=True, forward=forward)
             else:
@@ -163,8 +164,15 @@ class UpdateParser(Parser):
         pass
 
     def modifications_to_n_quads(self):
-        n_quads = ''.join(v['modification'].n_quad() if v['counter'] > 0 else "" for _, v in self._modifications.items())
-        return n_quads
+        # n_quads = ''.join(v['modification'].n_quad() if v['counter'] > 0 else "" for _, v in self._modifications.items())
+        index = 0
+        for _, v in self._modifications.items():
+            if index in list(range(100)):
+                print("{0} {1}".format(index, type(v['modification'].object)))
+                print("{0} {1}".format(index, v['modification'].object.encode()))
+                print("v['modification'].n_quad() ", v['modification'].n_quad())
+            index += 1
+        # return n_quads
 
     def modifications_to_sparql_update_query(self):
         deleteString, insertString = "", ""

@@ -55,6 +55,7 @@ class Evaluator(object):
         totalNumberOfTriples = []
 
         for i in range(self._config.NUMBER_OF_VERSIONS):
+            print("query ", query.to_select_query())
             start = timer()
             results = self._application.get('/query', query_string=dict(
                 query=query.to_select_query(), queryAtomType='VM', tag='version {0}'.format(i+1)),

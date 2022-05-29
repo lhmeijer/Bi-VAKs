@@ -1,4 +1,6 @@
 from rdflib.term import URIRef, Literal, Variable
+from typing import IO, Optional
+import warnings
 
 
 class TriplePattern(object):
@@ -109,3 +111,4 @@ class TriplePattern(object):
 
     def __str__(self):
         return '({0})'.format(','.join((self._subject.n3(), self._predicate.n3(), self._object.n3())))
+
