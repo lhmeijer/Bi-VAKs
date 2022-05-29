@@ -31,7 +31,7 @@ def initialise():
     try:
         initial = BiTR4QsCore.apply_versioning_operation(initialRequest)
         response = make_response('success', 200)
-        response.headers['X-CurrentRevision'] = initialRequest.transaction_revision
+        response.headers['X-CurrentRevision'] = initialRequest.current_transaction_revision
         if initialRequest.revision_number:
             response.headers['X-CurrentRevisionNumber'] = initialRequest.revision_number
         return response
@@ -103,4 +103,6 @@ def versioning_operation(revisionRequest, revisionID=None):
     response.headers['X-CurrentRevision'] = str(revisionRequest.current_transaction_revision)
     if revisionRequest.revision_number:
         response.headers['X-CurrentRevisionNumber'] = str(revisionRequest.revision_number)
+    if revisionRequest.branch:
+        response.headers['X-Branch'] = str(revisionRequest.branch)
     return response

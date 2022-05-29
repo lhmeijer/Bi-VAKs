@@ -41,7 +41,7 @@ class RevisionStoreImplicit(RevisionStore):
         # Execute the SELECT query on the revision store
         result = self._revisionStore.execute_select_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'json')
-        print("result ", result)
+        # print("result ", result)
 
         if 'branchIndex' in result['results']['bindings'][0]:
             branchIndex = int(result['results']['bindings'][0]['branchIndex']['value']) + 1

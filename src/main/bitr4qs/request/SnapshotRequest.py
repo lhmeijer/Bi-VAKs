@@ -67,7 +67,7 @@ class SnapshotRequest(Request):
 
         if self._transactionRevision == 'HEAD':
             self._transactionRevision = self._currentTransactionRevision
-        print("self._transactionRevision , ", self._transactionRevision)
+        # print("self._transactionRevision , ", self._transactionRevision)
         revision = Snapshot.revision_from_data(
             nameDataset=self._nameDataset, revisionNumber=self._revisionNumber, effectiveDate=self._effectiveDate,
             transactionRevision=self._transactionRevision, branchIndex=self._branchIndex, urlDataset=self._urlDataset)

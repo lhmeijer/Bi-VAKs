@@ -3,6 +3,7 @@ from src.main.bitr4qs.store.QuadStoreSingleton import HttpRevisionStoreSingleton
 import src.main.bitr4qs.tools.parser as parser
 from src.main.bitr4qs.namespace import BITR4QS
 from datetime import datetime
+from src.main.bitr4qs.exception import RevisionConstructionError
 
 
 class RevisionStore(object):
@@ -35,6 +36,17 @@ class RevisionStore(object):
         else:
             raise Exception
 
+    def empty_revision_store(self):
+        """
+        Function to empty the revision store
+        :return:
+        """
+        SPARQLQuery = "DROP ALL"
+        self._revisionStore.execute_update_query(SPARQLQuery)
+
+    def data_of_revision_store(self, returnFormat):
+        return self._revisionStore.data_of_store(returnFormat)
+
     def revision_from_identifier(self, revisionID):
         """
 
@@ -66,7 +78,7 @@ class RevisionStore(object):
             for revisionID, revision in revisions.items():
                 return revision
         else:
-            return Exception('Not an unique identifier')
+            return RevisionConstructionError('We could either construct no revision or multiple revisions.')
 
     @staticmethod
     def _get_revision_type(revisionID):
@@ -126,7 +138,7 @@ class RevisionStore(object):
         """.format(updateID.n3())
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
-        print("stringOfUpdates ", stringOfUpdates)
+        # print("stringOfUpdates ", stringOfUpdates)
         updateParser = parser.UpdateParser()
         updateParser.parse_aggregate(stringOfUpdates, forward=True)
         modifications = updateParser.get_list_of_modifications()
@@ -209,9 +221,9 @@ class RevisionStore(object):
             SPARQLQuery = self._valid_revision(transactionRevisionA, revisionID, revisionType, transactionRevisionB)
         else:
             SPARQLQuery = self._transaction_revision(transactionRevisionA, revisionID, transactionRevisionB)
-        print("SPARQLQuery ", SPARQLQuery)
+        # print("SPARQLQuery ", SPARQLQuery)
         stringOfRevision = self._revisionStore.execute_construct_query(SPARQLQuery, 'nquads')
-        print("stringOfValidRevision ", stringOfRevision)
+        # print("stringOfValidRevision ", stringOfRevision)
         func = getattr(self, '_' + revisionType)
         revisions = func(stringOfRevision, isValidRevision)
         return self._fetch_revision(revisions)
@@ -295,7 +307,7 @@ class RevisionStore(object):
         :return:
         """
         SPARQLQuery = """DESCRIBE ?tag
-        WHERE {{ ?tag :tagName {0} }}""".format(str(BITR4QS), tagName.n3())
+        WHERE {{ ?tag :tagName {0} }}""".format(tagName.n3())
         stringOfTag = self._revisionStore.execute_describe_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
         tags = parser.TagParser.parse_revisions(stringOfTag, revisionName='valid')
         return self._fetch_revision(tags)
@@ -431,7 +443,6 @@ class RevisionStore(object):
             NOT EXISTS {{ ?update :startedAt ?startDate }}
             }}
             """.format(stringA, stringB, endDate.n3())
-            print("timeString", timeString)
         elif endDate is None:
             timeString = """{{ {0}
             OPTIONAL {{ ?update :endedAt ?endDate . }} 
@@ -478,10 +489,10 @@ class RevisionStore(object):
             {4}
         }}""".format(construct, updateWhere, timeString, content, where)
 
-        print("SPARQLQuery ", SPARQLQuery)
+        # print("SPARQLQuery ", SPARQLQuery)
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
-        print("stringOfUpdates ", stringOfUpdates)
+        # print("stringOfUpdates ", stringOfUpdates)
         updateParser = parser.UpdateParser()
         updateParser.parse_aggregate(stringOfUpdates, forward=True)
         modifications = updateParser.get_list_of_modifications()
@@ -579,10 +590,10 @@ class RevisionStore(object):
             }}
             {2}{3}
         }}""".format(construct, updateWhere, where, content)
-        print("SPARQLQuery ", SPARQLQuery)
+        # print("SPARQLQuery ", SPARQLQuery)
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
-        print("stringOfUpdates ", stringOfUpdates)
+        # print("stringOfUpdates ", stringOfUpdates)
         updateParser.parse_aggregate(stringOfUpdates, forward)
 
     def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str,
@@ -610,6 +621,8 @@ class RevisionStore(object):
                                                            revisionType='snapshot')
 
         snapshots = parser.SnapshotParser.parse_revisions(stringOfSnapshots, 'valid')
+        if len(snapshots) == 0:
+            return None
 
         referenceTime = datetime.strptime(str(validTime), "%Y-%m-%dT%H:%M:%S+02:00")
 

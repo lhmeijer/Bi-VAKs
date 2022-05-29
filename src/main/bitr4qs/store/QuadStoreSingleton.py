@@ -8,7 +8,6 @@ class HttpRevisionStoreSingleton(object):
 
     @classmethod
     def get(cls, config):
-        print("cls.store ", cls.store)
         if cls.store is not None:
             return cls.store
         else:

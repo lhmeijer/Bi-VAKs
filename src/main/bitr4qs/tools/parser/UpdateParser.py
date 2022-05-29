@@ -187,7 +187,7 @@ class UpdateParser(Parser):
         else:
             SPARQLQuery = """DELETE DATA {{ {0} }};
             INSERT DATA {{ {1} }}""".format(deleteString, insertString)
-        print("SPARQLQuery ", SPARQLQuery)
+        # print("SPARQLQuery ", SPARQLQuery)
 
         return SPARQLQuery
 

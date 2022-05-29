@@ -2,6 +2,7 @@ from rdflib.term import Literal, URIRef
 import datetime
 from rdflib.namespace import XSD
 from src.main.bitr4qs.revision.TransactionRevision import TransactionRevision
+from src.main.bitr4qs.exception import MissingInformationError
 
 
 class Request(object):
@@ -23,6 +24,10 @@ class Request(object):
         self._headRevision = None
 
     @property
+    def branch(self):
+        return self._branch
+
+    @property
     def current_transaction_revision(self):
         return self._currentTransactionRevision
 
@@ -40,20 +45,18 @@ class Request(object):
         if author is not None:
             self._author = Literal(author)
         else:
-            # TODO author is not given return an error
-            pass
+            raise MissingInformationError("The author of a transaction revision is not given.")
 
         # Obtain the description
         description = self._request.values.get('description', None) or None
         if description is not None:
             self._description = Literal(description)
         else:
-            # TODO description is not given return an error
-            pass
+            raise MissingInformationError("The description of a transaction revision is not given.")
 
         # Obtain the branch based on the branch name
         branchName = self._request.values.get('branch', None) or None
-        print("branchName ", branchName)
+        # print("branchName ", branchName)
         if branchName:
             try:
                 branch = revisionStore.branch_from_name(Literal(branchName))
@@ -72,12 +75,12 @@ class Request(object):
         except Exception as e:
             raise e
 
-        print("headRevision ", self._headRevision)
+        # print("headRevision ", self._headRevision)
 
         # Obtain the creation date of the transaction revision
         time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02.00")
         self._creationDate = Literal(str(time), datatype=XSD.dateTimeStamp)
-        print("creation date ", self._creationDate)
+        # print("creation date ", self._creationDate)
 
     def evaluate_request_to_modify(self, revisionStore):
         pass

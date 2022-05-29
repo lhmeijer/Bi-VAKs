@@ -77,7 +77,23 @@ class UpdateGenerator(object):
                 return True
         return False
 
-    def _read_modifications_file(self, fileName, containsQueries):
+    @staticmethod
+    def _does_overlap(triple, doesOverlap, otherTriples=None):
+        if otherTriples:
+            overlap = False
+            for i in range(len(otherTriples)):
+
+                if triple == otherTriples[i]:
+                    doesOverlap[i] = True
+                    overlap = True
+            if overlap:
+                doesOverlap.append(True)
+            else:
+                doesOverlap.append(False)
+        else:
+            doesOverlap.append(False)
+
+    def _read_modifications_file(self, fileName, containsQueries, doesOverlap, otherTriples=None):
         """
 
         :param fileName:
@@ -87,13 +103,17 @@ class UpdateGenerator(object):
         counter = 0
         sink = TripleSink()
         NTriplesParser = W3CNTriplesParser(sink=sink)
+        triples = []
 
         with gzip.open('{0}{1}'.format(self._inputFolder, fileName), 'rt') as file:
             for line in file:
                 NTriplesParser.parsestring(line)
+                triple = Triple((sink.subject, sink.predicate, sink.object))
+                self._does_overlap(triple, doesOverlap, otherTriples)
+                triples.append(triple)
+                containsQueries.append(self._contains_query(triple))
                 counter += 1
-                containsQueries.append(self._contains_query(Triple((sink.subject, sink.predicate, sink.object))))
-        return counter
+        return triples, counter
 
     def generate_updates(self):
         """
@@ -115,10 +135,10 @@ class UpdateGenerator(object):
             deletedFileName = 'data-deleted_{0}-{1}.nt.gz'.format(str(i), str(i+1))
 
             containsQueries = []
-            nOfInsertions = self._read_modifications_file(addedFileName, containsQueries)
-            nOfDeletions = self._read_modifications_file(deletedFileName, containsQueries)
+            doesOverlap = []
+            insertions, nOfInsertions = self._read_modifications_file(addedFileName, containsQueries, doesOverlap)
+            _, nOfDeletions = self._read_modifications_file(deletedFileName, containsQueries, doesOverlap, insertions)
             totalNOfTriples = nOfInsertions + nOfDeletions
-            nOfTriples += totalNOfTriples
 
             indices = np.arange(totalNOfTriples)
             np.random.shuffle(indices)
@@ -137,18 +157,26 @@ class UpdateGenerator(object):
                 for j in range(until):
                     tripleIndex = indices[index]
                     if tripleIndex < nOfInsertions:
-                        inserted.append(str(tripleIndex))
+                        if not doesOverlap[tripleIndex]:
+                            inserted.append(str(tripleIndex))
                     else:
-                        deleted.append(str(tripleIndex - nOfInsertions))
+                        if not doesOverlap[tripleIndex]:
+                            deleted.append(str(tripleIndex - nOfInsertions))
                     index += 1
                     if containsQueries[tripleIndex]:
                         doesContainQuery = True
 
-                startDate, endDate = self._generate_start_and_end_date(doesContainQuery)
-                update = [str(nOfUpdates), '{0}-{1}'.format(str(i), str(i + 1)), '-'.join(inserted), '-'.join(deleted),
-                          startDate, endDate]
-                updates.append(update)
-                nOfUpdates += 1
+                nInserted = len(inserted)
+                nDeleted = len(deleted)
+
+                if nInserted + nDeleted > 0:
+                    nOfTriples += nInserted + nDeleted
+
+                    startDate, endDate = self._generate_start_and_end_date(doesContainQuery)
+                    update = [str(nOfUpdates), '{0}-{1}'.format(str(i), str(i + 1)), '-'.join(inserted),
+                              '-'.join(deleted), startDate, endDate]
+                    updates.append(update)
+                    nOfUpdates += 1
 
         with open(self._exportFileName, "w") as file:
             file.write('\n'.join(','.join(update) for update in updates))

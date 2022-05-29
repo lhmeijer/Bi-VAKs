@@ -74,12 +74,13 @@ class Version(object):
             # [a] <- [] <- [] <- [] <- [b]
             print('[a] <- [] <- [] <- [] <- [b]')
             # First bring state A into a new state with valid time B
-            # self.modifications_between_valid_states(validA=validA, validB=validB, transactionTime=transactionA)
+            self.modifications_between_valid_states(validA=validA, validB=validB, transactionTime=transactionA)
 
             # Rewind all the updates which are modifications of the updates within the transaction revisions
             # Otherwise some updates will be taken into account twice.
-            # self._revisionStore.get_modifications_of_updates_between_revisions(
-            #     transactionB, transactionA, validA, self._updateParser, self._quadPattern, forward=False)
+            self._revisionStore.get_modifications_of_updates_between_revisions(
+                revisionA=transactionB, revisionB=transactionA, date=validA, updateParser=self._updateParser,
+                quadPattern=self._quadPattern, forward=False)
             # Fastforward the updates within the transaction revisions
             self._revisionStore.get_updates_in_revision_graph(
                 date=validB, forward=True, quadPattern=self._quadPattern, updateParser=self._updateParser,
@@ -95,20 +96,19 @@ class Version(object):
 
             # Fastforward all the updates which are modifications of the updates within the transaction revisions
             self._revisionStore.get_modifications_of_updates_between_revisions(
-                transactionA, transactionB, validA, self._updateParser, self._quadPattern, forward=True)
+                revisionA=transactionA, revisionB=transactionB, date=validA, updateParser=self._updateParser,
+                quadPattern=self._quadPattern, forward=True)
 
             # Bring state A into a new state with valid time B
             self.modifications_between_valid_states(validA=validA, validB=validB, transactionTime=transactionA)
 
         else:
-            pass
+            raise Exception
 
     def retrieve_version(self, headRevision=None, previousTransactionTime=None, previousValidTime=None):
         """
 
         :param headRevision:
-        :param revisionStore:
-        :param quadPattern:
         :param previousTransactionTime:
         :param previousValidTime:
         :return:
@@ -125,12 +125,12 @@ class Version(object):
             snapshot = self._revisionStore.closest_snapshot(self._validTime, headRevision)
             print('snapshot ', snapshot)
 
-        if previousTransactionTime is not None and previousValidTime is not None:
+        if previousTransactionTime and previousValidTime:
             self.modifications_between_two_states(transactionA=self._transactionTime, validA=self._validTime,
                                                   transactionB=previousTransactionTime, validB=previousValidTime)
             SPARQLUpdateQuery = updateParser.modifications_to_sparql_update_query()
             self._temporalStore.execute_update_query(SPARQLUpdateQuery)
-        elif snapshot is None:
+        elif snapshot is None and previousValidTime is None:
             # get all updates from initial revision to given revision A
             self._revisionStore.get_updates_in_revision_graph(
                 revisionA=self._transactionTime, date=self._validTime, revisionB=previousTransactionTime,

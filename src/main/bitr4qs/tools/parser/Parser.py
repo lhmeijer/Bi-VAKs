@@ -51,8 +51,7 @@ class Parser(object):
         """
         validRevisions = cls.parse_revisions(stringOfValidRevisions, 'valid')
         listOfValidRevisions = list(validRevisions.values())
-        reverse = False if forwards else True
-        listOfValidRevisions.sort(key=lambda x: x.revision_number, reverse=reverse)
+        listOfValidRevisions.sort(key=lambda x: x.revision_number, reverse=not forwards)
         orderedValidRevisions = dict(zip(list(range(len(listOfValidRevisions))), listOfValidRevisions))
         return orderedValidRevisions
 
@@ -115,7 +114,7 @@ class Parser(object):
                 revision, index = func(revisionID, NQuads[index:], index)
 
             revisions[str(revision.identifier)] = revision
-        print("revisions ", revisions)
+        # print("revisions ", revisions)
         return revisions
 
     @staticmethod

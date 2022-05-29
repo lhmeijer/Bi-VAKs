@@ -72,6 +72,7 @@ class Update(ValidRevision):
         if self._modifications is None:
             self._modifications = []
 
+        self._RDFPatterns.append(self._to_rdf_star(modification))
         self._modifications.append(modification)
         return None
 
@@ -94,7 +95,7 @@ class Update(ValidRevision):
 
     @classmethod
     def _revision_from_data(cls, **data):
-        print("data ", data)
+        # print("data ", data)
         assert 'revisionNumber' in data, "revisionNumber should be in the data of the revision"
         assert 'modifications' in data, "modifications should be in the data of the revision"
         assert 'startDate' in data, "startDate should be in the data of the revision"
@@ -107,7 +108,7 @@ class Update(ValidRevision):
         result = super().__dict__()
         result['startDate'] = str(self._startDate)
         result['endDate'] = str(self._endDate)
-        # TODO return result of modifications
+        result['modifications'] = [str(modification) for modification in self._modifications]
         return result
 
     def modify(self, revisionStore, headRevision, otherModifications=None, otherStartDate=None, otherEndDate=None,

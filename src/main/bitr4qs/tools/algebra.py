@@ -230,8 +230,8 @@ def translateGroupOrUnionGraphPattern(graphPattern):
 
     for g in graphPattern.graph:
         g = translateGroupGraphPattern(g)
-        print("g ", g)
-        print("A ", A)
+        # print("g ", g)
+        # print("A ", A)
         if not A:
             A = g
         else:
@@ -257,16 +257,16 @@ def translateGroupGraphPattern(graphPattern):
     """
     http://www.w3.org/TR/sparql11-query/#convertGraphPattern
     """
-    print("type graphPattern ", type(graphPattern))
-    print("graphPattern.name ", graphPattern.name)
+    # print("type graphPattern ", type(graphPattern))
+    # print("graphPattern.name ", graphPattern.name)
     if graphPattern.name == 'SubSelect':
         return ToMultiSet(translate(graphPattern)[0])
 
     if not graphPattern.part:
         graphPattern.part = []  # empty { }
-    print("graphPattern.part ", graphPattern.part)
+    # print("graphPattern.part ", graphPattern.part)
     filters = collectAndRemoveFilters(graphPattern.part)
-    print("filters ", filters)
+    # print("filters ", filters)
 
     g = []
     for p in graphPattern.part:
@@ -274,7 +274,7 @@ def translateGroupGraphPattern(graphPattern):
             # merge adjacent TripleBlocks
             if not (g and g[-1].name == 'BGP'):
                 g.append(BGP())
-            print("triples(p.triples) ", triples(p.triples))
+            # print("triples(p.triples) ", triples(p.triples))
             g[-1]["triples"] += triples(p.triples)
         else:
             g.append(p)
@@ -518,15 +518,15 @@ def translate(q):
     """
 
     _traverse(q, _simplifyFilters)
-    print("q ", q)
+    # print("q ", q)
 
     q.where = traverse(q.where, visitPost=translatePath)
-    print("q ", q)
+    # print("q ", q)
 
     # TODO: Var scope test
     VS = set()
     traverse(q.where, functools.partial(_findVars, res=VS))
-    print("VS ", VS)
+    # print("VS ", VS)
 
     # all query types have a where part
     M = translateGroupGraphPattern(q.where)
@@ -583,9 +583,9 @@ def translate(q):
 
     for e, v in E:
         M = Extend(M, e, v)
-    print("PV ", PV)
-    print("M ", M)
-    print("E ", E)
+    # print("PV ", PV)
+    # print("M ", M)
+    # print("E ", E)
     # ORDER BY
     if q.orderby:
         M = OrderBy(M, [CompValue('OrderCondition', expr=c.expr,
@@ -593,9 +593,9 @@ def translate(q):
 
     # PROJECT
     M = Project(M, PV)
-    print("PV ", PV)
-    print("M ", M)
-    print("E ", E)
+    # print("PV ", PV)
+    # print("M ", M)
+    # print("E ", E)
     if q.modifier:
         if q.modifier == 'DISTINCT':
             M = CompValue('Distinct', p=M)
@@ -613,9 +613,9 @@ def translate(q):
         else:
             M = CompValue('Slice', p=M, start=offset)
 
-    print("PV ", PV)
-    print("M ", M)
-    print("E ", E)
+    # print("PV ", PV)
+    # print("M ", M)
+    # print("E ", E)
     return M, PV
 
 
@@ -722,11 +722,11 @@ def translate_update(q, base=None, initNs=None):
         # absolutize/resolve prefixes
         u = traverse(
             u, visitPost=functools.partial(translatePName, prologue=prologue))
-        print("u1 ", u)
+        # print("u1 ", u)
         u = _traverse(u, _simplifyFilters)
-        print("u2 ", u)
+        # print("u2 ", u)
         u = traverse(u, visitPost=translatePath)
-        print("u3 ", u)
+        # print("u3 ", u)
 
         res.append(_translate_update(u, prologue))
     return res
@@ -739,18 +739,18 @@ def translate_query(q, base=None, initNs=None):
     """
 
     # We get in: (prologue, query)
-    print('q ', q)
+    # print('q ', q)
     prologue = translate_prologue(q[0], base, initNs)
 
     # absolutize/resolve prefixes
     q[1] = traverse(
         q[1], visitPost=functools.partial(translatePName, prologue=prologue))
-    print("q[1] ", q[1])
+    # print("q[1] ", q[1])
     _traverse(q[1], _simplifyFilters)
-    print("q[1] ", q[1])
+    # print("q[1] ", q[1])
 
     q[1].where = traverse(q[1].where, visitPost=translatePath)
-    print("q[1] ", q[1])
+    # print("q[1] ", q[1])
     # P, PV = translate(q[1])
     # datasetClause = q[1].datasetClause
     # print("datasetClause ", datasetClause)
@@ -781,13 +781,13 @@ def pprintAlgebra(q):
         #     print "%s ]"%ind
         #     return
         if not isinstance(p, CompValue):
-            print(p)
+            # print(p)
             return
-        print("%s(" % (p.name,))
+        # print("%s(" % (p.name,))
         for k in p:
-            print("%s%s =" % (ind, k,), end=' ')
+            # print("%s%s =" % (ind, k,), end=' ')
             pp(p[k], ind + "    ")
-        print("%s)" % ind)
+        # print("%s)" % ind)
 
     try:
         pp(q.algebra)

@@ -22,9 +22,9 @@ class TagRequest(Request):
         if self._effectiveDate is None:
             self._effectiveDate = self._creationDate
 
-        print("self._effectiveDate ", self._effectiveDate)
-        print("self._tagName ", self._tagName)
-        print("self._transactionRevision ", self._transactionRevision)
+        # print("self._effectiveDate ", self._effectiveDate)
+        # print("self._tagName ", self._tagName)
+        # print("self._transactionRevision ", self._transactionRevision)
 
         # TODO throw error if not all variables have a value
 
@@ -57,19 +57,19 @@ class TagRequest(Request):
             description=self._description, branch=self._branch, revisionNumber=self._revisionNumber)
 
         self._currentTransactionRevision = revision.identifier
-        print("self._currentTransactionRevision ", self._currentTransactionRevision)
+        # print("self._currentTransactionRevision ", self._currentTransactionRevision)
         return revision
 
     def valid_revisions_from_request(self):
         if self._transactionRevision == 'HEAD':
             self._transactionRevision = self._currentTransactionRevision
-        print("self._tagName ", self._tagName)
-        print("self._effectiveDate ", self._effectiveDate)
-        print("self._transactionRevision ", self._transactionRevision)
+        # print("self._tagName ", self._tagName)
+        # print("self._effectiveDate ", self._effectiveDate)
+        # print("self._transactionRevision ", self._transactionRevision)
         revision = Tag.revision_from_data(
             tagName=self._tagName, revisionNumber=self._revisionNumber, effectiveDate=self._effectiveDate,
             transactionRevision=self._transactionRevision, branchIndex=self._branchIndex)
-        print("revision" , revision)
+        # print("revision" , revision)
         return [revision]
 
     def modifications_from_request(self, revision, revisionStore):

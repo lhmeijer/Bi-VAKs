@@ -56,7 +56,7 @@ class HttpQuadStore(object):
         elif method == 'POST':
             args["headers"].update({"Content-Type": "application/sparql-query"})
             qsa = "?" + urlencode(params)
-            print(qsa)
+            # print(qsa)
             request = Request(self._queryEndpoint + qsa, data=query.encode(), headers=args["headers"])
         elif method == 'POST_FORM':
             params['query'] = query
@@ -69,7 +69,7 @@ class HttpQuadStore(object):
 
     def execute_update_query(self, updateQueryString):
         request = self._create_update_request(updateQueryString, 'application/sparql-results+json')
-        print("request ", request.data)
+        # print("request ", request.data)
         try:
             response = urlopen(request)
         except HTTPError as e:
@@ -90,11 +90,11 @@ class HttpQuadStore(object):
         args["headers"].update(headers)
 
         qsa = "?" + urlencode(args["params"])
-        print(self._updateEndpoint + qsa)
+        # print(self._updateEndpoint + qsa)
         return Request(self._updateEndpoint + qsa, data=query.encode('utf-8'), headers=args["headers"])
 
     def _execute_select_query_json(self, selectQueryString):
-        print("selectQueryString ", selectQueryString)
+        # print("selectQueryString ", selectQueryString)
         result = self._execute_query(selectQueryString, 'application/sparql-results+json')
         return json.loads(result.read().decode("utf-8"))
 
@@ -128,15 +128,26 @@ class HttpQuadStore(object):
         return result
 
     def n_quads_to_store(self, nquads):
-        print('nquads ', nquads)
+        # print('nquads ', nquads)
         headers = {'Content-Type': 'application/n-quads'}
         nquads = nquads.encode(encoding='utf-8', errors='strict')
         request = Request(self._dataEndpoint, data=nquads, headers=headers)
         try:
             response = urlopen(request)
-            print("response ", response.read())
+            # print("response ", response.read())
         except HTTPError as e:
             print(e)
             raise HTTPError
         return response
+
+    def data_of_store(self, returnFormat):
+        headers = {'Content-Type': returnFormat}
+        request = Request(self._dataEndpoint, headers=headers)
+        try:
+            response = urlopen(request)
+            result = response.read().decode("utf-8")
+        except HTTPError as e:
+            print(e)
+            raise HTTPError
+        return result
 

@@ -27,6 +27,29 @@ class SPARQLConnectorException(Exception):
     pass
 
 
+class BiTR4QsError(Error):
+
+    message = "A Bi-TR4Qs exception has occurred."
+
+    def __init__(self, extraInformation):
+        if extraInformation:
+            formatted_msg = "%s: %s. %s" % (self.__class__.__name__, self.message, extraInformation)
+        else:
+            formatted_msg = "%s: %s." % (self.__class__.__name__, self.message)
+        super(BiTR4QsError, self).__init__(formatted_msg)
+
+
+class MissingInformationError(BiTR4QsError):
+
+    message = "Not enough information is given to set up the revisions."
+
+
+class RevisionConstructionError(BiTR4QsError):
+
+    message = "The revision cannot be constructed."
+
+
+
 class SPARQLException(Exception):
 
     message = "An SPARQL exception has occurred."

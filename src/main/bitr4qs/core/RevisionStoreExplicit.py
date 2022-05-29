@@ -48,9 +48,9 @@ class RevisionStoreExplicit(RevisionStore):
                 {6} }}""".format(str(BITR4QS), construct, revisionA.n3(), revisionB.n3(), updateSucceedingTimeString,
                                  updateTimeString, where)
 
-        print('SPARQLQuery ', SPARQLQuery)
+        # print('SPARQLQuery ', SPARQLQuery)
         stringOfUpdates = self._revisionStore.execute_construct_query(SPARQLQuery, 'nquads')
-        print("stringOfUpdates ", stringOfUpdates)
+        # print("stringOfUpdates ", stringOfUpdates)
         updateParser.parse_aggregate(stringOfUpdates, forward)
 
     def _tag_revisions_in_revision_graph(self, revisionA: URIRef, revisionB: URIRef = None):
@@ -144,6 +144,7 @@ class RevisionStoreExplicit(RevisionStore):
             }}
         }}""".format(prefixString, revisionType, revisionA.n3(), earlyStopA, earlyStopB, revisionType.title(),
                      queryString, timeConstrain)
+
         if prefix and queryType == 'DescribeQuery':
             stringOfValidRevisions = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
             return stringOfValidRevisions

@@ -67,9 +67,9 @@ class VMQuery(Query):
                 raise e
 
         tagName = self._request.values.get('tag', None) or None
-        if tagName is not None:
+        if tagName:
             try:
-                tag = revisionStore.tag_from_name(Literal(tagName))
+                tag = revisionStore.tag_from_name(Literal(str(tagName)))
                 self._transactionTime = tag.transaction_revision
                 self._validTime = tag.effective_date
             except Exception as e:

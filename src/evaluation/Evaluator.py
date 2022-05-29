@@ -3,6 +3,8 @@ import re
 from rdflib import URIRef, Literal
 import numpy as np
 from .preprocess_BEAR_B import get_queries_from_nt_file
+from datetime import datetime, timedelta
+from timeit import default_timer as timer
 
 
 class Evaluator(object):
@@ -52,16 +54,20 @@ class Evaluator(object):
         time = []
         totalNumberOfTriples = []
 
-        for i in range(self._config.NUMBER_OF_VERSIONS + 1):
+        for i in range(self._config.NUMBER_OF_VERSIONS):
+            start = timer()
             results = self._application.get('/query', query_string=dict(
-                query=query.to_select_query(), queryAtomType='VM', tag='version {0}'.format(i)),
+                query=query.to_select_query(), queryAtomType='VM', tag='version {0}'.format(i+1)),
                                             headers=dict(accept="application/sparql-results+json"))
-
+            end = timer()
+            time.append(timedelta(seconds=end - start).total_seconds())
             # Obtain the number of triples it needed to construct the given version.
             numberOfTriples = results.headers['N-ProcessedQuads']
             totalNumberOfTriples.append(numberOfTriples)
 
-            jsonResults = json.loads(results.read().decode("utf-8"))
+            jsonResults = json.loads(results.data.decode("utf-8"))
+            print("jsonResults ", jsonResults)
+            print("trueResults[i] ", trueResults[i])
             for jsonResult in jsonResults['results']['bindings']:
                 try:
                     self._compare_results(jsonResult, trueResults[i])
@@ -79,9 +85,12 @@ class Evaluator(object):
         totalNumberOfTriples = []
 
         for i in jumps:
+            start = timer()
             results = self._application.get('/query', query_string=dict(
                 query=query.to_select_query(), queryAtomType='DM', tagA='version 0', tagB='version {0}'.format(i)),
                                headers=dict(accept="application/sparql-results+json"))
+            end = timer()
+            time.append(timedelta(seconds=end - start).total_seconds())
 
             # Obtain the number of triples it needed to obtain the insertions and deletions between to versions.
             numberOfTriples = results.headers['N-ProcessedQuads']
@@ -107,12 +116,17 @@ class Evaluator(object):
         realResults = self._extract_vq_results_from_file('{0}-{1}.txt'.format(self._config.bear_results_dir, queryIndex))
 
         time = []
+        totalNumberOfTriples = []
 
+        start = timer()
         results = self._application.get('/query', query_string=dict(query=query.to_select_query(), queryAtomType='VQ'),
                                         headers=dict(accept="application/sparql-results+json"))
+        end = timer()
+        time.append(timedelta(seconds=end - start).total_seconds())
 
         # Obtain the number of triples it needed to obtain all versions which give an answer for query x.
         numberOfTriples = results.headers['N-ProcessedQuads']
+        totalNumberOfTriples.append(numberOfTriples)
 
         jsonResults = json.loads(results.read().decode("utf-8"))
 
@@ -120,7 +134,7 @@ class Evaluator(object):
             if variableResult['value'] not in realResults:
                 raise Exception
 
-        return time, numberOfTriples
+        return time, totalNumberOfTriples
 
     def _compare_results(self, jsonResult, trueResults):
         result = []
@@ -148,8 +162,8 @@ class Evaluator(object):
         with open(fileName, "r") as file:
             for line in file:
                 stringWithinBrackets = re.search(r"\[.*?]", line).group(0)
-                versionNumber = int(re.findall(r'\d', stringWithinBrackets)[0])
-                resultString = line.replace(stringWithinBrackets, '')
+                versionNumber = int(re.findall(r'\d+', stringWithinBrackets)[0])
+                resultString = line.strip().replace(stringWithinBrackets, '')
 
                 if versionNumber not in results:
                     results[versionNumber] = [resultString]

@@ -66,14 +66,16 @@ class UpdateQueryRequest(UpdateRequest):
     def _modifications_fom_query(self, revisionStore):
         self._modifications = []
         for update in self._updateQuery.translated_query:
-            print("update ", update)
+            # print("update ", update)
             if update.name == 'InsertData':
                 node = self._evaluate_insert_or_delete_data(update, revisionStore)
                 if node is not None:
+                    print('node ', node)
                     return node
             elif update.name == 'DeleteData':
                 node = self._evaluate_insert_or_delete_data(update, revisionStore, deletion=True)
                 if node is not None:
+                    print('node ', node)
                     return node
             else:
                 pass
@@ -102,23 +104,31 @@ class UpdateQueryRequest(UpdateRequest):
         """
         # Check whether a deleted or inserted triple can be added to the update
         for triple in update.triples:
-            print("triple ", triple)
+            # print("triple ", triple)
             tripleNode = Triple(triple)
             if self._can_quad_be_added_to_update(tripleNode, revisionStore, deletion):
                 self._modifications.append(Modification(tripleNode, deletion))
             else:
-                return tripleNode
+                self._modifications.append(Modification(tripleNode, deletion))
+            # if self._can_quad_be_added_to_update(tripleNode, revisionStore, deletion):
+            #     self._modifications.append(Modification(tripleNode, deletion))
+            # else:
+            #     return tripleNode
 
         for graph in update.quads:
             for triple in update.quads[graph]:
                 quadNode = Quad(triple, graph)
-                print("triple ", triple)
-                print("graph ", graph)
-                print("quadNode ", quadNode)
+                # print("triple ", triple)
+                # print("graph ", graph)
+                # print("quadNode ", quadNode)
                 if self._can_quad_be_added_to_update(quadNode, revisionStore, deletion):
                     self._modifications.append(Modification(quadNode, deletion))
                 else:
-                    return quadNode
+                    self._modifications.append(Modification(quadNode, deletion))
+                # if self._can_quad_be_added_to_update(quadNode, revisionStore, deletion):
+                #     self._modifications.append(Modification(quadNode, deletion))
+                # else:
+                #     return quadNode
         return None
 
     def evaluate_request(self, revisionStore):

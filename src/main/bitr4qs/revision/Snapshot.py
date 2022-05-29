@@ -6,6 +6,7 @@ from src.main.bitr4qs.store.QuadStoreSingleton import HttpDataStoreSingleton
 from src.main.bitr4qs.revision.Update import Update
 from src.main.bitr4qs.term.Modification import Modification
 from .TransactionRevision import TransactionRevision
+from src.main.bitr4qs.tools.parser.UpdateNQuadParser import UpdateNQuadParser
 from src.main.bitr4qs.tools.parser.UpdateParser import UpdateParser
 
 
@@ -29,12 +30,14 @@ class Snapshot(ValidRevision):
                  effectiveDate: Literal = None,
                  transactionRevision: URIRef = None,
                  revisionNumber=None,
-                 branchIndex=None):
+                 branchIndex=None,
+                 isEmpty=True):
         super().__init__(identifier, precedingRevision, hexadecimalOfHash, revisionNumber, branchIndex)
         self.name_dataset = nameDataset
         self.url_dataset = urlDataset
         self.effective_date = effectiveDate
         self.transaction_revision = transactionRevision
+        self._isEmpty = isEmpty
 
     @property
     def name_dataset(self):
@@ -80,13 +83,14 @@ class Snapshot(ValidRevision):
         super().add_to_revision_store(revisionStore)
 
         # Get all updates for the snapshot
-        updateParser = UpdateParser()
-        datastore = HttpDataStoreSingleton.get_data_store(self._nameDataset.value, self._urlDataset.value)
-        print("datastore ", datastore)
-        revisionStore.get_updates_in_revision_graph(revisionA=self._transactionRevision, date=self._effectiveDate,
-                                                    updateParser=updateParser)
-        modifications_in_n_quad = updateParser.modifications_to_n_quads()
-        datastore.n_quads_to_store(modifications_in_n_quad)
+        if self._isEmpty:
+            updateParser = UpdateParser()
+            datastore = HttpDataStoreSingleton.get_data_store(self._nameDataset.value, self._urlDataset.value)
+            print("datastore ", datastore)
+            revisionStore.get_updates_in_revision_graph(revisionA=self._transactionRevision, date=self._effectiveDate,
+                                                        updateParser=updateParser)
+            modifications_in_n_quad = updateParser.modifications_to_n_quads()
+            datastore.n_quads_to_store(modifications_in_n_quad)
 
     def query(self, SPARQLQuery, queryType, returnFormat):
         # create a quad store from name dataset and url
@@ -96,17 +100,6 @@ class Snapshot(ValidRevision):
             response = datastore.execute_construct_query(SPARQLQuery, returnFormat)
 
         return response
-
-    def update_from_snapshot(self):
-        SPARQLQuery = "CONSTRUCT WHERE { ?s ?p ?o }"
-        datastore = HttpDataStoreSingleton.get_data_store(self._nameDataset, self._urlDataset)
-        response = datastore.execute_construct_query(SPARQLQuery, 'nquads')
-        # Parse the N-Quads to a list of triples or quads
-        quads = ...
-        update = Update.revision_from_data(startDate=self.effective_date, endDate=None, branchIndex=self.branch_index,
-                                           revisionNumber=self.revision_number,
-                                           modifications=[Modification(quad) for quad in quads])
-        return update
 
     def modify(self, revisionStore, otherNameDataset=None, otherUrlDataset=None, otherEffectiveDate=None,
                otherTransactionRevision=None, revisionNumber=None, branchIndex=None):

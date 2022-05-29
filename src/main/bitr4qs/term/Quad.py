@@ -42,3 +42,6 @@ class Quad(Triple):
             return False
         return True
 
+    def __str__(self):
+        return '({0})'.format(','.join((self._subject.n3(), self._predicate.n3(), self._object.n3(), self._graph.n3())))
+

@@ -123,11 +123,11 @@ class Query(object):
         else:
             try:
                 self._parsedQuery = parseQuery(self._query)
-                print("self._parsedQuery ", self._parsedQuery)
+                # print("self._parsedQuery ", self._parsedQuery)
                 self._configure_query_dataset()
                 self._translatedQuery = translate_query(self._parsedQuery, base=self._base)
                 self._queryType = self._translatedQuery.name
-                print("self._translatedQuery ", self._translatedQuery.name)
+                # print("self._translatedQuery ", self._translatedQuery.name)
             except ParseException:
                 print("ParseException")
                 raise UnsupportedQuery()

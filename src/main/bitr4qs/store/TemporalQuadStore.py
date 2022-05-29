@@ -37,10 +37,11 @@ class TemporalQuadStore(HttpQuadStore):
         request = self._create_query_request(queryString, returnFormat)
         try:
             response = urlopen(request)
+            result = response.read().decode("utf-8")
         except HTTPError as e:
             print(e)
             raise HTTPError
-        return response
+        return result
 
     def _create_query_request(self, query, returnFormat):
 

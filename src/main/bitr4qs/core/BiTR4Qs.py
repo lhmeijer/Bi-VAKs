@@ -54,7 +54,7 @@ class BiTR4Qs(object):
         :return:
         """
         # Check whether there exists a head revision. If yes -> remove entirely from the revision store.
-        if precedingHeadRevision is not None:
+        if precedingHeadRevision:
             precedingHeadRevision.delete_to_revision_store(self._revisionStore)
 
         # Create new head revision and add it to the revision store.
@@ -124,7 +124,7 @@ class BiTR4Qs(object):
 
             # Create a transaction revision
             transactionRevision = request.transaction_revision_from_request()
-            print("transactionRevision ", transactionRevision)
+            # print("transactionRevision ", transactionRevision)
 
             # Create valid revision(s)
             validRevisions = request.valid_revisions_from_request()
@@ -163,6 +163,12 @@ class BiTR4Qs(object):
         except Exception as e:
             raise e
         return numberOfQuads
+
+    def empty_revision_store(self):
+        self._revisionStore.empty_revision_store()
+
+    def save_file_of_revision_store(self, returnFormat):
+        return self._revisionStore.data_of_revision_store(returnFormat)
 
 
 class BiTR4QsImplicit(BiTR4Qs):

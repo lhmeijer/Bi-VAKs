@@ -7,7 +7,6 @@ class ValidRevision(Revision):
 
     def __init__(self, identifier=None, precedingRevision=None, hexadecimalOfHash=None, revisionNumber=None,
                  branchIndex=None):
-        print('branchIndex ', branchIndex)
         super().__init__(identifier=identifier, precedingRevision=precedingRevision,
                          hexadecimalOfHash=hexadecimalOfHash, revisionNumber=revisionNumber)
         self.branch_index = branchIndex

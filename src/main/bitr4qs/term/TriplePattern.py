@@ -98,7 +98,7 @@ class TriplePattern(object):
                 return False
             if self._predicate.n3() != other.predicate.n3():
                 return False
-            if self._object.n3() != other.predicate.n3():
+            if self._object.n3() != other.object.n3():
                 return False
             return True
         else:
@@ -107,3 +107,5 @@ class TriplePattern(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __str__(self):
+        return '({0})'.format(','.join((self._subject.n3(), self._predicate.n3(), self._object.n3())))
