@@ -31,7 +31,7 @@ class UpdateQueryTest(unittest.TestCase):
           :RecipeRicottaDoughnuts rdfs:label "Ricotta doughnuts"@en-gb .
         }
         """
-        response = app.post('/update', data=dict(update=update, author='Tom de Vries',
+        response = app.post('/update', data=dict(update=update, author='Tom de Vries', test='shouldBeTested',
                                                  startDate="2021-06-20T00:00:00+02:00",
                                                  endDate="2021-08-25T00:00:00+02:00",
                                                  description='Add recipe of ricotta doughnuts.'))

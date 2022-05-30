@@ -45,7 +45,6 @@ def sparql_query():
 
     try:
         queryResponse = BiTR4QsCore.apply_query(query)
-        print("queryResponse ", queryResponse)
         response = make_response(queryResponse, 200)
         if query.return_format:
             response.headers['Content-Type'] = query.return_format

@@ -127,7 +127,7 @@ class RevisionStore(object):
     def main_branch_index():
         return None
 
-    def preceding_modifications(self, updateID):
+    def preceding_modifications(self, updateID: URIRef):
         SPARQLQuery = """CONSTRUCT {{
             GRAPH ?g {{ ?update ?p1 ?o1 }}
             ?update ?p2 ?o2 .
@@ -144,7 +144,7 @@ class RevisionStore(object):
         modifications = updateParser.get_list_of_modifications()
         return modifications
 
-    def preceding_revisions(self, revisionID, revisionType=None, isValidRevision=True, propertyPath=''):
+    def preceding_revisions(self, revisionID: URIRef, revisionType=None, isValidRevision=True, propertyPath=''):
         """
         Function to obtain the preceding revision(s) of the given valid or transaction revision.
         :param revisionID: The identifier of the given revision.
@@ -170,7 +170,7 @@ class RevisionStore(object):
         WHERE {{ {1} :preceding{2}{3} ?revision .
         {4} }}""".format(construct, revisionID.n3, revisionType.title(), propertyPath, where)
         stringOfRevisions = self._revisionStore.execute_construct_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)),
-                                                                       'nquads')
+                                                                        'nquads')
         revisions = func(stringOfRevisions, isValidRevision=isValidRevision)
         if len(propertyPath) == 0:
             return self._fetch_revision(revisions)
@@ -205,8 +205,8 @@ class RevisionStore(object):
     def _valid_revisions_from_transaction_revision(self, transactionRevisionID, revisionType):
         return ""
 
-    def revision(self, revisionID: URIRef, transactionRevisionA, revisionType: str = 'unknown', isValidRevision=True,
-                 transactionRevisionB=None):
+    def revision(self, revisionID: URIRef, transactionRevisionA: URIRef, revisionType: str = 'unknown',
+                 isValidRevision=True, transactionRevisionB: URIRef = None):
         """
         Function to obtain the valid or transaction revision from its identifier and check its existence in the given
         transaction revision graph.
@@ -231,7 +231,8 @@ class RevisionStore(object):
     def _transaction_revision(self, transactionRevisionA, transactionRevision, transactionRevisionB=None):
         return ""
 
-    def _valid_revision(self, transactionRevisionA, validRevision, revisionType, transactionRevisionB=None):
+    def _valid_revision(self, transactionRevisionA: URIRef, validRevision: URIRef, revisionType,
+                        transactionRevisionB: URIRef = None):
 
         subQuery = self._valid_revisions_in_graph(transactionRevisionA, revisionType, queryType='SelectQuery',
                                                   revisionB=transactionRevisionB, prefix=False)
@@ -323,15 +324,15 @@ class RevisionStore(object):
         if self.config.related_update_content():
             content = "\n?update :precedingUpdate* ?allUpdate ."
             if deletion:
-                where = quad.to_query_via_insert_update(construct=False, subjectName='?allUpdate')
+                where = quad.query_via_insert_update(construct=False, subjectName='?allUpdate')
             else:
-                where = quad.to_query_via_delete_update(construct=False, subjectName='?allUpdate')
+                where = quad.query_via_delete_update(construct=False, subjectName='?allUpdate')
         else:
             content = ""
             if deletion:
-                where = quad.to_query_via_insert_update(construct=False)
+                where = quad.query_via_insert_update(construct=False)
             else:
-                where = quad.to_query_via_delete_update(construct=False)
+                where = quad.query_via_delete_update(construct=False)
 
         # Obtain subquery between two transaction revisions
         subQueryBetween = self._valid_revisions_in_graph(revisionA=revisionA, revisionB=revisionB, prefix=False,
@@ -396,130 +397,215 @@ class RevisionStore(object):
 
     def can_quad_be_added_or_deleted(self, quad, headRevision: URIRef, startDate: Literal = None,
                                      endDate: Literal = None, deletion=False):
-        """
-        - A quad Q can be inserted if N=M, where N stands for the number of updates that insert Q and somewhere overlap,
-        and where M stands for the number of updates that deletes Q and fully overlap
-        - A quad Q with valid time t can be deleted if N=M+1, where N stands for the number of updates that insert Q and
-        fully overlap t and where M stands for the number of updates that deletes Q and somewhere overlap t
-        :param quad:
-        :param headRevision:
-        :param startDate:
-        :param endDate:
-        :param deletion:
-        :return:
-        """
-
-        assert headRevision is not None, "The HEAD Revision is not allowed to be None."
-
-        updateWhere = self._valid_revisions_in_graph(revisionA=headRevision, queryType='SelectQuery',
-                                                     revisionType='update', prefix=False)
-
-        if deletion:
-            stringA = quad.to_query_via_delete_update(construct=False)
-            stringB = quad.to_query_via_insert_update(construct=False)
-        else:
-            stringA = quad.to_query_via_insert_update(construct=False)
-            stringB = quad.to_query_via_delete_update(construct=False)
-
-        if startDate is None and endDate is None:
-            timeString = """{{ {0} }}
-            UNION
-            {{ {1}
-            NOT EXISTS {{ ?update :endedAt ?endDate }}
-            NOT EXISTS {{ ?update :startedAt ?startDate }} }}
-            """.format(stringA, stringB)
-        elif startDate is None:
-            timeString = """{{ {0}
-            OPTIONAL {{ ?update :startedAt ?startDate . }}
-            FILTER ( !bound(?startDate) || ?startDate <= {2} )
-            }}
-            UNION
-            {{ {1} 
-            ?update :endedAt ?endDate . FILTER ( {2} <= ?endDate )
-            }}
-            UNION
-            {{ {1} 
-            NOT EXISTS {{ ?update :endedAt ?endDate }}
-            NOT EXISTS {{ ?update :startedAt ?startDate }}
-            }}
-            """.format(stringA, stringB, endDate.n3())
-        elif endDate is None:
-            timeString = """{{ {0}
-            OPTIONAL {{ ?update :endedAt ?endDate . }} 
-            FILTER ( !bound(?endDate) || {2} <= ?endDate )
-            }}
-            UNION
-            {{ {1} 
-            ?update :startedAt ?startDate . FILTER ( ?startDate >= {2} )
-            }}
-            UNION
-            {{ {1} 
-            NOT EXISTS {{ ?update :endedAt ?endDate }}
-            NOT EXISTS {{ ?update :startedAt ?startDate }}
-            }}
-            """.format(stringA, stringB, startDate.n3())
-        else:
-            timeString = """{{ 
-                {0}
-                OPTIONAL {{ ?update :startedAt ?startDate }}
-                FILTER ( !bound(?startDate) || ?startDate <= {3} )
-                OPTIONAL {{ ?update :endedAt ?endDate }} 
-                FILTER ( !bound(?endDate) || {2} <= ?endDate ) 
-            }} UNION {{ 
-                {1} 
-                OPTIONAL {{ ?update :startedAt ?startDate }}
-                FILTER (!bound(?startDate) || ?startDate <= {2} ) 
-                OPTIONAL {{ ?update :endedAt ?endDate }} 
-                FILTER ( !bound(?endDate) || {3} <= ?endDate ) 
-            }} """.format(stringA, stringB, startDate.n3(), endDate.n3())
+        if not startDate:
+            startDate = datetime.strptime(startDate.value, "%Y-%m-%dT%H:%M:%S+00:00")
+        if not endDate:
+            endDate = datetime.strptime(endDate.value, "%Y-%m-%dT%H:%M:%S+00:00")
 
         if self.config.related_update_content():
             content = "\n?update :precedingUpdate* ?allUpdate ."
-            construct = quad.to_query_via_unknown_update(construct=True, subjectName='?allUpdate')
-            where = quad.to_query_via_unknown_update(construct=False, subjectName='?allUpdate')
+            where = quad.query_via_unknown_update(construct=False, subjectName='?allUpdate')
         else:
             content = ""
-            construct = quad.to_query_via_unknown_update(construct=True)
-            where = quad.to_query_via_unknown_update(construct=False)
+            where = quad.query_via_unknown_update(construct=False)
 
-        SPARQLQuery = """CONSTRUCT {{ {0} }}
-        WHERE {{ 
-            {{ {1} }}
-            {2}{3}
-            {4}
-        }}""".format(construct, updateWhere, timeString, content, where)
+        # Obtain subquery before a transaction revisions
+        subQuery = self._valid_revisions_in_graph(revisionA=headRevision, queryType='SelectQuery',
+                                                  revisionType='update', prefix=False)
 
-        # print("SPARQLQuery ", SPARQLQuery)
-        stringOfUpdates = self._revisionStore.execute_construct_query(
-            '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
-        # print("stringOfUpdates ", stringOfUpdates)
-        updateParser = parser.UpdateParser()
-        updateParser.parse_aggregate(stringOfUpdates, forward=True)
-        modifications = updateParser.get_list_of_modifications()
+        SPARQLQuery = """SELECT ?p ?p1 ?p2 ?startDate ?endDate
+        WHERE {{ {{ {0} }}
+        OPTIONAL {{ ?update :startedAt ?startDate . }} 
+        OPTIONAL {{ ?update :endedAt ?endDate . }} 
+        {1}{2}}""".format(subQuery, content, where)
 
-        if deletion:
-            if len(modifications) == 1 and modifications[0].insertion:
-                return True
-            else:
-                return False
-        else:
-            if len(modifications) == 0:
-                return True
-            else:
-                return False
+        results = self._revisionStore.execute_select_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'json')
+        numberInsertions = 0
+        numberDeletions = 0
+
+        for result in results['results']['bindings']:
+            otherStartDate = None
+            if 'startDate' in result:
+                otherStartDate = datetime.strptime(result['startDate']['value'], "%Y-%m-%dT%H:%M:%S+00:00")
+            otherEndDate = None
+            if 'endDate' in result:
+                otherEndDate = datetime.strptime(result['endDate']['value'], "%Y-%m-%dT%H:%M:%S+00:00")
+
+            if deletion and 'http://bi-tr4qs.org/vocab/inserts' == result['p']['value']:
+                if startDate and otherStartDate and startDate < otherStartDate:
+                    continue
+                elif not startDate and otherStartDate:
+                    continue
+
+                if endDate and otherEndDate and endDate > otherEndDate:
+                    continue
+                elif not endDate and otherEndDate:
+                    continue
+
+                numberInsertions += 1
+
+            elif deletion and 'http://bi-tr4qs.org/vocab/deletes' == result['p']['value']:
+                if endDate and otherStartDate and endDate < otherStartDate:
+                    continue
+                if startDate and otherEndDate and startDate > otherEndDate:
+                    continue
+
+                numberDeletions += 1
+
+            elif not deletion and 'http://bi-tr4qs.org/vocab/inserts' == result['p']['value']:
+                if endDate and otherStartDate and endDate < otherStartDate:
+                    continue
+                if startDate and otherEndDate and startDate > otherEndDate:
+                    continue
+
+                numberInsertions += 1
+
+            elif not deletion and 'http://bi-tr4qs.org/vocab/deletes' == result['p']['value']:
+                if startDate and otherStartDate and startDate < otherStartDate:
+                    continue
+                elif not startDate and otherStartDate:
+                    continue
+
+                if endDate and otherEndDate and endDate > otherEndDate:
+                    continue
+                elif not endDate and otherEndDate:
+                    continue
+
+                numberDeletions += 1
+
+        if deletion and numberDeletions + 1 == numberInsertions:
+            return True
+        if not deletion and numberDeletions == numberInsertions:
+            return True
+        return False
+
+
+    # def can_quad_be_added_or_deleted(self, quad, headRevision: URIRef, startDate: Literal = None,
+    #                                  endDate: Literal = None, deletion=False):
+    #     """
+    #     - A quad Q can be inserted if N=M, where N stands for the number of updates that insert Q and somewhere overlap,
+    #     and where M stands for the number of updates that deletes Q and fully overlap
+    #     - A quad Q with valid time t can be deleted if N=M+1, where N stands for the number of updates that insert Q and
+    #     fully overlap t and where M stands for the number of updates that deletes Q and somewhere overlap t
+    #     :param quad:
+    #     :param headRevision:
+    #     :param startDate:
+    #     :param endDate:
+    #     :param deletion:
+    #     :return:
+    #     """
+    #
+    #     assert headRevision is not None, "The HEAD Revision is not allowed to be None."
+    #
+    #     updateWhere = self._valid_revisions_in_graph(revisionA=headRevision, queryType='SelectQuery',
+    #                                                  revisionType='update', prefix=False)
+    #
+    #     if deletion:
+    #         stringA = quad.to_query_via_delete_update(construct=False)
+    #         stringB = quad.to_query_via_insert_update(construct=False)
+    #     else:
+    #         stringA = quad.to_query_via_insert_update(construct=False)
+    #         stringB = quad.to_query_via_delete_update(construct=False)
+    #
+    #     if startDate is None and endDate is None:
+    #         timeString = """{{ {0} }}
+    #         UNION
+    #         {{ {1}
+    #         NOT EXISTS {{ ?update :endedAt ?endDate }}
+    #         NOT EXISTS {{ ?update :startedAt ?startDate }} }}
+    #         """.format(stringA, stringB)
+    #     elif startDate is None:
+    #         timeString = """{{ {0}
+    #         OPTIONAL {{ ?update :startedAt ?startDate . }}
+    #         FILTER ( !bound(?startDate) || ?startDate <= {2} )
+    #         }}
+    #         UNION
+    #         {{ {1}
+    #         ?update :endedAt ?endDate . FILTER ( {2} <= ?endDate )
+    #         }}
+    #         UNION
+    #         {{ {1}
+    #         NOT EXISTS {{ ?update :endedAt ?endDate }}
+    #         NOT EXISTS {{ ?update :startedAt ?startDate }}
+    #         }}
+    #         """.format(stringA, stringB, endDate.n3())
+    #     elif endDate is None:
+    #         timeString = """{{ {0}
+    #         OPTIONAL {{ ?update :endedAt ?endDate . }}
+    #         FILTER ( !bound(?endDate) || {2} <= ?endDate )
+    #         }}
+    #         UNION
+    #         {{ {1}
+    #         ?update :startedAt ?startDate . FILTER ( ?startDate >= {2} )
+    #         }}
+    #         UNION
+    #         {{ {1}
+    #         NOT EXISTS {{ ?update :endedAt ?endDate }}
+    #         NOT EXISTS {{ ?update :startedAt ?startDate }}
+    #         }}
+    #         """.format(stringA, stringB, startDate.n3())
+    #     else:
+    #         timeString = """{{
+    #             {0}
+    #             OPTIONAL {{ ?update :startedAt ?startDate }}
+    #             FILTER ( !bound(?startDate) || ?startDate <= {3} )
+    #             OPTIONAL {{ ?update :endedAt ?endDate }}
+    #             FILTER ( !bound(?endDate) || {2} <= ?endDate )
+    #         }} UNION {{
+    #             {1}
+    #             OPTIONAL {{ ?update :startedAt ?startDate }}
+    #             FILTER (!bound(?startDate) || ?startDate <= {2} )
+    #             OPTIONAL {{ ?update :endedAt ?endDate }}
+    #             FILTER ( !bound(?endDate) || {3} <= ?endDate )
+    #         }} """.format(stringA, stringB, startDate.n3(), endDate.n3())
+    #
+    #     if self.config.related_update_content():
+    #         content = "\n?update :precedingUpdate* ?allUpdate ."
+    #         construct = quad.to_query_via_unknown_update(construct=True, subjectName='?allUpdate')
+    #         where = quad.to_query_via_unknown_update(construct=False, subjectName='?allUpdate')
+    #     else:
+    #         content = ""
+    #         construct = quad.to_query_via_unknown_update(construct=True)
+    #         where = quad.to_query_via_unknown_update(construct=False)
+    #
+    #     SPARQLQuery = """CONSTRUCT {{ {0} }}
+    #     WHERE {{
+    #         {{ {1} }}
+    #         {2}{3}
+    #         {4}
+    #     }}""".format(construct, updateWhere, timeString, content, where)
+    #
+    #     # print("SPARQLQuery ", SPARQLQuery)
+    #     stringOfUpdates = self._revisionStore.execute_construct_query(
+    #         '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
+    #     # print("stringOfUpdates ", stringOfUpdates)
+    #     updateParser = parser.UpdateParser()
+    #     updateParser.parse_aggregate(stringOfUpdates, forward=True)
+    #     modifications = updateParser.get_list_of_modifications()
+    #
+    #     if deletion:
+    #         if len(modifications) == 1 and modifications[0].insertion:
+    #             return True
+    #         else:
+    #             return False
+    #     else:
+    #         if len(modifications) == 0:
+    #             return True
+    #         else:
+    #             return False
 
     @staticmethod
     def _update_time_string(date: Literal = None, leftOfInterval: Literal = None, rightOfInterval: Literal = None,
                             startTimeInBetween=False, endTimeInBetween=False, variableName='?update'):
         timeConstrains = ""
-        if date is not None:
+        if date:
             timeConstrains = """
             OPTIONAL {{ {1} :startedAt ?startDate . }} 
             FILTER ( !bound(?startDate) || ?startDate <= {0} )
             OPTIONAL {{ {1} :endedAt ?endDate . }}
             FILTER ( !bound(?endDate) || ?endDate >= {0} )
             """.format(date.n3(), variableName)
-        elif date is None and startTimeInBetween and not endTimeInBetween:
+        elif not date and startTimeInBetween and not endTimeInBetween:
             timeConstrains = """
             {{  {2} :startedAt ?startDate .
                 {2} :endedAt ?endDate .
@@ -529,7 +615,7 @@ class RevisionStore(object):
                 NOT EXISTS {{ ?update :endedAt ?endDate . }}
                 FILTER (  ?startDate > {0} && ?startDate <= {1} ) 
                 }}""".format(leftOfInterval.n3(), rightOfInterval.n3(), variableName)
-        elif date is None and endTimeInBetween and not startTimeInBetween:
+        elif not date and endTimeInBetween and not startTimeInBetween:
             timeConstrains = """
             {{  {2} :startedAt ?startDate .
                 {2} :endedAt ?endDate .
@@ -543,12 +629,12 @@ class RevisionStore(object):
 
     def _construct_where_for_update(self, quadPattern):
         construct = where = ""
-        if self.config.query_all_updates() or quadPattern is None:
+        if self.config.query_all_updates() or not quadPattern:
             construct = "GRAPH ?g { ?update ?p1 ?o1 }\n?update ?p2 ?o2 ."
             where = "{ GRAPH ?g { ?update ?p1 ?o1 } } UNION { ?update ?p2 ?o2 }"
         elif self.config.query_specific_updates():
-            construct = quadPattern.to_query_via_unknown_update(construct=True)
-            where = quadPattern.to_query_via_unknown_update(construct=False)
+            construct = quadPattern.query_via_unknown_update(construct=True)
+            where = quadPattern.query_via_unknown_update(construct=False)
         else:
             # Raise an exception that one of the two update fetching strategies should be True
             pass
@@ -600,7 +686,7 @@ class RevisionStore(object):
         """
 
         :param revisionA:
-        :param validRevisionType:
+        :param revisionType:
         :param queryType:
         :param revisionB:
         :param prefix:

@@ -124,7 +124,6 @@ class BiTR4Qs(object):
 
             # Create a transaction revision
             transactionRevision = request.transaction_revision_from_request()
-            # print("transactionRevision ", transactionRevision)
 
             # Create valid revision(s)
             validRevisions = request.valid_revisions_from_request()

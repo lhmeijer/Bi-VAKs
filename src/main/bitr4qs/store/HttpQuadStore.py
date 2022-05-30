@@ -129,8 +129,7 @@ class HttpQuadStore(object):
 
     def n_quads_to_store(self, nquads):
         headers = {'Content-Type': 'application/n-quads'}
-        # nquads = nquads.encode()
-        # nquads = nquads.encode(encoding='utf-8', errors='strict')
+        nquads = nquads.encode(encoding='utf-8', errors='strict')
         # print("nquads ", nquads)
         # splittedNquads = nquads.split('\n')
         # print("splittedNquads ", splittedNquads)
@@ -143,7 +142,6 @@ class HttpQuadStore(object):
         request = Request(self._dataEndpoint, data=nquads, headers=headers)
         try:
             response = urlopen(request)
-            print("response ", response.read())
         except HTTPError as e:
             print(e)
             raise HTTPError

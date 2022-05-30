@@ -149,8 +149,7 @@ class Version(object):
             self._temporalStore.execute_update_query(SPARQLUpdateQuery)
 
     def clear_version(self):
-        pass
-        # self._temporalStore.reset_store()
+        self._temporalStore.reset_store()
 
     def query_version(self, queryString, returnFormat):
         return self._temporalStore.execute_query(queryString, returnFormat)

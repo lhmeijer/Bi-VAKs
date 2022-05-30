@@ -10,9 +10,9 @@ import itertools
 
 if __name__ == "__main__":
 
-    generateUpdates = False
+    generateUpdates = True
     createStore = False
-    evaluateQueries = True
+    evaluateQueries = False
 
     possibleIndices = [[0], [0, 1, 2, 3], [0, 1], [0, 1]]
     permutationsIndices = list(itertools.product(*possibleIndices))

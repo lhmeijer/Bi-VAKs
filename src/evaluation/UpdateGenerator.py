@@ -174,7 +174,7 @@ class UpdateGenerator(object):
 
                     startDate, endDate = self._generate_start_and_end_date(doesContainQuery)
                     update = [str(nOfUpdates), '{0}-{1}'.format(str(i), str(i + 1)), '-'.join(inserted),
-                              '-'.join(deleted), startDate, endDate]
+                              '-'.join(deleted), startDate, endDate, str(doesContainQuery)]
                     updates.append(update)
                     nOfUpdates += 1
 

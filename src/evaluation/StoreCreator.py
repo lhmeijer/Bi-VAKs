@@ -168,11 +168,15 @@ class StoreCreator(object):
 
             SPARQLUpdateQuery = self._update_sparql_from_modifications(updateInsertions + updateDeletions)
 
+            shouldBeTested = ''
+            if updateData[self._updateIndex][6] == 'True':
+                shouldBeTested = 'yes'
+
             start = timer()
             updateResponse = self._application.post('/update', data=dict(
                 update=SPARQLUpdateQuery, author='Tom de Vries', startDate=updateData[self._updateIndex][4],
                 branch=self._branch, description='Add update {0}.'.format(str(self._updateIndex+1)),
-                endDate=updateData[self._updateIndex][5]))
+                endDate=updateData[self._updateIndex][5], test=shouldBeTested))
             end = timer()
             self._runtimeUpdates.append(timedelta(seconds=end - start).total_seconds())
 
@@ -229,5 +233,7 @@ class StoreCreator(object):
             SPARQLQuery = 'DELETE DATA {{ {0} }}'.format(deleteString)
         elif insert and not delete:
             SPARQLQuery = 'INSERT DATA {{ {0} }}'.format(insertString)
+        else:
+            raise Exception("This update does not contain any modifications.")
 
         return SPARQLQuery

@@ -54,8 +54,10 @@ class Evaluator(object):
         time = []
         totalNumberOfTriples = []
 
-        for i in range(self._config.NUMBER_OF_VERSIONS):
-            print("query ", query.to_select_query())
+        print("query ", query.to_select_query())
+        for i in range(65, 89):
+        # for i in range(self._config.NUMBER_OF_VERSIONS):
+            print("we query now version ", i)
             start = timer()
             results = self._application.get('/query', query_string=dict(
                 query=query.to_select_query(), queryAtomType='VM', tag='version {0}'.format(i+1)),
@@ -64,16 +66,17 @@ class Evaluator(object):
             time.append(timedelta(seconds=end - start).total_seconds())
             # Obtain the number of triples it needed to construct the given version.
             numberOfTriples = results.headers['N-ProcessedQuads']
+            print("numberOfTriples ", numberOfTriples)
             totalNumberOfTriples.append(numberOfTriples)
 
             jsonResults = json.loads(results.data.decode("utf-8"))
             print("jsonResults ", jsonResults)
             print("trueResults[i] ", trueResults[i])
-            for jsonResult in jsonResults['results']['bindings']:
-                try:
-                    self._compare_results(jsonResult, trueResults[i])
-                except Exception:
-                    raise Exception
+            # for jsonResult in jsonResults['results']['bindings']:
+            try:
+                self._compare_results(jsonResults['results']['bindings'], trueResults[i])
+            except Exception:
+                raise Exception
 
         return time, totalNumberOfTriples
 
@@ -137,22 +140,33 @@ class Evaluator(object):
 
         return time, totalNumberOfTriples
 
-    def _compare_results(self, jsonResult, trueResults):
-        result = []
+    def _compare_results(self, jsonResults, trueResults):
 
-        for variableName, variableResult in jsonResult.items():
-            if variableResult['type'] == 'uri':
-                result.append(URIRef(variableResult['value']))
-            elif variableResult['type'] == 'literal':
-                result.append(Literal(variableResult['value']))
+        for jsonResult in jsonResults:
+            result = []
+            for variableName, variableResult in jsonResult.items():
+                if variableResult['type'] == 'uri':
+                    result.append(URIRef(variableResult['value']).n3())
+                elif variableResult['type'] == 'literal':
+                    # language = None
+                    # datatype = None
+                    # if 'xml:lang' in variableResult:
+                    #     language = variableResult['xml:lang']
+                    # if 'datatype' in variableResult:
+                    #     datatype = variableResult['datatype']
+                    # result.append(Literal(variableResult['value'], datatype=datatype, lang=language))
+                    # result.append(Literal(variableResult['value']))
+                    result.append(variableResult['value'])
 
-        stringResult = ' '.join(term.n3() for term in result)
-
-        try:
-            trueResults.remove(stringResult)
-        except ValueError:
-            raise Exception  # or scream: thing not in some_list!
-
+            # s = ' '.join(result).encode('utf-8').decode('us-ascii', errors='replace').replace('\uFFFD', '?')
+            s = ' '.join(result).encode('utf-8').decode('us-ascii', errors='ignore').replace('?', '')
+            print("s ", s)
+            print("trueResults ", trueResults)
+            # s.replace(u'\uFFFD', "?")
+            try:
+                trueResults.remove(s)
+            except ValueError:
+                raise Exception  # or scream: thing not in some_list!
         if len(trueResults) > 0:
             raise Exception
 
@@ -164,7 +178,7 @@ class Evaluator(object):
             for line in file:
                 stringWithinBrackets = re.search(r"\[.*?]", line).group(0)
                 versionNumber = int(re.findall(r'\d+', stringWithinBrackets)[0])
-                resultString = line.strip().replace(stringWithinBrackets, '')
+                resultString = line.strip().replace(stringWithinBrackets, '').replace('?', '')
 
                 if versionNumber not in results:
                     results[versionNumber] = [resultString]

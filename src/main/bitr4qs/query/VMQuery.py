@@ -112,7 +112,6 @@ class VMQuery(Query):
 
         # Apply the query to the version
         response = version.query_version(self._query, self._returnFormat)
-        print("response ", response)
 
         # Reset the temporal quad store
         version.clear_version()

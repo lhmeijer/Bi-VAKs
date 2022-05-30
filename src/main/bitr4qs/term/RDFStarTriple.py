@@ -6,13 +6,10 @@ class RDFStarTriple(object):
 
     def __init__(self, value):
         s, p, o = value
-        assert isinstance(s, URIRef) or isinstance(s, Triple), "Subject %s must be an rdflib term" % (s,)
-        assert isinstance(p, URIRef), "Predicate %s must be an rdflib term" % (p,)
-        assert isinstance(o, URIRef) or isinstance(o, Literal) or isinstance(o, Triple), "Object %s must be an rdflib term" % (o,)
 
-        self._subject = s
-        self._predicate = p
-        self._object = o
+        self.subject = s
+        self.predicate = p
+        self.object = o
 
     @property
     def subject(self):
@@ -23,15 +20,78 @@ class RDFStarTriple(object):
         assert isinstance(subject, URIRef) or isinstance(subject, Triple)
         self._subject = subject
 
-    def to_sparql(self):
-        if isinstance(self._subject, Triple) and not isinstance(self._object, Triple):
-            return ' '.join((self._subject.rdf_star(), self._predicate.n3(), self._object.n3())) + ' .'
-        elif isinstance(self._subject, Triple) and isinstance(self._object, Triple):
-            return ' '.join((self._subject.rdf_star(), self._predicate.n3(), self._object.rdf_star())) + ' .'
-        elif not isinstance(self._subject, Triple) and isinstance(self._object, Triple):
-            return ' '.join((self._subject.n3(), self._predicate.n3(), self._object.rdf_star())) + ' .'
-        else:
-            return ' '.join((self._subject.n3(), self._predicate.n3(), self._object.n3())) + ' .'
+    @property
+    def predicate(self):
+        return self._predicate
+
+    @predicate.setter
+    def predicate(self, predicate):
+        assert isinstance(predicate, URIRef)
+        self._predicate = predicate
+
+    @property
+    def object(self):
+        return self._object
+
+    @object.setter
+    def object(self, newObject):
+        assert isinstance(newObject, URIRef) or isinstance(newObject, Triple)
+        self._object = newObject
+
+    def triple(self):
+        return self._subject, self._predicate, self._object
+
+    def sparql(self):
+        return ' '.join(self.represent_term(term) for term in self.triple()) + ' .'
 
     def n_quad(self):
-        return self.to_sparql() + '\n'
+        return ' '.join(self.represent_term(term) for term in self.triple()) + ' .\n'
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            if self.represent_term(self._subject) != self.represent_term(other.subject):
+                return False
+            if self.represent_term(self._predicate) != self.represent_term(other.predicate):
+                return False
+            if self.represent_term(self._object) != self.represent_term(other.object):
+                return False
+            return True
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __str__(self):
+        return '({0})'.format(','.join(self.represent_term(term) for term in self.triple()))
+
+    def represent_term(self, term):
+        if isinstance(term, Literal):
+            return self._quote_literal(term)
+        elif isinstance(term, Triple):
+            return term.rdf_star()
+        else:
+            return term.n3()
+
+    def _quote_literal(self, l_):
+        """
+        a simpler version of term.Literal.n3()
+        """
+
+        encoded = self._quote_encode(l_)
+
+        if l_.language:
+            if l_.datatype:
+                raise Exception("Literal has datatype AND language!")
+            return "%s@%s" % (encoded, l_.language)
+        elif l_.datatype:
+            return "%s^^<%s>" % (encoded, l_.datatype)
+        else:
+            return "%s" % encoded
+
+    @staticmethod
+    def _quote_encode(l_):
+        return '"%s"' % l_.replace("\\", "\\\\").replace("\n", "\\n").replace(
+            '"', '\\"').replace("\r", "\\r")
+
+
