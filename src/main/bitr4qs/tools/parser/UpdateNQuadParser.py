@@ -8,7 +8,7 @@ from rdflib.plugins.parsers.ntriples import ParseError
 from rdflib.plugins.parsers.ntriples import r_tail
 from rdflib.plugins.parsers.ntriples import r_wspace
 
-__all__ = ["NQuadsParser"]
+__all__ = ["UpdateNQuadParser"]
 
 
 class UpdateNQuadParser(NQuadsParser):

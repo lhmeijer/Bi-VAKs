@@ -14,6 +14,7 @@ class Evaluator(object):
         self._config = config
 
         self._queries = get_queries_from_nt_file(self._config.bear_queries_file_name)
+        self._nOfQueries = len(self._queries) if not self._config.NUMBER_OF_QUERIES else self._config.NUMBER_OF_QUERIES
 
     def evaluate(self):
         """
@@ -23,30 +24,36 @@ class Evaluator(object):
         timePerQuery = []
         triplesPerQuery = []
 
-        results = {}
-
-        for queryIndex, query in self._queries.items():
+        # for queryIndex, query in self._queries.items():
+        for i in range(1, self._nOfQueries + 1):
             func = getattr(self, '_evaluate_{0}_query'.format(self._config.QUERY_ATOM.lower()))
-            time, triples = func(queryIndex, query)
+            # time, triples = func(queryIndex, query)
+            time, triples = func(i, self._queries[i])
             timePerQuery.append(time)
             triplesPerQuery.append(triples)
-            results['query-{0}'.format(queryIndex)] = {'time': time, 'triples': triples}
 
+            with open(self._config.query_results_file_name, 'a') as file:
+                file.write('query-{0}-time,{1}\n'.format(i, ','.join(str(t) for t in time)))
+                file.write('query-{0}-triples,{1}\n'.format(i, ','.join(str(t) for t in triples)))
+        print("timePerQuery ", timePerQuery)
+        print("timePerQuery n ", len(timePerQuery))
+        print("timePerQuery m ", len(timePerQuery[0]))
         numpyTimePerQuery = np.array(timePerQuery)
         numpyTriplesPerQuery = np.array(triplesPerQuery)
 
         meanTimePerVersion = np.mean(numpyTimePerQuery, axis=0)
-        results['MEAN_TimePerVersion'] = meanTimePerVersion.tolist()
         standardDeviationTimePerVersion = np.std(numpyTimePerQuery, axis=0)
-        results['STANDARD_DEVIATION_TimePerVersion'] = standardDeviationTimePerVersion.tolist()
 
         meanTriplesPerQuery = np.mean(numpyTriplesPerQuery, axis=0)
-        results['MEAN_TriplesPerVersion'] = meanTriplesPerQuery.tolist()
         standardDeviationTriplesPerQuery = np.std(numpyTriplesPerQuery, axis=0)
-        results['STANDARD_DEVIATION_TriplesPerVersion'] = standardDeviationTriplesPerQuery.tolist()
 
-        with open(self._config.query_results_file_name, 'w') as file:
-            json.dump(results, file)
+        with open(self._config.query_results_file_name, 'a') as file:
+            file.write('MEAN_TimePerVersion,{0}\n'.format(','.join(str(m) for m in meanTimePerVersion)))
+            file.write('STANDARD_DEVIATION_TimePerVersion,{0}\n'.format(
+                ','.join(str(s) for s in standardDeviationTimePerVersion)))
+            file.write('MEAN_TriplesPerVersion,{0}\n'.format(','.join(str(m) for m in meanTriplesPerQuery)))
+            file.write('STANDARD_DEVIATION_TriplesPerVersion,{0}\n'.format(
+                ','.join(str(s) for s in standardDeviationTriplesPerQuery)))
 
     def _evaluate_vm_query(self, queryIndex, query):
         trueResults = self._extract_vm_results_from_file('{0}-{1}.txt'.format(self._config.bear_results_dir, queryIndex))
@@ -54,20 +61,21 @@ class Evaluator(object):
         time = []
         totalNumberOfTriples = []
 
-        print("query ", query.to_select_query())
-        for i in range(65, 89):
-        # for i in range(self._config.NUMBER_OF_VERSIONS):
-            print("we query now version ", i)
+        print("Query\n", query.select_query())
+        # for i in range(28, 89):
+        for i in range(self._config.NUMBER_OF_VERSIONS):
+            print("We query now version ", i+1)
+
             start = timer()
             results = self._application.get('/query', query_string=dict(
-                query=query.to_select_query(), queryAtomType='VM', tag='version {0}'.format(i+1)),
+                query=query.select_query(), queryAtomType='VM', tag='version {0}'.format(i+1)),
                                             headers=dict(accept="application/sparql-results+json"))
             end = timer()
-            time.append(timedelta(seconds=end - start).total_seconds())
+            time.append(float(timedelta(seconds=end - start).total_seconds()))
             # Obtain the number of triples it needed to construct the given version.
             numberOfTriples = results.headers['N-ProcessedQuads']
             print("numberOfTriples ", numberOfTriples)
-            totalNumberOfTriples.append(numberOfTriples)
+            totalNumberOfTriples.append(int(numberOfTriples))
 
             jsonResults = json.loads(results.data.decode("utf-8"))
             print("jsonResults ", jsonResults)
@@ -142,48 +150,38 @@ class Evaluator(object):
 
     def _compare_results(self, jsonResults, trueResults):
 
+        results = set()
         for jsonResult in jsonResults:
             result = []
             for variableName, variableResult in jsonResult.items():
                 if variableResult['type'] == 'uri':
                     result.append(URIRef(variableResult['value']).n3())
                 elif variableResult['type'] == 'literal':
-                    # language = None
-                    # datatype = None
-                    # if 'xml:lang' in variableResult:
-                    #     language = variableResult['xml:lang']
-                    # if 'datatype' in variableResult:
-                    #     datatype = variableResult['datatype']
-                    # result.append(Literal(variableResult['value'], datatype=datatype, lang=language))
-                    # result.append(Literal(variableResult['value']))
                     result.append(variableResult['value'])
 
-            # s = ' '.join(result).encode('utf-8').decode('us-ascii', errors='replace').replace('\uFFFD', '?')
             s = ' '.join(result).encode('utf-8').decode('us-ascii', errors='ignore').replace('?', '')
-            print("s ", s)
-            print("trueResults ", trueResults)
-            # s.replace(u'\uFFFD', "?")
-            try:
-                trueResults.remove(s)
-            except ValueError:
-                raise Exception  # or scream: thing not in some_list!
-        if len(trueResults) > 0:
+            results.add(s)
+
+        differenceResults = results - trueResults
+        if len(differenceResults) > 0:
+            print('differenceResults', differenceResults)
+            print("List is not empty ", len(differenceResults))
             raise Exception
 
-    @staticmethod
-    def _extract_vm_results_from_file(fileName):
-
+    def _extract_vm_results_from_file(self, fileName):
         results = {}
+        for i in range(self._config.NUMBER_OF_VERSIONS+1):
+            results[i] = set()
+
         with open(fileName, "r") as file:
             for line in file:
                 stringWithinBrackets = re.search(r"\[.*?]", line).group(0)
                 versionNumber = int(re.findall(r'\d+', stringWithinBrackets)[0])
                 resultString = line.strip().replace(stringWithinBrackets, '').replace('?', '')
 
-                if versionNumber not in results:
-                    results[versionNumber] = [resultString]
-                else:
-                    results[versionNumber].append(resultString)
+                # if versionNumber not in results:
+                #     results[versionNumber] = set()
+                results[versionNumber].add(resultString)
         return results
 
     @staticmethod
@@ -193,22 +191,21 @@ class Evaluator(object):
             for line in file:
 
                 stringWithinBrackets = re.search(r"\[.*?]", line).group(0)
-                versionNumber = int(re.findall(r'\d', stringWithinBrackets)[0])
-                resultString = line.replace(stringWithinBrackets, '')
+                versionNumber = int(re.findall(r'\d+', stringWithinBrackets)[0])
+                resultString = line.strip().replace(stringWithinBrackets, '').replace('?', '')
 
                 if versionNumber not in results:
-                    results[versionNumber] = {'insertions': [], 'deletions': []}
+                    results[versionNumber] = {'insertions': set(), 'deletions': set()}
 
                 if 'ADD' in stringWithinBrackets:
-                    results[versionNumber]['insertions'].append(resultString)
+                    results[versionNumber]['insertions'].add(resultString)
                 elif 'DEL' in stringWithinBrackets:
-                    results[versionNumber]['deletions'].append(resultString)
+                    results[versionNumber]['deletions'].add(resultString)
 
         return results
 
-    @staticmethod
-    def _extract_vq_results_from_file(fileName):
-        return Evaluator._extract_vm_results_from_file(fileName)
+    def _extract_vq_results_from_file(self, fileName):
+        return self._extract_vm_results_from_file(fileName)
 
 
 

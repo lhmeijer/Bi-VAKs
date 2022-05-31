@@ -98,7 +98,8 @@ class RevisionStoreExplicit(RevisionStore):
         result = self._revisionStore.execute_ask_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)))
         return result
 
-    def _transaction_revision(self, transactionRevisionA, transactionRevisionID, transactionRevisionB=None):
+    def _transaction_revision(self, transactionRevisionA: URIRef, transactionRevisionID: URIRef,
+                              transactionRevisionB: URIRef = None):
         """
 
         :param transactionRevisionA:

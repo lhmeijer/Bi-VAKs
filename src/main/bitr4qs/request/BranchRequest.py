@@ -20,7 +20,7 @@ class BranchRequest(Request):
         if self._branchedOffRevision is None:
             self._branchedOffRevision = self._precedingTransactionRevision
 
-        self._branchIndex = revisionStore.get_new_branch_index()
+        self._branchIndex = revisionStore.new_branch_index()
         self._headRevision = None
         self._branch = None
 
@@ -41,7 +41,7 @@ class BranchRequest(Request):
                                               transactionRevisionA=self._precedingTransactionRevision)
             self._branchedOffRevision = revision.identifier
             self._precedingTransactionRevision = revision.identifier
-            self._revisionNumber = revisionStore.get_new_revision_number(revision.revision_number)
+            self._revisionNumber = revisionStore.new_revision_number(revision.revision_number)
 
     def transaction_revision_from_request(self):
         revision = BranchRevision.revision_from_data(

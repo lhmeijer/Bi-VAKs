@@ -113,3 +113,14 @@ class TransactionRevision(Revision):
         assert 'precedingRevision' in data, "precedingRevision should be in the data of the revision"
 
         return cls(**data)
+
+    def __dict__(self):
+        result = super().__dict__()
+        result['author'] = str(self._author)
+        result['description'] = str(self._description)
+        result['creationDate'] = str(self._creationDate)
+        if self._branch:
+            result['branch'] = str(self._branch)
+        if self._validRevisions:
+            result['validRevisions'] = [(revision[0], str(revision[1])) for revision in self._validRevisions]
+        return result

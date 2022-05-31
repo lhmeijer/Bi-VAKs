@@ -46,7 +46,7 @@ class UpdateParser(Parser):
         graph = UpdateParser._graph_name(NQuad, stringOfTriple)
 
         if not forward:
-            deletion = False if deletion else True
+            deletion = not deletion
 
         modification = sink.add_modification(graph=graph, deletion=deletion)
 
@@ -179,9 +179,9 @@ class UpdateParser(Parser):
 
         for _, v in self._modifications.items():
             if v['counter'] > 0:
-                insertString += v['modification'].to_sparql() + '\n'
+                insertString += v['modification'].sparql() + '\n'
             elif v['counter'] < 0:
-                deleteString += v['modification'].to_sparql() + '\n'
+                deleteString += v['modification'].sparql() + '\n'
 
         lengthDeleteString = len(deleteString)
         lengthInsertString = len(insertString)

@@ -1,17 +1,13 @@
 from .HttpQuadStore import HttpQuadStore
 from rdflib.term import URIRef, Literal
-from urllib.request import urlopen, Request
-from urllib.parse import urlencode
+from urllib.request import urlopen
 from urllib.error import HTTPError
-import json
-from src.main.bitr4qs.exception import SPARQLConnectorException
 
 
 class TemporalQuadStore(HttpQuadStore):
 
-    def __init__(self, queryEndpoint, updateEndpoint, dataEndpoint, effectiveDate: Literal = None,
-                 transactionRevision: URIRef = None):
-        super().__init__(queryEndpoint, updateEndpoint, dataEndpoint)
+    def __init__(self, nameDataset, urlDataset, effectiveDate: Literal = None, transactionRevision: URIRef = None):
+        super().__init__(nameDataset, urlDataset)
         self.effective_date = effectiveDate
         self.transaction_revision = transactionRevision
 
@@ -20,18 +16,27 @@ class TemporalQuadStore(HttpQuadStore):
         self.execute_update_query(SPARQLQuery)
 
     def add_modifications_to_store(self, modifications):
-        deleteString = ""
-        insertString = ""
+        deleteString, insertString = "", ""
+        insert = False
+        delete = False
 
         for modification in modifications:
             if modification.deletion:
-                deleteString += modification.value.to_sparql()
+                deleteString += modification.value.sparql() + '\n'
+                delete = True
             else:
-                insertString += modification.value.to_sparql()
+                insertString += modification.value.sparql() + '\n'
+                insert = True
 
-        SPARQLQuery = """DELETE DATA {{ {0} }};
-        INSERT DATA {{ {1} }}""".format(deleteString, insertString)
-        self.execute_update_query(SPARQLQuery)
+        if delete and insert:
+            SPARQLQuery = 'DELETE DATA {{ {0} }};\nINSERT DATA {{ {1} }}'.format(deleteString, insertString)
+            self.execute_update_query(SPARQLQuery)
+        elif delete and not insert:
+            SPARQLQuery = 'DELETE DATA {{ {0} }}'.format(deleteString)
+            self.execute_update_query(SPARQLQuery)
+        elif insert and not delete:
+            SPARQLQuery = 'INSERT DATA {{ {0} }}'.format(insertString)
+            self.execute_update_query(SPARQLQuery)
 
     def execute_query(self, queryString, returnFormat):
         request = self._create_query_request(queryString, returnFormat)
@@ -42,34 +47,3 @@ class TemporalQuadStore(HttpQuadStore):
             print(e)
             raise HTTPError
         return result
-
-    def _create_query_request(self, query, returnFormat):
-
-        headers = {"Accept": returnFormat}
-        params = {}
-        args = {}
-        # merge params/headers dicts
-        args.setdefault("params", {})
-
-        args.setdefault("headers", {})
-        args["headers"].update(headers)
-
-        method = 'GET'
-        if method == 'GET':
-            params['query'] = query
-            args["params"].update(params)
-            qsa = "?" + urlencode(args["params"])
-            request = Request(self._queryEndpoint + qsa, headers=args["headers"])
-        elif method == 'POST':
-            args["headers"].update({"Content-Type": "application/sparql-query"})
-            qsa = "?" + urlencode(params)
-            print(qsa)
-            request = Request(self._queryEndpoint + qsa, data=query.encode(), headers=args["headers"])
-        elif method == 'POST_FORM':
-            params['query'] = query
-            args["params"].update(params)
-            request = Request(self._queryEndpoint, data=urlencode(args["params"]).encode(), headers=args["headers"])
-        else:
-            raise SPARQLConnectorException("Unknown method %s" % method)
-
-        return request

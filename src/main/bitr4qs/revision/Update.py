@@ -38,7 +38,7 @@ class Update(ValidRevision):
 
     @modifications.setter
     def modifications(self, modifications):
-        if modifications is not None and len(modifications) > 0:
+        if modifications and len(modifications) > 0:
             self._RDFPatterns.extend([self._to_rdf_star(modification) for modification in modifications])
         self._modifications = modifications
 
@@ -48,7 +48,7 @@ class Update(ValidRevision):
 
     @start_date.setter
     def start_date(self, startDate: Literal):
-        if startDate is not None:
+        if startDate:
             self._RDFPatterns.append(Triple((self._identifier, BITR4QS.startedAt, startDate)))
         self._startDate = startDate
 
@@ -58,7 +58,7 @@ class Update(ValidRevision):
 
     @end_date.setter
     def end_date(self, endDate):
-        if endDate is not None:
+        if endDate:
             self._RDFPatterns.append(Triple((self._identifier, BITR4QS.endedAt, endDate)))
         self._endDate = endDate
 

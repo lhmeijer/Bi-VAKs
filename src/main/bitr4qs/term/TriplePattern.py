@@ -84,11 +84,11 @@ class TriplePattern(object):
         return True
 
     def __eq__(self, other):
-        if self._subject.n3() != other.subject.n3():
+        if self.represent_term(self._subject) != self.represent_term(other.subject):
             return False
-        if self._predicate.n3() != other.predicate.n3():
+        if self.represent_term(self._predicate) != self.represent_term(other.predicate):
             return False
-        if self._object.n3() != other.object.n3():
+        if self.represent_term(self._object) != self.represent_term(other.object):
             return False
         return True
 

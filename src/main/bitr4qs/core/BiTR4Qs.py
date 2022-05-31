@@ -142,6 +142,8 @@ class BiTR4Qs(object):
         # Delete the old HEAD revision and add a new HEAD revision.
         self._head_revision(request.head_revision, transactionRevision)
 
+        print("transaction revision ", transactionRevision.__dict__())
+
         # Return the valid revisions.
         return [validRevision.__dict__() for validRevision in validRevisions]
 

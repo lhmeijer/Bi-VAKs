@@ -119,7 +119,6 @@ class UpdateQueryRequest(UpdateRequest):
                     self._modifications.append(Modification(quadNode, deletion))
                 else:
                     raise Exception('We cannot insert or delete quad {0}.'.format(str(quadNode)))
-        return None
 
     def evaluate_request(self, revisionStore):
         self.evaluate_request_to_modify(revisionStore)

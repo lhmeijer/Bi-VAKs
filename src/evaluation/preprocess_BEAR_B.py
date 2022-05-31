@@ -1,12 +1,11 @@
 from rdflib.plugins.parsers.ntriples import W3CNTriplesParser
 from src.main.bitr4qs.tools.parser.Parser import TripleSink
 import gzip
-from src.evaluation.queries import Queries
 from datetime import datetime, timedelta
-from src.evaluation.configuration import BearBConfiguration as config
 from src.main.bitr4qs.term.TriplePattern import TriplePattern
 from rdflib.term import Variable
 from timeit import default_timer as timer
+from src.main.bitr4qs.term.Triple import Triple
 
 
 def get_queries_from_nt_file(queryFileName):
@@ -46,105 +45,49 @@ def get_queries_from_nt_file(queryFileName):
     return queries
 
 
-def _get_query_numbers(predicate):
-    queryNumbers = []
-    for queryNumber, query in Queries.items():
-        if predicate == query['p']:
-            queryNumbers.append(str(queryNumber))
-    return queryNumbers
+class ChangeComputer(object):
 
+    def __init__(self, config, inputFolder, exportFolder):
+        self._config = config
+        self._inputFolder = inputFolder
+        self._exportFolder = exportFolder
 
-def triples_by_date(inputFolderName, nOfInputFiles, exportFolderName):
+    def compute_changes(self):
 
-    sink = TripleSink()
-    NTriplesParser = W3CNTriplesParser(sink=sink)
+        sink = TripleSink()
+        NTriplesParser = W3CNTriplesParser(sink=sink)
 
-    days = {}
-    totalTriples = 0
-
-    start = timer()
-    previousTimestamp = None
-
-    for i in range(nOfInputFiles):
-
-        if i % 1000 == 0:
-            print("Processed file number ", i)
-
-        addedFileName = 'data-added_{0}-{1}'.format(str(i+1), str(i+2))
-        deletedFileName = 'data-deleted_{0}-{1}'.format(str(i+1), str(i+2))
-        index = 0
-        timestamp = None
-        timestampUnknown = []
-        data = []
-
-        # print("timestamp ", timestamp)
-        with gzip.open('{0}{1}.nt.gz'.format(inputFolderName, addedFileName), 'rt') as file:
+        triplesA = set()
+        with gzip.open('{0}{1}.nt.gz'.format(self._inputFolder, "{:06d}".format(1)), 'rt') as file:
             for line in file:
-                NTriplesParser.parsestring(line)
-                # print("line ", line)
-                # print("s ", sink.subject)
-                # print("p ", sink.predicate)
-                # print("o ", sink.object)
+                NTriplesParser.parsestring(line.strip())
+                triple = Triple((sink.subject, sink.predicate, sink.object))
+                triplesA.add(triple.sparql())
 
-                if sink.predicate.n3() == '<http://dbpedia.org/ontology/wikiPageExtracted>':
-                    timestamp = str(sink.object)
-                    previousTimestamp = str(sink.object)
+        for i in range(1, self._config.NUMBER_OF_VERSIONS):
+            fileNameB = "{:06d}".format(i+1)
+            triplesB = set()
 
-                queryNumbers = _get_query_numbers(sink.predicate.n3())
-                if timestamp is None:
-                    timestampUnknown.append(index)
+            with gzip.open('{0}{1}.nt.gz'.format(self._inputFolder, fileNameB), 'rt') as file:
+                for line in file:
+                    NTriplesParser.parsestring(line.strip())
+                    triple = Triple((sink.subject, sink.predicate, sink.object))
+                    # print("triple ", triple)
+                    triplesB.add(triple.sparql())
 
-                triple = [str(totalTriples), str(i+1), 'added', str(index), timestamp, '-'.join(queryNumbers), line]
-                print("triple ", triple)
-                data.append(triple)
-                index += 1
-                totalTriples += 1
+            overlapTriples = triplesA.intersection(triplesB)
+            print("number of overlapTriples ", len(overlapTriples))
+            addedTriples = triplesB - overlapTriples
+            print("number of addedTriples ", len(addedTriples))
+            deletedTriples = triplesA - overlapTriples
+            print("number of deletedTriples ", len(deletedTriples))
 
-        with gzip.open('{0}{1}.nt.gz'.format(inputFolderName, deletedFileName), 'rt') as file:
-            for line in file:
-                NTriplesParser.parsestring(line)
-                # print("line ", line)
-                # print("s ", sink.subject)
-                # print("p ", sink.predicate)
-                # print("o ", sink.object)
+            exportFileNameAdded = 'data-added_{0}-{1}.nt.gz'.format(i, i+1)
+            with gzip.open('{0}{1}'.format(self._exportFolder, exportFileNameAdded), 'wb') as file:
+                file.write('\n'.join(addedTriples).encode('utf-8'))
 
-                queryNumbers = _get_query_numbers(sink.predicate.n3())
-                if timestamp is None:
-                    timestampUnknown.append(index)
+            exportFileNameDeleted = 'data-deleted_{0}-{1}.nt.gz'.format(i, i+1)
+            with gzip.open('{0}{1}'.format(self._exportFolder, exportFileNameDeleted), 'wb') as file:
+                file.write('\n'.join(deletedTriples).encode('utf-8'))
 
-                triple = [str(totalTriples), str(i+1), 'deleted', str(index), timestamp, '-'.join(queryNumbers), line]
-                print("triple ", triple)
-
-                data.append(triple)
-                index += 1
-                totalTriples += 1
-
-        if timestamp is None:
-            timestamp = previousTimestamp
-
-        for k in timestampUnknown:
-            data[k][4] = timestamp
-
-        timestampDateTime = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S+00:00")
-        day = timestampDateTime.strftime("%d-%m-%Y")
-
-        if day not in days:
-            days[day] = index
-        else:
-            days[day] += index
-
-        with open("{0}{1}.txt".format(exportFolderName, day), "a+") as file:
-            file.write(''.join(','.join(info) for info in data))
-
-    end = timer()
-
-    print("runtime ", timedelta(seconds=end - start))
-    print("days ", days)
-    print("number of days ", len(days))
-    print("total number of triples ", totalTriples)
-
-
-if __name__ == "__main__":
-
-    nOfInstances = 21045
-    triples_by_date(config.raw_data_dir, nOfInstances, config.processed_data_dir)
+            triplesA = triplesB

@@ -374,7 +374,8 @@ class RevisionStore(object):
         WHERE {{ {{ {0} }}
         OPTIONAL {{ ?update :startedAt ?startDate . }} 
         OPTIONAL {{ ?update :endedAt ?endDate . }} 
-        {1}{2}}""".format(subQueryBefore, content, where)
+        {1}{2}
+        }}""".format(subQueryBefore, content, where)
 
         results = self._revisionStore.execute_select_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'json')
 
@@ -397,10 +398,11 @@ class RevisionStore(object):
 
     def can_quad_be_added_or_deleted(self, quad, headRevision: URIRef, startDate: Literal = None,
                                      endDate: Literal = None, deletion=False):
-        if not startDate:
-            startDate = datetime.strptime(startDate.value, "%Y-%m-%dT%H:%M:%S+00:00")
-        if not endDate:
-            endDate = datetime.strptime(endDate.value, "%Y-%m-%dT%H:%M:%S+00:00")
+        if startDate:
+            startDate = datetime.strptime(str(startDate), "%Y-%m-%dT%H:%M:%S+00:00")
+
+        if endDate:
+            endDate = datetime.strptime(str(endDate), "%Y-%m-%dT%H:%M:%S+00:00")
 
         if self.config.related_update_content():
             content = "\n?update :precedingUpdate* ?allUpdate ."
@@ -412,12 +414,12 @@ class RevisionStore(object):
         # Obtain subquery before a transaction revisions
         subQuery = self._valid_revisions_in_graph(revisionA=headRevision, queryType='SelectQuery',
                                                   revisionType='update', prefix=False)
-
-        SPARQLQuery = """SELECT ?p ?p1 ?p2 ?startDate ?endDate
+        SPARQLQuery = """SELECT ?p ?startDate ?endDate
         WHERE {{ {{ {0} }}
-        OPTIONAL {{ ?update :startedAt ?startDate . }} 
-        OPTIONAL {{ ?update :endedAt ?endDate . }} 
-        {1}{2}}""".format(subQuery, content, where)
+        OPTIONAL {{ ?update :startedAt ?startDate . }}
+        OPTIONAL {{ ?update :endedAt ?endDate . }}
+        {1}{2}
+        }}""".format(subQuery, content, where)
 
         results = self._revisionStore.execute_select_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'json')
         numberInsertions = 0
@@ -479,7 +481,6 @@ class RevisionStore(object):
             return True
         return False
 
-
     # def can_quad_be_added_or_deleted(self, quad, headRevision: URIRef, startDate: Literal = None,
     #                                  endDate: Literal = None, deletion=False):
     #     """
@@ -501,11 +502,11 @@ class RevisionStore(object):
     #                                                  revisionType='update', prefix=False)
     #
     #     if deletion:
-    #         stringA = quad.to_query_via_delete_update(construct=False)
-    #         stringB = quad.to_query_via_insert_update(construct=False)
+    #         stringA = quad.query_via_delete_update(construct=False)
+    #         stringB = quad.query_via_insert_update(construct=False)
     #     else:
-    #         stringA = quad.to_query_via_insert_update(construct=False)
-    #         stringB = quad.to_query_via_delete_update(construct=False)
+    #         stringA = quad.query_via_insert_update(construct=False)
+    #         stringB = quad.query_via_delete_update(construct=False)
     #
     #     if startDate is None and endDate is None:
     #         timeString = """{{ {0} }}
@@ -561,12 +562,12 @@ class RevisionStore(object):
     #
     #     if self.config.related_update_content():
     #         content = "\n?update :precedingUpdate* ?allUpdate ."
-    #         construct = quad.to_query_via_unknown_update(construct=True, subjectName='?allUpdate')
-    #         where = quad.to_query_via_unknown_update(construct=False, subjectName='?allUpdate')
+    #         construct = quad.query_via_unknown_update(construct=True, subjectName='?allUpdate')
+    #         where = quad.query_via_unknown_update(construct=False, subjectName='?allUpdate')
     #     else:
     #         content = ""
-    #         construct = quad.to_query_via_unknown_update(construct=True)
-    #         where = quad.to_query_via_unknown_update(construct=False)
+    #         construct = quad.query_via_unknown_update(construct=True)
+    #         where = quad.query_via_unknown_update(construct=False)
     #
     #     SPARQLQuery = """CONSTRUCT {{ {0} }}
     #     WHERE {{
@@ -676,7 +677,7 @@ class RevisionStore(object):
             }}
             {2}{3}
         }}""".format(construct, updateWhere, where, content)
-        print("SPARQLQuery ", SPARQLQuery)
+        # print("SPARQLQuery ", SPARQLQuery)
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
         updateParser.parse_aggregate(stringOfUpdates, forward)

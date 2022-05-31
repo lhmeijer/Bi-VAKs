@@ -77,23 +77,23 @@ class UpdateGenerator(object):
                 return True
         return False
 
-    @staticmethod
-    def _does_overlap(triple, doesOverlap, otherTriples=None):
-        if otherTriples:
-            overlap = False
-            for i in range(len(otherTriples)):
+    # @staticmethod
+    # def _does_overlap(triple, doesOverlap, otherTriples=None):
+    #     if otherTriples:
+    #         overlap = False
+    #         for i in range(len(otherTriples)):
+    #
+    #             if triple == otherTriples[i]:
+    #                 doesOverlap[i] = True
+    #                 overlap = True
+    #         if overlap:
+    #             doesOverlap.append(True)
+    #         else:
+    #             doesOverlap.append(False)
+    #     else:
+    #         doesOverlap.append(False)
 
-                if triple == otherTriples[i]:
-                    doesOverlap[i] = True
-                    overlap = True
-            if overlap:
-                doesOverlap.append(True)
-            else:
-                doesOverlap.append(False)
-        else:
-            doesOverlap.append(False)
-
-    def _read_modifications_file(self, fileName, containsQueries, doesOverlap, otherTriples=None):
+    def _read_modifications_file(self, fileName, containsQueries):
         """
 
         :param fileName:
@@ -103,17 +103,19 @@ class UpdateGenerator(object):
         counter = 0
         sink = TripleSink()
         NTriplesParser = W3CNTriplesParser(sink=sink)
-        triples = []
-
+        # triples = []
         with gzip.open('{0}{1}'.format(self._inputFolder, fileName), 'rt') as file:
             for line in file:
-                NTriplesParser.parsestring(line)
+                NTriplesParser.parsestring(line.strip())
+                # print('s ', sink.subject)
+                # print('p ', sink.predicate)
+                # print('o ', sink.object)
                 triple = Triple((sink.subject, sink.predicate, sink.object))
-                self._does_overlap(triple, doesOverlap, otherTriples)
-                triples.append(triple)
+                # self._does_overlap(triple, doesOverlap, otherTriples)
+                # triples.append(triple)
                 containsQueries.append(self._contains_query(triple))
                 counter += 1
-        return triples, counter
+        return counter
 
     def generate_updates(self):
         """
@@ -135,9 +137,9 @@ class UpdateGenerator(object):
             deletedFileName = 'data-deleted_{0}-{1}.nt.gz'.format(str(i), str(i+1))
 
             containsQueries = []
-            doesOverlap = []
-            insertions, nOfInsertions = self._read_modifications_file(addedFileName, containsQueries, doesOverlap)
-            _, nOfDeletions = self._read_modifications_file(deletedFileName, containsQueries, doesOverlap, insertions)
+            # doesOverlap = []
+            nOfInsertions = self._read_modifications_file(addedFileName, containsQueries)
+            nOfDeletions = self._read_modifications_file(deletedFileName, containsQueries)
             totalNOfTriples = nOfInsertions + nOfDeletions
 
             indices = np.arange(totalNOfTriples)
@@ -157,11 +159,11 @@ class UpdateGenerator(object):
                 for j in range(until):
                     tripleIndex = indices[index]
                     if tripleIndex < nOfInsertions:
-                        if not doesOverlap[tripleIndex]:
-                            inserted.append(str(tripleIndex))
+                        # if not doesOverlap[tripleIndex]:
+                        inserted.append(str(tripleIndex))
                     else:
-                        if not doesOverlap[tripleIndex]:
-                            deleted.append(str(tripleIndex - nOfInsertions))
+                        # if not doesOverlap[tripleIndex]:
+                        deleted.append(str(tripleIndex - nOfInsertions))
                     index += 1
                     if containsQueries[tripleIndex]:
                         doesContainQuery = True
@@ -174,7 +176,7 @@ class UpdateGenerator(object):
 
                     startDate, endDate = self._generate_start_and_end_date(doesContainQuery)
                     update = [str(nOfUpdates), '{0}-{1}'.format(str(i), str(i + 1)), '-'.join(inserted),
-                              '-'.join(deleted), startDate, endDate, str(doesContainQuery)]
+                              '-'.join(deleted), startDate, endDate]
                     updates.append(update)
                     nOfUpdates += 1
 
@@ -192,61 +194,3 @@ class UpdateGenerator(object):
 
         with open(self._config.statistics_updates_file_name, 'w') as file:
             json.dump(statistics, file)
-
-
-
-    # def generate_updates(self):
-        #
-        # np.random.seed(self._config.SEED)
-        #
-        # updates = []
-        # nOfTriples = 0
-        # nOfUpdates = 0
-        # index = 0
-        #
-        # for i in range(self._config.NUMBER_OF_VERSIONS):
-        #     fileName = self._get_name_of_data_file(i + index)
-        #
-        #     while not os.path.isfile('{0}{1}'.format(self._inputFolder, fileName)):
-        #         index += 1
-        #         fileName = self._get_name_of_data_file(i + index)
-        #
-        #     update = [str(nOfUpdates), fileName, str(nOfTriples + 1)]
-        #     nOfInstancesInUpdate = self._config.NUMBER_OF_INSTANCES
-        #     instance = None
-        #     queryTime = None
-        #
-        #     with open('{0}{1}'.format(self._inputFolder, fileName), "r") as file:
-        #
-        #         for line in file:
-        #             nOfTriples += 1
-        #             inputData = line.split(',')
-        #
-        #             instanceFromFile = int(inputData[1])
-        #             if len(inputData[5]) > 0:
-        #                 queryTime = datetime.strptime(self._config.QUERY_TIME, "%Y-%m-%dT%H:%M:%S+00:00")
-        #
-        #             if instance != instanceFromFile:
-        #
-        #                 if nOfInstancesInUpdate == 0:
-        #                     startDate, endDate = self._generate_start_and_end_date(queryTime)
-        #                     update.extend([str(nOfTriples), startDate, endDate])
-        #                     print("update ", update)
-        #                     updates.append(update)
-        #
-        #                     update = [str(nOfUpdates), fileName, str(nOfTriples + 1)]
-        #                     nOfUpdates += 1
-        #                     nOfInstancesInUpdate = self._config.NUMBER_OF_INSTANCES
-        #                     queryTime = None
-        #
-        #                 nOfInstancesInUpdate -= 1
-        #                 instance = instanceFromFile
-        #
-        #         startDate, endDate = self._generate_start_and_end_date(queryTime)
-        #         update.extend([str(nOfTriples), startDate, endDate])
-        #         print("update ", update)
-        #         nOfUpdates += 1
-        #         updates.append(update)
-        #
-        # with open(self._exportFileName, "w") as file:
-        #     file.write('\n'.join(','.join(update) for update in updates))

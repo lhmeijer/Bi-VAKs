@@ -2,12 +2,9 @@ from .ValidRevision import ValidRevision
 from rdflib.term import URIRef, Literal
 from src.main.bitr4qs.term.Triple import Triple
 from src.main.bitr4qs.namespace import BITR4QS
-from src.main.bitr4qs.store.QuadStoreSingleton import HttpDataStoreSingleton
-from src.main.bitr4qs.revision.Update import Update
-from src.main.bitr4qs.term.Modification import Modification
 from .TransactionRevision import TransactionRevision
-from src.main.bitr4qs.tools.parser.UpdateNQuadParser import UpdateNQuadParser
 from src.main.bitr4qs.tools.parser.UpdateParser import UpdateParser
+from src.main.bitr4qs.store.HttpQuadStore import HttpQuadStore
 
 
 class SnapshotRevision(TransactionRevision):
@@ -30,14 +27,12 @@ class Snapshot(ValidRevision):
                  effectiveDate: Literal = None,
                  transactionRevision: URIRef = None,
                  revisionNumber=None,
-                 branchIndex=None,
-                 isEmpty=True):
+                 branchIndex=None):
         super().__init__(identifier, precedingRevision, hexadecimalOfHash, revisionNumber, branchIndex)
         self.name_dataset = nameDataset
         self.url_dataset = urlDataset
         self.effective_date = effectiveDate
         self.transaction_revision = transactionRevision
-        self._isEmpty = isEmpty
 
     @property
     def name_dataset(self):
@@ -82,24 +77,28 @@ class Snapshot(ValidRevision):
     def add_to_revision_store(self, revisionStore):
         super().add_to_revision_store(revisionStore)
 
+        # datastore = HttpQuadStore(self._nameDataset.value, self._urlDataset.value)
+        # datastore.delete_fuseki_dataset()
         # Get all updates for the snapshot
-        if self._isEmpty:
-            updateParser = UpdateParser()
-            datastore = HttpDataStoreSingleton.get_data_store(self._nameDataset.value, self._urlDataset.value)
-            print("datastore ", datastore)
-            revisionStore.get_updates_in_revision_graph(revisionA=self._transactionRevision, date=self._effectiveDate,
-                                                        updateParser=updateParser)
-            modifications_in_n_quad = updateParser.modifications_to_n_quads()
-            datastore.n_quads_to_store(modifications_in_n_quad)
+        datastore = HttpQuadStore.create_fuseki_dataset(nameDataset=self._nameDataset.value,
+                                                        urlDataset=self._urlDataset.value)
+        updateParser = UpdateParser()
+        revisionStore.get_updates_in_revision_graph(revisionA=self._transactionRevision, date=self._effectiveDate,
+                                                    updateParser=updateParser)
+        modifications_in_n_quad = updateParser.modifications_to_n_quads()
+        datastore.n_quads_to_store(modifications_in_n_quad)
+
+    def delete(self):
+        datastore = HttpQuadStore(self._nameDataset.value, self._urlDataset.value)
+        datastore.delete_fuseki_dataset()
 
     def query(self, SPARQLQuery, queryType, returnFormat):
         # create a quad store from name dataset and url
-        datastore = HttpDataStoreSingleton.get_data_store(self._nameDataset.value, self._urlDataset.value)
+        datastore = HttpQuadStore(self._nameDataset.value, self._urlDataset.value)
         # query the quad store, which returns an RDF Graph/Dataset
         if queryType == 'ConstructQuery':
             response = datastore.execute_construct_query(SPARQLQuery, returnFormat)
-
-        return response
+            return response
 
     def modify(self, revisionStore, otherNameDataset=None, otherUrlDataset=None, otherEffectiveDate=None,
                otherTransactionRevision=None, revisionNumber=None, branchIndex=None):

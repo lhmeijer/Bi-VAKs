@@ -35,7 +35,6 @@ class SnapshotRequest(Request):
 
         # Obtain the transaction time based on a given transaction revision
         revisionID = self._request.values.get('revision', None) or None
-        print("revisionID ", revisionID)
         if revisionID is not None:
             if revisionID == 'HEAD':
                 self._transactionRevision = 'HEAD'

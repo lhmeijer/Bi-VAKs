@@ -31,6 +31,16 @@ class StoreCreator(object):
 
         np.random.seed(self._config.SEED)
 
+    def reset_store_creator(self):
+        self._application.post('/empty')
+        numberOfQuadsResponse = self._application.get('/quads')
+        numberOfQuads = numberOfQuadsResponse.data.decode("utf-8")
+        print("numberOfQuads ", numberOfQuads)
+        if numberOfQuads > 0:
+            raise Exception("Revision store should be empty.")
+
+
+
     def set_up_revision_store(self):
 
         print("Obtain the updates.")
@@ -47,9 +57,8 @@ class StoreCreator(object):
             description='Initialise BiTR4Qs.', startDate='unknown', endDate='unknown'))
         print("Revision Store is initialised!")
 
-        while self._updateIndex != len(updateData):
-
-            print("Create a Tag")
+        while self._versionNumber < self._config.NUMBER_OF_VERSIONS:
+            print("Create a Tag with version number ", self._versionNumber)
             start = timer()
             # Create a Tag
             tag = self._application.post('/tag', data=dict(
@@ -58,28 +67,27 @@ class StoreCreator(object):
                 revision='HEAD', branch=self._branch))
             end = timer()
             self._runtimeTags.append(timedelta(seconds=end - start).total_seconds())
-            print(tag.data.decode("utf-8"))
 
             # Create Updates
             self._send_updates(updateData)
 
-            if self._config.NUMBER_UPDATES_TO_SNAPSHOT \
-                    and self._updateIndex % self._config.NUMBER_UPDATES_TO_SNAPSHOT == 0:
+            if self._config.VERSIONS_TO_SNAPSHOT and self._versionNumber % self._config.VERSIONS_TO_SNAPSHOT == 0:
                 start = timer()
                 # Create a Snapshot
                 snapshotID = self._application.post('/snapshot', data=dict(
-                    nameDataset='test-snapshot', urlDataset='http://localhost:3030', author='Vincent Koster',
-                    date=self._config.SNAPSHOT_EFFECTIVE_DATE, description='Add a new snapshot.', revision='HEAD',
-                    branch=self._branch))
+                    nameDataset='snapshot-{0}'.format(self._versionNumber), urlDataset='http://localhost:3030',
+                    author='Vincent Koster', date=self._config.SNAPSHOT_EFFECTIVE_DATE,
+                    description='Add a new snapshot.', revision='HEAD', branch=self._branch))
                 end = timer()
                 self._runtimeSnapshots.append(timedelta(seconds=end - start).total_seconds())
 
-            if self._config.NUMBER_UPDATES_TO_BRANCH and self._updateIndex % self._config.NUMBER_UPDATES_TO_BRANCH == 0:
+            if self._config.VERSIONS_TO_BRANCH and self._versionNumber % self._config.VERSIONS_TO_BRANCH == 0:
                 start = timer()
                 # Create a Branch
                 self._branch = 'branch {0}'.format(str(self._versionNumber))
                 branchID = self._application.post('/branch', data=dict(
-                    name=self._branch, author='Yvette Post', description='Add a new branch.'))
+                    name=self._branch, author='Yvette Post',
+                    description='Add a new branch {0}.'.format(self._versionNumber)))
                 end = timer()
                 self._runtimeBranches.append(timedelta(seconds=end - start).total_seconds())
 
@@ -93,7 +101,6 @@ class StoreCreator(object):
             revision='HEAD', branch=self._branch))
         end = timer()
         self._runtimeTags.append(timedelta(seconds=end - start).total_seconds())
-        print(tag.data.decode("utf-8"))
 
         numberOfQuadsResponse = self._application.get('/quads')
         numberOfQuads = numberOfQuadsResponse.data.decode("utf-8")
@@ -107,30 +114,28 @@ class StoreCreator(object):
         print("size in MB", size/1000000)
 
         ingestionResults = {'NUMBER_quads': numberOfQuads, 'fileSizeInMB': size/1000000,
-                            'IngestionTimeTags': self._runtimeTags,
+                            'MEAN_IngestionTimeUpdates': np.mean(np.array(self._runtimeUpdates)),
+                            'STANDARD_DEVIATION_IngestionTimeUpdates': np.std(np.array(self._runtimeUpdates)),
                             'MEAN_IngestionTimeTags': np.mean(np.array(self._runtimeTags)),
                             'STANDARD_DEVIATION_IngestionTimeTags': np.std(np.array(self._runtimeTags)),
                             'IngestionTimeUpdates': self._runtimeUpdates,
-                            'MEAN_IngestionTimeUpdates': np.mean(np.array(self._runtimeUpdates)),
-                            'STANDARD_DEVIATION_IngestionTimeUpdates': np.std(np.array(self._runtimeUpdates))
+                            'IngestionTimeTags': self._runtimeTags
                             }
 
-        # ingestionResults = {'IngestionTimeUpdates': self._runtimeUpdates,
-        #                     'MEAN_IngestionTimeUpdates': np.mean(np.array(self._runtimeUpdates)),
-        #                     'STANDARD_DEVIATION_IngestionTimeUpdates': np.std(np.array(self._runtimeUpdates)),
-        #                     'IngestionTimeTags': self._runtimeTags,
-        #                     'MEAN_IngestionTimeTags': np.mean(np.array(self._runtimeTags)),
-        #                     'STANDARD_DEVIATION_IngestionTimeTags': np.std(np.array(self._runtimeTags)),
-        #                     'IngestionTimeModifiedUpdates': self._runtimeModifiedUpdates,
-        #                     'MEAN_IngestionTimeModifiedUpdates': np.mean(np.array(self._runtimeModifiedUpdates)),
-        #                     'STANDARD_DEVIATION_IngestionTimeModifiedUpdates': np.std(np.array(self._runtimeModifiedUpdates)),
-        #                     'IngestionTimeSnapshots': self._runtimeSnapshots,
-        #                     'MEAN_IngestionTimeSnapshots': np.mean(np.array(self._runtimeSnapshots)),
-        #                     'STANDARD_DEVIATION_IngestionTimeSnapshots': np.std(np.array(self._runtimeSnapshots)),
-        #                     'IngestionTimeBranches': self._runtimeBranches,
-        #                     'MEAN_IngestionTimeBranches': np.mean(np.array(self._runtimeBranches)),
-        #                     'STANDARD_DEVIATION_IngestionTimeBranches': np.std(np.array(self._runtimeBranches)),
-        #                     }
+        if self._config.VERSIONS_TO_SNAPSHOT:
+            ingestionResults['IngestionTimeSnapshots'] = self._runtimeSnapshots
+            ingestionResults['MEAN_IngestionTimeSnapshots'] = np.mean(np.array(self._runtimeSnapshots))
+            ingestionResults['STANDARD_DEVIATION_IngestionTimeSnapshots'] = np.std(np.array(self._runtimeSnapshots))
+
+        if self._config.VERSIONS_TO_BRANCH:
+            ingestionResults['IngestionTimeBranches'] = self._runtimeBranches
+            ingestionResults['MEAN_IngestionTimeBranches'] = np.mean(np.array(self._runtimeBranches))
+            ingestionResults['STANDARD_DEVIATION_IngestionTimeBranches'] = np.std(np.array(self._runtimeBranches))
+
+        if self._config.UPDATES_TO_MODIFIED_UPDATE:
+            ingestionResults['IngestionTimeModifiedUpdates'] = self._runtimeModifiedUpdates
+            ingestionResults['MEAN_IngestionTimeModifiedUpdates'] = np.mean(np.array(self._runtimeModifiedUpdates))
+            ingestionResults['STANDARD_DEVIATION_IngestionTimeModifiedUpdates'] = np.std(np.array(self._runtimeModifiedUpdates))
 
         with open(self._config.ingestion_results_file_name, 'w') as file:
             json.dump(ingestionResults, file)
@@ -168,29 +173,24 @@ class StoreCreator(object):
 
             SPARQLUpdateQuery = self._update_sparql_from_modifications(updateInsertions + updateDeletions)
 
-            shouldBeTested = ''
-            if updateData[self._updateIndex][6] == 'True':
-                shouldBeTested = 'yes'
-
             start = timer()
             updateResponse = self._application.post('/update', data=dict(
                 update=SPARQLUpdateQuery, author='Tom de Vries', startDate=updateData[self._updateIndex][4],
                 branch=self._branch, description='Add update {0}.'.format(str(self._updateIndex+1)),
-                endDate=updateData[self._updateIndex][5], test=shouldBeTested))
+                endDate=updateData[self._updateIndex][5], test=''))
             end = timer()
             self._runtimeUpdates.append(timedelta(seconds=end - start).total_seconds())
-
             update = json.loads(updateResponse.data.decode("utf-8"))
             self._updateIDs.append(update["identifier"])
 
-            if self._config.NUMBER_UPDATES_TO_MODIFIED_UPDATE \
-                    and self._updateIndex % self._config.NUMBER_UPDATES_TO_MODIFIED_UPDATE == 0:
+            if self._config.UPDATES_TO_MODIFIED_UPDATE \
+                    and self._updateIndex % self._config.UPDATES_TO_MODIFIED_UPDATE == 0:
 
                 if self._config.FROM_LAST_X_UPDATES:
                     randomInt = np.random.randint(self._updateIndex - self._config.FROM_LAST_X_UPDATES,
                                                   self._updateIndex)
                 else:
-                    randomInt = np.random.randint(1, self._updateIndex)
+                    randomInt = np.random.randint(0, self._updateIndex)
 
                 startDate = ''
                 if updateData[randomInt][4] != 'unknown':
@@ -211,7 +211,8 @@ class StoreCreator(object):
                 self._runtimeModifiedUpdates.append(timedelta(seconds=end - start).total_seconds())
 
             self._updateIndex += 1
-            print("We have created update ", self._updateIndex)
+            if self._updateIndex % 100 == 0:
+                print("We have created update ", self._updateIndex)
 
     @staticmethod
     def _update_sparql_from_modifications(modifications):
@@ -221,10 +222,10 @@ class StoreCreator(object):
 
         for modification in modifications:
             if modification.deletion:
-                deleteString += modification.value.to_sparql() + '\n'
+                deleteString += modification.value.sparql() + '\n'
                 delete = True
             else:
-                insertString += modification.value.to_sparql() + '\n'
+                insertString += modification.value.sparql() + '\n'
                 insert = True
 
         if delete and insert:

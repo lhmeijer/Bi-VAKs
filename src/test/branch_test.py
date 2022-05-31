@@ -20,8 +20,7 @@ class BranchTest(unittest.TestCase):
         args = get_default_configuration()
         args['referenceStrategy'] = {'explicit': True, 'implicit': False}
         app = create_app(args).test_client()
-        response = app.post('/branch', data=dict(name='ChocolateRecipes', author='Veerle Groot',
-                                                 branch='SweetRecipes',
+        response = app.post('/branch', data=dict(name='ChocolateRecipes', author='Veerle Groot', branch='SweetRecipes',
                                                  description='Add a new branch called ChocolateRecipes.'))
         self.assertEqual(response.status_code, 200)
         obj = json.loads(response.data.decode("utf-8"))

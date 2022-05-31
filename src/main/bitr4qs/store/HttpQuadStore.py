@@ -22,10 +22,9 @@ _response_mime_types = {
 
 class HttpQuadStore(object):
 
-    def __init__(self, queryEndpoint, updateEndpoint, dataEndpoint):
-        self._queryEndpoint = queryEndpoint
-        self._updateEndpoint = updateEndpoint
-        self._dataEndpoint = dataEndpoint
+    def __init__(self, nameDataset, urlDataset):
+        self._nameDataset = nameDataset
+        self._urlDataset = urlDataset
 
     def _execute_query(self, queryString, returnFormat):
         request = self._create_query_request(queryString, returnFormat)
@@ -37,6 +36,8 @@ class HttpQuadStore(object):
         return response
 
     def _create_query_request(self, query, returnFormat):
+
+        queryEndpoint = "{0}/{1}/query".format(self._urlDataset, self._nameDataset)
 
         headers = {"Accept": returnFormat}
         params = {}
@@ -52,16 +53,16 @@ class HttpQuadStore(object):
             params['query'] = query
             args["params"].update(params)
             qsa = "?" + urlencode(args["params"])
-            request = Request(self._queryEndpoint + qsa, headers=args["headers"])
+            request = Request(queryEndpoint + qsa, headers=args["headers"], method='GET')
         elif method == 'POST':
             args["headers"].update({"Content-Type": "application/sparql-query"})
             qsa = "?" + urlencode(params)
             # print(qsa)
-            request = Request(self._queryEndpoint + qsa, data=query.encode(), headers=args["headers"])
+            request = Request(queryEndpoint + qsa, data=query.encode(), headers=args["headers"], method='POST')
         elif method == 'POST_FORM':
             params['query'] = query
             args["params"].update(params)
-            request = Request(self._queryEndpoint, data=urlencode(args["params"]).encode(), headers=args["headers"])
+            request = Request(queryEndpoint, data=urlencode(args["params"]).encode(), headers=args["headers"])
         else:
             raise SPARQLConnectorException("Unknown method %s" % method)
 
@@ -77,6 +78,8 @@ class HttpQuadStore(object):
         return response
 
     def _create_update_request(self, query, returnFormat):
+
+        updateEndpoint = "{0}/{1}/update".format(self._urlDataset, self._nameDataset)
         params = {}
         headers = {
             "Accept": returnFormat,
@@ -90,8 +93,7 @@ class HttpQuadStore(object):
         args["headers"].update(headers)
 
         qsa = "?" + urlencode(args["params"])
-        # print(self._updateEndpoint + qsa)
-        return Request(self._updateEndpoint + qsa, data=query.encode('utf-8'), headers=args["headers"])
+        return Request(updateEndpoint + qsa, data=query.encode('utf-8'), headers=args["headers"], method='POST')
 
     def _execute_select_query_json(self, selectQueryString):
         # print("selectQueryString ", selectQueryString)
@@ -128,6 +130,7 @@ class HttpQuadStore(object):
         return result
 
     def n_quads_to_store(self, nquads):
+        dataEndpoint = "{0}/{1}/data".format(self._urlDataset, self._nameDataset)
         headers = {'Content-Type': 'application/n-quads'}
         nquads = nquads.encode(encoding='utf-8', errors='strict')
         # print("nquads ", nquads)
@@ -139,7 +142,7 @@ class HttpQuadStore(object):
         #     if index in list(range(100)):
         #         print("{0} {1}".format(index, nquad))
         #     index += 1
-        request = Request(self._dataEndpoint, data=nquads, headers=headers)
+        request = Request(dataEndpoint, data=nquads, headers=headers, method='POST')
         try:
             response = urlopen(request)
         except HTTPError as e:
@@ -148,8 +151,9 @@ class HttpQuadStore(object):
         return response
 
     def data_of_store(self, returnFormat):
+        dataEndpoint = "{0}/{1}/data".format(self._urlDataset, self._nameDataset)
         headers = {'Content-Type': returnFormat}
-        request = Request(self._dataEndpoint, headers=headers)
+        request = Request(dataEndpoint, headers=headers, method='GET')
         try:
             response = urlopen(request)
             result = response.read().decode("utf-8")
@@ -157,4 +161,30 @@ class HttpQuadStore(object):
             print(e)
             raise HTTPError
         return result
+
+    @classmethod
+    def create_fuseki_dataset(cls, nameDataset, urlDataset):
+        headers = {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}
+        data = 'dbName={0}&dbType=mem'.format(nameDataset)
+        endpoint = '{0}/$/datasets'.format(urlDataset)
+        request = Request(endpoint, data=data.encode('utf-8'), headers=headers, method='POST')
+        try:
+            response = urlopen(request)
+            print("response ", response)
+        except HTTPError as e:
+            print(e)
+            raise HTTPError
+        return cls(nameDataset=nameDataset, urlDataset=urlDataset)
+
+    def delete_fuseki_dataset(self):
+        # headers = {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}
+        endpoint = '{0}/$/datasets/{1}'.format(self._urlDataset, self._nameDataset)
+        request = Request(endpoint, method='DELETE')
+        try:
+            response = urlopen(request)
+            print("response ", response.read().decode("utf-8"))
+        except HTTPError as e:
+            print(e)
+            raise HTTPError
+
 

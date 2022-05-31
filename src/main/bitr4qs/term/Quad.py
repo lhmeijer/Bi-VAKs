@@ -38,7 +38,7 @@ class Quad(Triple):
         equals = super().__eq__(other)
         if not equals:
             return False
-        if self._graph.n3() != other.graph.n3():
+        if self.represent_term(self._graph) != self.represent_term(other.graph):
             return False
         return True
 

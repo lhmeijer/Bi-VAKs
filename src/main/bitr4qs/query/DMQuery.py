@@ -104,7 +104,7 @@ class DMQuery(Query):
         :return:
         """
         # Check the variables in the SPARQL query, and returns these and separate them based on insertions and deletions
-        variables = self._quadPattern.get_variables()
+        variables = self._quadPattern.variables()
         print("variables ", variables)
         results = {'head': {'vars': [var for var, _ in variables]}, 'results': {'insertions': [], 'deletions': []}}
         print("results ", results)

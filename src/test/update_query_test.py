@@ -32,8 +32,8 @@ class UpdateQueryTest(unittest.TestCase):
         }
         """
         response = app.post('/update', data=dict(update=update, author='Tom de Vries', test='shouldBeTested',
-                                                 startDate="2021-06-20T00:00:00+02:00",
-                                                 endDate="2021-08-25T00:00:00+02:00",
+                                                 startDate="2021-06-20T00:00:00+00:00",
+                                                 endDate="2021-08-25T00:00:00+00:00",
                                                  description='Add recipe of ricotta doughnuts.'))
         self.assertEqual(response.status_code, 200)
 
@@ -56,9 +56,9 @@ class UpdateQueryTest(unittest.TestCase):
           :RecipeChocolateFudgeBrownies rdfs:label "Chocolate fudge brownies"@en-gb .
         }
         """
-        response = app.post('/update', data=dict(update=update, author='Peter Schouten',
-                                                 startDate="2021-06-24T00:00:00+02:00",
-                                                 endDate="2021-07-06T00:00:00+02:00",
+        response = app.post('/update', data=dict(update=update, author='Peter Schouten', test='yes',
+                                                 startDate="2021-06-24T00:00:00+00:00",
+                                                 endDate="2021-07-06T00:00:00+00:00",
                                                  description='Delete recipe of chocolate fudge brownies.'))
         self.assertEqual(response.status_code, 200)
 
@@ -115,9 +115,9 @@ class UpdateQueryTest(unittest.TestCase):
         }
 
         """
-        response = app.post('/update', data=dict(update=update, author='Marjolein de Jong',
-                                                 startDate="2021-07-01T00:00:00+02:00",
-                                                 endDate="2021-08-30T00:00:00+02:00",
+        response = app.post('/update', data=dict(update=update, author='Marjolein de Jong', test='yes',
+                                                 startDate="2021-07-01T00:00:00+00:00",
+                                                 endDate="2021-08-30T00:00:00+00:00",
                                                  description='Delete recipe of courgette gratin, and add recipes of '
                                                              'keema lamb curry and of broccoli with yoghurt.'))
         self.assertEqual(response.status_code, 200)
@@ -143,9 +143,9 @@ class UpdateQueryTest(unittest.TestCase):
           :RecipeMexicanCoffeeBuns rdfs:label "Mexican coffee buns"@en-gb .
         }
         """
-        response = app.post('/update', data=dict(update=update, author='Lisa Meijer',
-                                                 startDate="2021-06-20T00:00:00+02:00",
-                                                 endDate="2021-08-25T00:00:00+02:00",
+        response = app.post('/update', data=dict(update=update, author='Lisa Meijer', test='yes',
+                                                 startDate="2021-06-20T00:00:00+00:00",
+                                                 endDate="2021-08-25T00:00:00+00:00",
                                                  description='Add recipe of mexican coffee buns.'))
         self.assertEqual(response.status_code, 200)
 
@@ -170,9 +170,9 @@ class UpdateQueryTest(unittest.TestCase):
           :RecipeMexicanCoffeeBuns rdfs:label "Mexican coffee buns"@en-gb .
         }
         """
-        response = app.post('/update', data=dict(update=update, author='Ivo Mulder',
-                                                 startDate="2021-08-09T00:00:00+02:00",
-                                                 endDate="2021-08-25T00:00:00+02:00",
+        response = app.post('/update', data=dict(update=update, author='Ivo Mulder', test='yes',
+                                                 startDate="2021-08-09T00:00:00+00:00",
+                                                 endDate="2021-08-25T00:00:00+00:00",
                                                  description='Delete recipe of mexican coffee buns.'))
         self.assertEqual(response.status_code, 200)
 
@@ -199,21 +199,21 @@ class UpdateQueryTest(unittest.TestCase):
         }
         """
         response = app.post('/update', data=dict(update=updateInsert, author='Reinier van Beek',
-                                                 startDate="2021-06-16T00:00:00+02:00",
-                                                 endDate="2021-12-30T00:00:00+02:00", description='Add dutch cuisine.'))
+                                                 startDate="2021-06-16T00:00:00+00:00",
+                                                 endDate="2021-12-30T00:00:00+00:00", description='Add dutch cuisine.'))
 
         response = app.post('/update', data=dict(update=updateDelete, author='Reinier van Beek',
-                                                 startDate="2021-08-10T00:00:00+02:00",
-                                                 endDate="2021-11-17T00:00:00+02:00",
+                                                 startDate="2021-08-10T00:00:00+00:00",
+                                                 endDate="2021-11-17T00:00:00+00:00",
                                                  description='Delete dutch cuisine.'))
 
         response = app.post('/update', data=dict(update=updateInsert, author='Reinier van Beek',
-                                                 startDate="2021-09-09T00:00:00+02:00",
-                                                 endDate="2021-11-02T00:00:00+02:00", description='Add dutch cuisine.'))
+                                                 startDate="2021-09-09T00:00:00+00:00",
+                                                 endDate="2021-11-02T00:00:00+00:00", description='Add dutch cuisine.'))
 
         response = app.post('/update', data=dict(update=updateDelete, author='Reinier van Beek',
-                                                 startDate="2021-09-22T00:00:00+02:00",
-                                                 endDate="2021-10-16T00:00:00+02:00",
+                                                 startDate="2021-09-22T00:00:00+00:00",
+                                                 endDate="2021-10-16T00:00:00+00:00",
                                                  description='Delete dutch cuisine.'))
 
     def test_insert_and_delete_triples_to_branch_explicit(self):
@@ -235,8 +235,8 @@ class UpdateQueryTest(unittest.TestCase):
         }
         """
         response = app.post('/update', data=dict(update=update, author='Reinier van Beek', branch='SweetRecipes',
-                                                 startDate="2021-07-01T00:00:00+02:00",
-                                                 endDate="2021-07-30T00:00:00+02:00",
+                                                 startDate="2021-07-01T00:00:00+00:00",
+                                                 endDate="2021-07-30T00:00:00+00:00",
                                                  description='Add strawberry and delete cashew nut .'))
 
     def test_insert_multiple_triples_implicit(self):
@@ -266,8 +266,8 @@ class UpdateQueryTest(unittest.TestCase):
         }
         """
         response = app.post('/update', data=dict(update=update, author='Tom de Vries',
-                                                 startDate="2021-06-20T00:00:00+02:00",
-                                                 endDate="2021-08-25T00:00:00+02:00",
+                                                 startDate="2021-06-20T00:00:00+00:00",
+                                                 endDate="2021-08-25T00:00:00+00:00",
                                                  description='Add recipe of ricotta doughnuts.'))
         self.assertEqual(response.status_code, 200)
 
@@ -291,8 +291,8 @@ class UpdateQueryTest(unittest.TestCase):
         }
         """
         response = app.post('/update', data=dict(update=update, author='Peter Schouten',
-                                                 startDate="2021-06-24T00:00:00+02:00",
-                                                 endDate="2021-07-06T00:00:00+02:00",
+                                                 startDate="2021-06-24T00:00:00+00:00",
+                                                 endDate="2021-07-06T00:00:00+00:00",
                                                  description='Delete recipe of chocolate fudge brownies.'))
         self.assertEqual(response.status_code, 200)
 
@@ -324,6 +324,6 @@ class UpdateQueryTest(unittest.TestCase):
         }
         """
         response = app.post('/update', data=dict(update=update, author='Reinier van Beek', branch='SweetRecipes',
-                                                 startDate="2021-07-01T00:00:00+02:00",
-                                                 endDate="2021-07-30T00:00:00+02:00",
+                                                 startDate="2021-07-01T00:00:00+00:00",
+                                                 endDate="2021-07-30T00:00:00+00:00",
                                                  description='Add strawberry and delete cashew nut .'))

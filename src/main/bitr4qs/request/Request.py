@@ -56,7 +56,6 @@ class Request(object):
 
         # Obtain the branch based on the branch name
         branchName = self._request.values.get('branch', None) or None
-        # print("branchName ", branchName)
         if branchName:
             try:
                 branch = revisionStore.branch_from_name(Literal(branchName))
@@ -75,12 +74,9 @@ class Request(object):
         except Exception as e:
             raise e
 
-        # print("headRevision ", self._headRevision)
-
         # Obtain the creation date of the transaction revision
         time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02.00")
         self._creationDate = Literal(str(time), datatype=XSD.dateTimeStamp)
-        # print("creation date ", self._creationDate)
 
     def evaluate_request_to_modify(self, revisionStore):
         pass

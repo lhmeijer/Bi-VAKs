@@ -4,7 +4,7 @@ from rdflib.namespace import XSD
 from src.main.bitr4qs.revision.InitialRevision import InitialRevision
 from src.main.bitr4qs.revision.Snapshot import Snapshot
 import datetime
-from src.main.bitr4qs.store.QuadStoreSingleton import HttpDataStoreSingleton
+from src.main.bitr4qs.store.HttpQuadStore import HttpQuadStore
 from src.main.bitr4qs.tools.parser.UpdateNQuadParser import UpdateNQuadParser
 from src.main.bitr4qs.revision.Update import Update
 
@@ -83,10 +83,8 @@ class InitialRequest(Request):
     def valid_revisions_from_request(self):
         # Check whether the user already uses an existing dataset, and create a snapshot and update from it.
         if self._nameDataset and self._urlDataset:
-            SPARQLQuery = """CONSTRUCT { GRAPH ?g { ?s1 ?p1 ?o1 }\n ?s2 ?p2 ?o2 .}
-            WHERE { { GRAPH ?g {?s1 ?p1 ?o1 } } UNION { ?s2 ?p2 ?o2 } }"""
-            datastore = HttpDataStoreSingleton.get_data_store(self._nameDataset, self._urlDataset)
-            response = datastore.execute_construct_query(SPARQLQuery, 'nquads').split('\n')
+            datastore = HttpQuadStore(self._nameDataset, self._urlDataset)
+            response = datastore.data_of_store('application/n-quads').split('\n')
 
             # Parse the N-Quads to a list of triples or quads
             update = Update(identifier=None, startDate=self._startDate, endDate=self._endDate,
