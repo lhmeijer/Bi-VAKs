@@ -53,13 +53,13 @@ class TriplePattern(object):
     def sparql(self):
         return ' '.join(self.represent_term(term) for term in self.triple()) + ' .'
 
-    def query_via_insert_update(self, construct=True, subjectName='?update'):
+    def query_via_insert_update(self, construct=True, subjectName='?revision'):
         return "{0} :inserts {1} .".format(subjectName, self.rdf_star())
 
-    def query_via_delete_update(self, construct=True, subjectName='?update'):
+    def query_via_delete_update(self, construct=True, subjectName='?revision'):
         return "{0} :deletes {1} .".format(subjectName, self.rdf_star())
 
-    def query_via_unknown_update(self, construct=True, subjectName='?update'):
+    def query_via_unknown_update(self, construct=True, subjectName='?revision'):
         return "{0} ?p {1} .".format(subjectName, self.rdf_star())
 
     def rdf_star(self):

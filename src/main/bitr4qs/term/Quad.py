@@ -27,7 +27,7 @@ class Quad(Triple):
         return hash((self.represent_term(self._subject), self.represent_term(self._predicate),
                      self.represent_term(self._object), self.represent_term(self._graph)))
 
-    def query_via_unknown_update(self, construct=True, subjectName='?update'):
+    def query_via_unknown_update(self, construct=True, subjectName='?revision'):
         queryString = "GRAPH {0} {{ {1} ?p {2} }}".format(self._graph.n3(), subjectName, self.rdf_star())
         return queryString
 

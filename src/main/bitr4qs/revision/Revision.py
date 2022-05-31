@@ -93,7 +93,6 @@ class Revision(object):
     def generate_identifier(self):
         hashOfRevision = str(self._compute_hash_of_revision())
         identifierOfRevision = self.nameOfRevision + '_' + hashOfRevision
-        # print("identifierOfRevision ", identifierOfRevision)
         self.identifier = URIRef(str(BITR4QS) + identifierOfRevision)
         self._reset_RDFPatterns()
         self.hexadecimal_of_hash = Literal(hashOfRevision)
@@ -105,16 +104,12 @@ class Revision(object):
     @classmethod
     def revision_from_request(cls, request):
         revision = cls._revision_from_request(request)
-        hashOfRevision = str(revision._compute_hash_of_revision())
-        identifierOfRevision = revision.nameOfRevision + '_' + hashOfRevision
-        revision.identifier = URIRef(str(BITR4QS) + identifierOfRevision)
-        revision._reset_RDFPatterns()
-        revision.hexadecimal_of_hash = Literal(hashOfRevision)
+        revision.generate_identifier()
         return revision
 
     @classmethod
     def _revision_from_data(cls, **data):
-        # print("data ", data)
+
         assert 'revisionNumber' in data, "revisionNumber should be in the data of the revision"
         assert 'precedingRevision' in data, "precedingRevision should be in the data of the revision"
 
@@ -124,13 +119,6 @@ class Revision(object):
     def revision_from_data(cls, **data):
         revision = cls._revision_from_data(**data)
         revision.generate_identifier()
-        # print("revision in revision from data ", revision)
-        # hashOfRevision = str(revision._compute_hash_of_revision())
-        # identifierOfRevision = revision.nameOfRevision + '_' + hashOfRevision
-        # # print("identifierOfRevision ", identifierOfRevision)
-        # revision.identifier = URIRef(str(BITR4QS) + identifierOfRevision)
-        # revision._reset_RDFPatterns()
-        # revision.hexadecimal_of_hash = Literal(hashOfRevision)
         return revision
 
     def __dict__(self):

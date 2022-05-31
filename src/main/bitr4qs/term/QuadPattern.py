@@ -27,29 +27,29 @@ class QuadPattern(TriplePattern):
             variables.append((self._graph.n3(), 3))
         return variables
 
-    def query_via_insert_update(self, construct=True, subjectName='?update'):
+    def query_via_insert_update(self, construct=True, subjectName='?revision'):
         if isinstance(self._graph, Variable) and construct:
-            queryString = "GRAPH {0} {{ {2} :inserts {1} }}\n?update :inserts {1} .".format(
+            queryString = "GRAPH {0} {{ {2} :inserts {1} }}\n{2} :inserts {1} .".format(
                 self._graph.n3(), self.rdf_star(), subjectName)
         elif isinstance(self._graph, Variable) and not construct:
-            queryString = """{{ GRAPH {0} {{ {2} :inserts {1} }} }} UNION {{ ?update :inserts {1} }}""".format(
+            queryString = """{{ GRAPH {0} {{ {2} :inserts {1} }} }} UNION {{ {2} :inserts {1} }}""".format(
                 self._graph.n3(), self.rdf_star(), subjectName)
         else:
             queryString = "GRAPH {0} {{ {2} :inserts {1} }}".format(self._graph.n3(), self.rdf_star(), subjectName)
         return queryString
 
-    def query_via_delete_update(self, construct=True, subjectName='?update'):
+    def query_via_delete_update(self, construct=True, subjectName='?revision'):
         if isinstance(self._graph, Variable) and construct:
-            queryString = "GRAPH {0} {{ {2} :deletes {1} }}\n?update :deletes {1} .".format(
+            queryString = "GRAPH {0} {{ {2} :deletes {1} }}\n{2} :deletes {1} .".format(
                 self._graph.n3(), self.rdf_star(), subjectName)
         elif isinstance(self._graph, Variable) and not construct:
-            queryString = """{{ GRAPH {0} {{ {2} :deletes {1} }} }} UNION {{ ?update :deletes {1} }}""".format(
+            queryString = """{{ GRAPH {0} {{ {2} :deletes {1} }} }} UNION {{ {2} :deletes {1} }}""".format(
                 self._graph.n3(), self.rdf_star(), subjectName)
         else:
             queryString = "GRAPH {0} {{ {2} :deletes {1} }}".format(self._graph.n3(), self.rdf_star(), subjectName)
         return queryString
 
-    def query_via_unknown_update(self, construct=True, subjectName='?update'):
+    def query_via_unknown_update(self, construct=True, subjectName='?revision'):
 
         if isinstance(self._graph, Variable) and construct:
             queryString = "GRAPH {0} {{ {1} ?p1 {2} }}\n?{1} ?p2 {2} .".format(self._graph.n3(), subjectName,

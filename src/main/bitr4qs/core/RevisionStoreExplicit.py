@@ -11,7 +11,7 @@ class RevisionStoreExplicit(RevisionStore):
         updateSucceedingTimeString = self._update_time_string(date=date, variableName='?succeedingUpdate')
         construct, where = self._construct_where_for_update(quadPattern=quadPattern)
         if self.config.related_update_content():
-            updatePrecedingTimeString = self._update_time_string(date=date, variableName='?succeedingUpdate')
+            updatePrecedingTimeString = self._update_time_string(date=date, variableName='?precedingUpdate')
             SPARQLQuery = """PREFIX : <{0}>
             CONSTRUCT {{ {1} }}
             WHERE {{
@@ -26,25 +26,25 @@ class RevisionStoreExplicit(RevisionStore):
                     }}
                 {3} :precedingRevision* ?revision .
                 ?revision :update ?precedingUpdate .{5}
-                ?precedingUpdate :precedingUpdate* ?update .
+                ?precedingUpdate :precedingUpdate* ?revision .
                 {6} }}""".format(str(BITR4QS), construct, revisionA.n3(), revisionB.n3(), updateSucceedingTimeString,
                                  updatePrecedingTimeString, where)
         else:
-            updateTimeString = self._update_time_string(date=date, variableName='?update')
+            updateTimeString = self._update_time_string(date=date, variableName='?revision')
             SPARQLQuery = """PREFIX : <{0}>
             CONSTRUCT {{ {1} }}
             WHERE {{
                     {{
-                    SELECT ?update
+                    SELECT ?revision
                     WHERE {{
                          {2} :precedingRevision* ?revision .
                          ?revision :precedingRevision+ {3} .
                          ?revision :update ?succeedingUpdate .{4}
-                         ?succeedingUpdate :precedingUpdate ?update .
+                         ?succeedingUpdate :precedingUpdate ?revision .
                         }}
                     }}
                 {3} :precedingRevision* ?revision .
-                ?revision :update ?update .{5}
+                ?revision :update ?revision .{5}
                 {6} }}""".format(str(BITR4QS), construct, revisionA.n3(), revisionB.n3(), updateSucceedingTimeString,
                                  updateTimeString, where)
 
@@ -135,13 +135,13 @@ class RevisionStoreExplicit(RevisionStore):
         prefixString = "PREFIX : <{0}>".format(str(BITR4QS)) if prefix else ""
 
         SPARQLQuery = """{0}
-        {6} ?{1}
+        {6} ?revision
         WHERE {{ {2} :precedingRevision* ?transactionRevision .{3}
-            ?transactionRevision :{1} ?{1} .{7}
+            ?transactionRevision :{1} ?revision .{7}
             MINUS {{
                 {2} :precedingRevision* ?otherTransactionRevision .{4}
                 ?otherTransactionRevision :{1} ?otherValidRevision .
-                ?otherValidRevision :preceding{5} ?{1} . 
+                ?otherValidRevision :preceding{5} ?revision . 
             }}
         }}""".format(prefixString, revisionType, revisionA.n3(), earlyStopA, earlyStopB, revisionType.title(),
                      queryString, timeConstrain)
@@ -192,11 +192,11 @@ class RevisionStoreExplicit(RevisionStore):
             OPTIONAL {{ {0} :tag ?revision }}
             OPTIONAL {{ {0} :snapshot ?revision }}
             OPTIONAL {{ {0} :branch ?revision }}
-            ?revision ?p ?o .""".format(transactionRevisionID.n3())
+            {{ GRAPH ?g {{ ?revision ?p1 ?o1 }} }} UNION {{ ?revision ?p2 ?o2 }}""".format(transactionRevisionID.n3())
         else:
             where = ""
 
-        if revisionType == 'update':
+        if revisionType == 'update' or revisionType == 'revert':
             construct = 'GRAPH ?g { ?revision ?p1 ?o1 }\n?revision ?p2 ?o2'
         else:
             construct = '?revision ?p ?o'

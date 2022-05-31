@@ -72,17 +72,27 @@ class BiTR4Qs(object):
         try:
             request.evaluate_request_to_modify(self._revisionStore)
             transactionRevision = request.transaction_revision_from_request()
-            revision = self._revisionStore.revision(revisionID, revisionType=request.type, isValidRevision=True,
-                                                    transactionRevisionA=transactionRevision.preceding_revision)
-            print("revision ", revision)
-            modifiedRevisions = request.modifications_from_request(revision, self._revisionStore)
+
+            revision = self._revisionStore.revision(
+                revisionID=revisionID, revisionType=request.type, isValidRevision=True,
+                transactionRevisionA=transactionRevision.preceding_revision)
+            print("revision ", revision.__dict__())
+            modifiedRevisions = request.modifications_from_request(revision=revision, revisionStore=self._revisionStore)
         except Exception as e:
             print("e ", e)
             raise e
 
+        # Attach the created valid revisions to the transaction revisions for explicit reference.
         self._valid_revisions_to_transaction_revision(transactionRevision, modifiedRevisions)
+
+        # Insert the transaction revision and the valid revisions to the revision store.
         self._to_revision_store([transactionRevision] + modifiedRevisions)
+
+        # Delete the old HEAD revision and add a new HEAD revision.
         self._head_revision(request.head_revision, transactionRevision)
+
+        # Return the modified revisions.
+        return [modifiedRevision.__dict__() for modifiedRevision in modifiedRevisions]
 
     def revert_versioning_operation(self, revisionID, request):
         """
@@ -111,6 +121,9 @@ class BiTR4Qs(object):
         self._valid_revisions_to_transaction_revision(transactionRevision, validRevisions)
         self._to_revision_store([transactionRevision] + validRevisions)
         self._head_revision(request.head_revision, transactionRevision)
+
+        # Return the valid revisions.
+        return [validRevision.__dict__() for validRevision in validRevisions]
 
     def apply_versioning_operation(self, request):
         """
@@ -141,8 +154,6 @@ class BiTR4Qs(object):
 
         # Delete the old HEAD revision and add a new HEAD revision.
         self._head_revision(request.head_revision, transactionRevision)
-
-        print("transaction revision ", transactionRevision.__dict__())
 
         # Return the valid revisions.
         return [validRevision.__dict__() for validRevision in validRevisions]

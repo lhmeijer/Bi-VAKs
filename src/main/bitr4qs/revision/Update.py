@@ -123,14 +123,14 @@ class Update(ValidRevision):
 
         # Check if the update content is related
         if relatedContent:
-            precedingModifications = revisionStore.preceding_modifications(self._identifier)
-            self._modifications.extend(precedingModifications)
+            self._modifications = revisionStore.preceding_modifications(self._identifier)
 
         transactionRevision = revisionStore.transaction_from_valid_and_valid_from_transaction(
-            self._identifier, transactionFromValid=True, revisionType='update')
+            revisionID=self._identifier, transactionFromValid=True, revisionType='update')
+        print('transactionRevision ', transactionRevision.__dict__())
 
         newModifications = []
-        if otherModifications is not None:
+        if otherModifications:
 
             # Check whether the existing modifications can be changed
             for otherModification in otherModifications:
@@ -165,7 +165,7 @@ class Update(ValidRevision):
                     _ = self._modifications.pop(index)
                     newModifications.append(otherModification)
                 else:
-                    raise Exception
+                    raise Exception("Modified quad cannot exist in this update.")
 
         for modification in self._modifications:
             canBeModified = revisionStore.can_quad_be_modified(
@@ -173,7 +173,7 @@ class Update(ValidRevision):
                 revisionC=transactionRevision.preceding_revision, startDate=startDate, endDate=endDate,
                 deletion=modification.deletion)
             if not canBeModified:
-                raise Exception
+                raise Exception("Quad cannot exist in this update with this new start or end date.")
 
         if relatedContent:
             modifications = newModifications
@@ -183,6 +183,7 @@ class Update(ValidRevision):
         modifiedUpdate = Update.revision_from_data(
             modifications=modifications, branchIndex=branchIndex, startDate=startDate, endDate=endDate,
             revisionNumber=revisionNumber, precedingRevision=self._identifier)
+        print("modifiedUpdate ", modifiedUpdate.__dict__())
         return modifiedUpdate
 
     def revert(self, revisionStore, headRevision, revisionNumber=None, branchIndex=None, relatedContent=True):

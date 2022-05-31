@@ -66,10 +66,10 @@ class RevisionStore(object):
 
         SPARQLQuery = "CONSTRUCT {{ {0} }}\nWHERE {{ {1} }}".format(construct, where)
 
-        stringOfRevision = self._revisionStore.execute_construct_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)),
-                                                                       'nquads')
+        stringOfRevision = self._revisionStore.execute_construct_query(
+            '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
         func = getattr(self, '_' + revisionType)
-        revisions = func(stringOfRevision, isValidRevision=isValidRevision)
+        revisions = func(stringOfRevision=stringOfRevision, isValidRevision=isValidRevision)
         return self._fetch_revision(revisions)
 
     @staticmethod
@@ -133,15 +133,17 @@ class RevisionStore(object):
             ?update ?p2 ?o2 .
         }}
         WHERE {{
-        {0} :precedingUpdate+ ?update .
+        {0} :precedingUpdate* ?update .
         {{ GRAPH ?g {{ ?update ?p1 ?o1 }} }} UNION {{  ?update ?p2 ?o2 . }}
-        """.format(updateID.n3())
+        }}""".format(updateID.n3())
+        print("SPARQLQuery ", SPARQLQuery)
         stringOfUpdates = self._revisionStore.execute_construct_query(
-            '\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
-        # print("stringOfUpdates ", stringOfUpdates)
+            '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
+        print("stringOfUpdates ", stringOfUpdates)
         updateParser = parser.UpdateParser()
         updateParser.parse_aggregate(stringOfUpdates, forward=True)
         modifications = updateParser.get_list_of_modifications()
+        print('\n'.join(str(a) for a in modifications))
         return modifications
 
     def preceding_revisions(self, revisionID: URIRef, revisionType=None, isValidRevision=True, propertyPath=''):
@@ -169,14 +171,15 @@ class RevisionStore(object):
         SPARQLQuery = """CONSTRUCT {{ {0} }}
         WHERE {{ {1} :preceding{2}{3} ?revision .
         {4} }}""".format(construct, revisionID.n3, revisionType.title(), propertyPath, where)
-        stringOfRevisions = self._revisionStore.execute_construct_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)),
-                                                                        'nquads')
+        stringOfRevisions = self._revisionStore.execute_construct_query(
+            '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
         revisions = func(stringOfRevisions, isValidRevision=isValidRevision)
         if len(propertyPath) == 0:
             return self._fetch_revision(revisions)
         return revisions
 
-    def transaction_from_valid_and_valid_from_transaction(self, revisionID, transactionFromValid=True, revisionType=None):
+    def transaction_from_valid_and_valid_from_transaction(self, revisionID, transactionFromValid=True,
+                                                          revisionType=None):
         """
         Function to obtain the transaction revision from a valid revision identifier or to obtain the valid
         revision(s) from a transaction revision identifier.
@@ -185,7 +188,7 @@ class RevisionStore(object):
         :param revisionType: The type of the revision (update, revert, branch, merge, snapshot, tag)
         :return:
         """
-        if revisionType is None:
+        if not revisionType:
             revisionType = self._get_revision_type(revisionID)
 
         if transactionFromValid:
@@ -194,7 +197,7 @@ class RevisionStore(object):
             SPARQLQuery = self._valid_revisions_from_transaction_revision(revisionID, revisionType)
         stringOfRevision = self._revisionStore.execute_construct_query(SPARQLQuery, 'nquads')
         func = getattr(self, '_' + revisionType)
-        revisions = func(stringOfRevision, validRevision=not transactionFromValid)
+        revisions = func(stringOfRevision=stringOfRevision, isValidRevision=not transactionFromValid)
         if transactionFromValid:
             return self._fetch_revision(revisions)
         return revisions
@@ -218,14 +221,16 @@ class RevisionStore(object):
         :return:
         """
         if isValidRevision:
-            SPARQLQuery = self._valid_revision(transactionRevisionA, revisionID, revisionType, transactionRevisionB)
+            SPARQLQuery = self._valid_revision(transactionRevisionA=transactionRevisionA, validRevision=revisionID,
+                                               revisionType=revisionType, transactionRevisionB=transactionRevisionB)
         else:
-            SPARQLQuery = self._transaction_revision(transactionRevisionA, revisionID, transactionRevisionB)
-        # print("SPARQLQuery ", SPARQLQuery)
+            SPARQLQuery = self._transaction_revision(transactionRevisionA=transactionRevisionA,
+                                                     transactionRevision=revisionID,
+                                                     transactionRevisionB=transactionRevisionB)
+        print("SPARQLQuery ", SPARQLQuery)
         stringOfRevision = self._revisionStore.execute_construct_query(SPARQLQuery, 'nquads')
-        # print("stringOfValidRevision ", stringOfRevision)
         func = getattr(self, '_' + revisionType)
-        revisions = func(stringOfRevision, isValidRevision)
+        revisions = func(stringOfRevision=stringOfRevision, isValidRevision=isValidRevision)
         return self._fetch_revision(revisions)
 
     def _transaction_revision(self, transactionRevisionA, transactionRevision, transactionRevisionB=None):
@@ -258,35 +263,35 @@ class RevisionStore(object):
         return revision
 
     @staticmethod
-    def _branch(stringOfBranch: str, isValidRevision: bool):
+    def _branch(stringOfRevision: str, isValidRevision: bool):
         if isValidRevision:
-            branch = parser.BranchParser.parse_revisions(stringOfBranch, revisionName='valid')
+            branch = parser.BranchParser.parse_revisions(stringOfRevision, revisionName='valid')
         else:
-            branch = parser.BranchParser.parse_revisions(stringOfBranch, revisionName='transaction')
+            branch = parser.BranchParser.parse_revisions(stringOfRevision, revisionName='transaction')
         return branch
 
     @staticmethod
-    def _snapshot(stringOfSnapshot: str, isValidRevision: bool):
+    def _snapshot(stringOfRevision: str, isValidRevision: bool):
         if isValidRevision:
-            snapshot = parser.SnapshotParser.parse_revisions(stringOfSnapshot, revisionName='valid')
+            snapshot = parser.SnapshotParser.parse_revisions(stringOfRevision, revisionName='valid')
         else:
-            snapshot = parser.SnapshotParser.parse_revisions(stringOfSnapshot, revisionName='transaction')
+            snapshot = parser.SnapshotParser.parse_revisions(stringOfRevision, revisionName='transaction')
         return snapshot
 
     @staticmethod
-    def _tag(stringOfTag: str, isValidRevision: bool):
+    def _tag(stringOfRevision: str, isValidRevision: bool):
         if isValidRevision:
-            tag = parser.TagParser.parse_revisions(stringOfTag, revisionName='valid')
+            tag = parser.TagParser.parse_revisions(stringOfRevision, revisionName='valid')
         else:
-            tag = parser.TagParser.parse_revisions(stringOfTag, revisionName='transaction')
+            tag = parser.TagParser.parse_revisions(stringOfRevision, revisionName='transaction')
         return tag
 
     @staticmethod
-    def _update(stringOfUpdate: str, isValidRevision: bool):
+    def _update(stringOfRevision: str, isValidRevision: bool):
         if isValidRevision:
-            update = parser.UpdateParser.parse_revisions(stringOfUpdate, revisionName='valid')
+            update = parser.UpdateParser.parse_revisions(stringOfRevision, revisionName='valid')
         else:
-            update = parser.UpdateParser.parse_revisions(stringOfUpdate, revisionName='transaction')
+            update = parser.UpdateParser.parse_revisions(stringOfRevision, revisionName='transaction')
         return update
 
     def branch_from_name(self, branchName: Literal):
@@ -315,14 +320,14 @@ class RevisionStore(object):
 
     def can_quad_be_modified(self, quad, revisionA: URIRef, revisionB: URIRef, revisionC: URIRef = None,
                              startDate: Literal = None, endDate: Literal = None, deletion=False):
-        if not startDate:
-            startDate = datetime.strptime(startDate.value, "%Y-%m-%dT%H:%M:%S+00:00")
 
-        if not endDate:
-            endDate = datetime.strptime(endDate.value, "%Y-%m-%dT%H:%M:%S+00:00")
+        if startDate:
+            startDate = datetime.strptime(str(startDate), "%Y-%m-%dT%H:%M:%S+00:00")
+        if endDate:
+            endDate = datetime.strptime(str(endDate), "%Y-%m-%dT%H:%M:%S+00:00")
 
         if self.config.related_update_content():
-            content = "\n?update :precedingUpdate* ?allUpdate ."
+            content = "\n?revision :precedingUpdate* ?allUpdate .\n"
             if deletion:
                 where = quad.query_via_insert_update(construct=False, subjectName='?allUpdate')
             else:
@@ -330,24 +335,26 @@ class RevisionStore(object):
         else:
             content = ""
             if deletion:
-                where = quad.query_via_insert_update(construct=False)
+                where = quad.query_via_insert_update(construct=False, subjectName='?revision')
             else:
-                where = quad.query_via_delete_update(construct=False)
+                where = quad.query_via_delete_update(construct=False, subjectName='?revision')
 
         # Obtain subquery between two transaction revisions
         subQueryBetween = self._valid_revisions_in_graph(revisionA=revisionA, revisionB=revisionB, prefix=False,
                                                          queryType='SelectQuery', revisionType='update')
 
-        SPARQLQuery = """SELECT ?update ?startDate ?endDate
+        SPARQLQuery = """SELECT ?revision ?startDate ?endDate
         WHERE {{ {{ {0} }}
-        OPTIONAL {{ ?update :startedAt ?startDate . }} 
-        OPTIONAL {{ ?update :endedAt ?endDate . }} 
-        {1}{2}}""".format(subQueryBetween, content, where)
-
-        results = self._revisionStore.execute_select_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'json')
+        OPTIONAL {{ ?revision :startedAt ?startDate . }} 
+        OPTIONAL {{ ?revision :endedAt ?endDate . }} 
+        {1}{2} 
+        }}""".format(subQueryBetween, content, where)
+        print("SPARQLQuery ", SPARQLQuery)
+        results = self._revisionStore.execute_select_query(
+            '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'json')
 
         for result in results['results']['bindings']:
-            if not revisionC and 'update' in result:
+            if not revisionC and 'revision' in result:
                 return False
 
             if 'startDate' in result:
@@ -370,14 +377,15 @@ class RevisionStore(object):
         subQueryBefore = self._valid_revisions_in_graph(revisionA=revisionC, queryType='SelectQuery',
                                                         revisionType='update', prefix=False)
 
-        SPARQLQuery = """SELECT ?update ?startDate ?endDate
+        SPARQLQuery = """SELECT ?revision ?startDate ?endDate
         WHERE {{ {{ {0} }}
-        OPTIONAL {{ ?update :startedAt ?startDate . }} 
-        OPTIONAL {{ ?update :endedAt ?endDate . }} 
+        OPTIONAL {{ ?revision :startedAt ?startDate . }} 
+        OPTIONAL {{ ?revision :endedAt ?endDate . }} 
         {1}{2}
         }}""".format(subQueryBefore, content, where)
-
-        results = self._revisionStore.execute_select_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'json')
+        print("SPARQLQuery ", SPARQLQuery)
+        results = self._revisionStore.execute_select_query(
+            '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'json')
 
         for result in results['results']['bindings']:
             if 'startDate' in result:
@@ -405,23 +413,24 @@ class RevisionStore(object):
             endDate = datetime.strptime(str(endDate), "%Y-%m-%dT%H:%M:%S+00:00")
 
         if self.config.related_update_content():
-            content = "\n?update :precedingUpdate* ?allUpdate ."
+            content = "\n?revision :precedingUpdate* ?allUpdate ."
             where = quad.query_via_unknown_update(construct=False, subjectName='?allUpdate')
         else:
             content = ""
-            where = quad.query_via_unknown_update(construct=False)
+            where = quad.query_via_unknown_update(construct=False, subjectName='?revision')
 
         # Obtain subquery before a transaction revisions
         subQuery = self._valid_revisions_in_graph(revisionA=headRevision, queryType='SelectQuery',
                                                   revisionType='update', prefix=False)
         SPARQLQuery = """SELECT ?p ?startDate ?endDate
         WHERE {{ {{ {0} }}
-        OPTIONAL {{ ?update :startedAt ?startDate . }}
-        OPTIONAL {{ ?update :endedAt ?endDate . }}
+        OPTIONAL {{ ?revision :startedAt ?startDate . }}
+        OPTIONAL {{ ?revision :endedAt ?endDate . }}
         {1}{2}
         }}""".format(subQuery, content, where)
 
-        results = self._revisionStore.execute_select_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'json')
+        results = self._revisionStore.execute_select_query(
+            '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'json')
         numberInsertions = 0
         numberDeletions = 0
 
@@ -502,72 +511,72 @@ class RevisionStore(object):
     #                                                  revisionType='update', prefix=False)
     #
     #     if deletion:
-    #         stringA = quad.query_via_delete_update(construct=False)
-    #         stringB = quad.query_via_insert_update(construct=False)
+    #         stringA = quad.query_via_delete_update(construct=False, subjectName='?revision')
+    #         stringB = quad.query_via_insert_update(construct=False, subjectName='?revision')
     #     else:
-    #         stringA = quad.query_via_insert_update(construct=False)
-    #         stringB = quad.query_via_delete_update(construct=False)
+    #         stringA = quad.query_via_insert_update(construct=False, subjectName='?revision')
+    #         stringB = quad.query_via_delete_update(construct=False, subjectName='?revision')
     #
     #     if startDate is None and endDate is None:
     #         timeString = """{{ {0} }}
     #         UNION
     #         {{ {1}
-    #         NOT EXISTS {{ ?update :endedAt ?endDate }}
-    #         NOT EXISTS {{ ?update :startedAt ?startDate }} }}
+    #         NOT EXISTS {{ ?revision :endedAt ?endDate }}
+    #         NOT EXISTS {{ ?revision :startedAt ?startDate }} }}
     #         """.format(stringA, stringB)
     #     elif startDate is None:
     #         timeString = """{{ {0}
-    #         OPTIONAL {{ ?update :startedAt ?startDate . }}
+    #         OPTIONAL {{ ?revision :startedAt ?startDate . }}
     #         FILTER ( !bound(?startDate) || ?startDate <= {2} )
     #         }}
     #         UNION
     #         {{ {1}
-    #         ?update :endedAt ?endDate . FILTER ( {2} <= ?endDate )
+    #         ?revision :endedAt ?endDate . FILTER ( {2} <= ?endDate )
     #         }}
     #         UNION
     #         {{ {1}
-    #         NOT EXISTS {{ ?update :endedAt ?endDate }}
-    #         NOT EXISTS {{ ?update :startedAt ?startDate }}
+    #         NOT EXISTS {{ ?revision :endedAt ?endDate }}
+    #         NOT EXISTS {{ ?revision :startedAt ?startDate }}
     #         }}
     #         """.format(stringA, stringB, endDate.n3())
     #     elif endDate is None:
     #         timeString = """{{ {0}
-    #         OPTIONAL {{ ?update :endedAt ?endDate . }}
+    #         OPTIONAL {{ ?revision :endedAt ?endDate . }}
     #         FILTER ( !bound(?endDate) || {2} <= ?endDate )
     #         }}
     #         UNION
     #         {{ {1}
-    #         ?update :startedAt ?startDate . FILTER ( ?startDate >= {2} )
+    #         ?revision :startedAt ?startDate . FILTER ( ?startDate >= {2} )
     #         }}
     #         UNION
     #         {{ {1}
-    #         NOT EXISTS {{ ?update :endedAt ?endDate }}
-    #         NOT EXISTS {{ ?update :startedAt ?startDate }}
+    #         NOT EXISTS {{ ?revision :endedAt ?endDate }}
+    #         NOT EXISTS {{ ?revision :startedAt ?startDate }}
     #         }}
     #         """.format(stringA, stringB, startDate.n3())
     #     else:
     #         timeString = """{{
     #             {0}
-    #             OPTIONAL {{ ?update :startedAt ?startDate }}
+    #             OPTIONAL {{ ?revision :startedAt ?startDate }}
     #             FILTER ( !bound(?startDate) || ?startDate <= {3} )
-    #             OPTIONAL {{ ?update :endedAt ?endDate }}
+    #             OPTIONAL {{ ?revision :endedAt ?endDate }}
     #             FILTER ( !bound(?endDate) || {2} <= ?endDate )
     #         }} UNION {{
     #             {1}
-    #             OPTIONAL {{ ?update :startedAt ?startDate }}
+    #             OPTIONAL {{ ?revision :startedAt ?startDate }}
     #             FILTER (!bound(?startDate) || ?startDate <= {2} )
-    #             OPTIONAL {{ ?update :endedAt ?endDate }}
+    #             OPTIONAL {{ ?revision :endedAt ?endDate }}
     #             FILTER ( !bound(?endDate) || {3} <= ?endDate )
     #         }} """.format(stringA, stringB, startDate.n3(), endDate.n3())
     #
     #     if self.config.related_update_content():
-    #         content = "\n?update :precedingUpdate* ?allUpdate ."
+    #         content = "\n?revision :precedingUpdate* ?allUpdate ."
     #         construct = quad.query_via_unknown_update(construct=True, subjectName='?allUpdate')
     #         where = quad.query_via_unknown_update(construct=False, subjectName='?allUpdate')
     #     else:
     #         content = ""
-    #         construct = quad.query_via_unknown_update(construct=True)
-    #         where = quad.query_via_unknown_update(construct=False)
+    #         construct = quad.query_via_unknown_update(construct=True, subjectName='?revision')
+    #         where = quad.query_via_unknown_update(construct=False, subjectName='?revision')
     #
     #     SPARQLQuery = """CONSTRUCT {{ {0} }}
     #     WHERE {{
@@ -597,7 +606,7 @@ class RevisionStore(object):
 
     @staticmethod
     def _update_time_string(date: Literal = None, leftOfInterval: Literal = None, rightOfInterval: Literal = None,
-                            startTimeInBetween=False, endTimeInBetween=False, variableName='?update'):
+                            startTimeInBetween=False, endTimeInBetween=False, variableName='?revision'):
         timeConstrains = ""
         if date:
             timeConstrains = """
@@ -613,7 +622,7 @@ class RevisionStore(object):
                 FILTER (  ?startDate > {0} && ?startDate <= {1} && ?endDate > {1} )
             }} UNION {{
                 {2} :startedAt ?startDate .
-                NOT EXISTS {{ ?update :endedAt ?endDate . }}
+                NOT EXISTS {{ {2} :endedAt ?endDate . }}
                 FILTER (  ?startDate > {0} && ?startDate <= {1} ) 
                 }}""".format(leftOfInterval.n3(), rightOfInterval.n3(), variableName)
         elif not date and endTimeInBetween and not startTimeInBetween:
@@ -623,7 +632,7 @@ class RevisionStore(object):
                 FILTER ( ?endDate >= {0} && ?endDate < {1} && ?startDate < {0} )
             }} UNION {{
                 {2} :endedAt ?endDate .
-                NOT EXISTS {{ ?update :startedAt ?startDate . }}
+                NOT EXISTS {{ {2} :startedAt ?startDate . }}
                 FILTER (  ?endDate >= {0} && ?endDate < {1} ) 
                 }}""".format(leftOfInterval.n3(), rightOfInterval.n3(), variableName)
         return timeConstrains
@@ -631,8 +640,8 @@ class RevisionStore(object):
     def _construct_where_for_update(self, quadPattern):
         construct = where = ""
         if self.config.query_all_updates() or not quadPattern:
-            construct = "GRAPH ?g { ?update ?p1 ?o1 }\n?update ?p2 ?o2 ."
-            where = "{ GRAPH ?g { ?update ?p1 ?o1 } } UNION { ?update ?p2 ?o2 }"
+            construct = "GRAPH ?g { ?revision ?p1 ?o1 }\n?revision ?p2 ?o2 ."
+            where = "{ GRAPH ?g { ?revision ?p1 ?o1 } } UNION { ?revision ?p2 ?o2 }"
         elif self.config.query_specific_updates():
             construct = quadPattern.query_via_unknown_update(construct=True)
             where = quadPattern.query_via_unknown_update(construct=False)
@@ -668,7 +677,7 @@ class RevisionStore(object):
 
         content = ""
         if self.config.related_update_content():
-            content = "\n?update :precedingUpdate* ?update ."
+            content = "\n?revision :precedingUpdate* ?revision ."
 
         SPARQLQuery = """CONSTRUCT {{ {0} }}
         WHERE {{ 
