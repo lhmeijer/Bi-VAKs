@@ -1,9 +1,8 @@
 from .RevisionStore import RevisionStore
-from src.main.bitr4qs.namespace import BITR4QS
 from .RevisionStoreExplicit import RevisionStoreExplicit
 from .RevisionStoreImplicit import RevisionStoreImplicit
-from rdflib.term import Literal, URIRef
 from src.main.bitr4qs.revision.HeadRevision import HeadRevision
+from src.main.bitr4qs.store.HttpQuadStore import HttpQuadStore
 
 
 class BiTR4QsSingleton(object):
@@ -12,6 +11,7 @@ class BiTR4QsSingleton(object):
 
     @classmethod
     def get(cls, config):
+        print("cls.BiTR4QsCore ", cls.BiTR4QsCore)
         if cls.BiTR4QsCore is not None:
             return cls.BiTR4QsCore
         else:
@@ -176,11 +176,27 @@ class BiTR4Qs(object):
             raise e
         return numberOfQuads
 
-    def empty_revision_store(self):
-        self._revisionStore.empty_revision_store()
+    def reset_revision_store(self):
+        try:
+            snapshots = self._revisionStore.all_revisions('snapshot', isValidRevision=True)
+            for _, snapshot in snapshots.items():
+                snapshot.delete_datastore()
+            self._revisionStore.empty_revision_store()
+            numberOfQuads = self.get_number_of_quads_in_revision_store()
+        except Exception as e:
+            raise Exception
 
-    def save_file_of_revision_store(self, returnFormat):
-        return self._revisionStore.data_of_revision_store(returnFormat)
+        if numberOfQuads > 0:
+            raise Exception("Revision Store should be empty.")
+
+    def upload_revision_store(self, data, returnFormat):
+        self._revisionStore.revision_store.upload_to_datastore(data, returnFormat=returnFormat, encoded=True)
+        snapshots = self._revisionStore.all_revisions('snapshot', isValidRevision=True)
+        for _, snapshot in snapshots.items():
+            snapshot.create_datastore(self._revisionStore)
+
+    def get_revision_store(self, returnFormat):
+        return self._revisionStore.revision_store.get_datastore(returnFormat, decoded=True)
 
 
 class BiTR4QsImplicit(BiTR4Qs):

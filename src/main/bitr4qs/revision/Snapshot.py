@@ -76,21 +76,19 @@ class Snapshot(ValidRevision):
 
     def add_to_revision_store(self, revisionStore):
         super().add_to_revision_store(revisionStore)
+        self.create_datastore(revisionStore=revisionStore)
 
-        # datastore = HttpQuadStore(self._nameDataset.value, self._urlDataset.value)
-        # datastore.delete_fuseki_dataset()
-        # Get all updates for the snapshot
-        datastore = HttpQuadStore.create_fuseki_dataset(nameDataset=self._nameDataset.value,
-                                                        urlDataset=self._urlDataset.value)
+    def create_datastore(self, revisionStore):
+        datastore = HttpQuadStore.create_dataset(nameDataset=self._nameDataset.value, urlDataset=self._urlDataset.value)
         updateParser = UpdateParser()
         revisionStore.get_updates_in_revision_graph(revisionA=self._transactionRevision, date=self._effectiveDate,
                                                     updateParser=updateParser)
         modifications_in_n_quad = updateParser.modifications_to_n_quads()
-        datastore.n_quads_to_store(modifications_in_n_quad)
+        datastore.upload_to_datastore(modifications_in_n_quad, 'application/n-quads')
 
-    def delete(self):
+    def delete_datastore(self):
         datastore = HttpQuadStore(self._nameDataset.value, self._urlDataset.value)
-        datastore.delete_fuseki_dataset()
+        datastore.delete_dataset()
 
     def query(self, SPARQLQuery, queryType, returnFormat):
         # create a quad store from name dataset and url

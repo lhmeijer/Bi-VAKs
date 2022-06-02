@@ -129,20 +129,13 @@ class HttpQuadStore(object):
             return False
         return result
 
-    def n_quads_to_store(self, nquads):
+    def upload_to_datastore(self, data, returnFormat, encoded=False):
         dataEndpoint = "{0}/{1}/data".format(self._urlDataset, self._nameDataset)
-        headers = {'Content-Type': 'application/n-quads'}
-        nquads = nquads.encode(encoding='utf-8', errors='strict')
-        # print("nquads ", nquads)
-        # splittedNquads = nquads.split('\n')
-        # print("splittedNquads ", splittedNquads)
-        # print("self._dataEndpoint ", self._dataEndpoint)
-        # index = 0
-        # for nquad in splittedNquads:
-        #     if index in list(range(100)):
-        #         print("{0} {1}".format(index, nquad))
-        #     index += 1
-        request = Request(dataEndpoint, data=nquads, headers=headers, method='POST')
+        headers = {'Content-Type': returnFormat}
+        #application/n-quads
+        if not encoded:
+            data = data.encode(encoding='utf-8', errors='strict')
+        request = Request(dataEndpoint, data=data, headers=headers, method='POST')
         try:
             response = urlopen(request)
         except HTTPError as e:
@@ -150,20 +143,21 @@ class HttpQuadStore(object):
             raise HTTPError
         return response
 
-    def data_of_store(self, returnFormat):
+    def get_datastore(self, returnFormat, decoded=True):
         dataEndpoint = "{0}/{1}/data".format(self._urlDataset, self._nameDataset)
         headers = {'Content-Type': returnFormat}
         request = Request(dataEndpoint, headers=headers, method='GET')
         try:
-            response = urlopen(request)
-            result = response.read().decode("utf-8")
+            result = urlopen(request)
+            if decoded:
+                result = result.read().decode("utf-8")
         except HTTPError as e:
             print(e)
             raise HTTPError
         return result
 
     @classmethod
-    def create_fuseki_dataset(cls, nameDataset, urlDataset):
+    def create_dataset(cls, nameDataset, urlDataset):
         headers = {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}
         data = 'dbName={0}&dbType=mem'.format(nameDataset)
         endpoint = '{0}/$/datasets'.format(urlDataset)
@@ -176,7 +170,7 @@ class HttpQuadStore(object):
             raise HTTPError
         return cls(nameDataset=nameDataset, urlDataset=urlDataset)
 
-    def delete_fuseki_dataset(self):
+    def delete_dataset(self):
         # headers = {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}
         endpoint = '{0}/$/datasets/{1}'.format(self._urlDataset, self._nameDataset)
         request = Request(endpoint, method='DELETE')

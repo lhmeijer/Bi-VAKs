@@ -21,6 +21,7 @@ class BranchRequest(Request):
             self._branchedOffRevision = self._precedingTransactionRevision
 
         self._branchIndex = revisionStore.new_branch_index()
+        print("self._branchIndex in branchRequest ", self._branchIndex)
         self._headRevision = None
         self._branch = None
 
@@ -31,9 +32,9 @@ class BranchRequest(Request):
 
         # Obtain the name of the branch
         branchName = self._request.values.get('name', None) or None
-        if branchName is not None:
+        if branchName:
             self._branchName = Literal(branchName)
-
+        print("self._branchName ", self._branchName)
         # Obtain the branch from which the branch branches off.
         revisionID = self._request.values.get('revision', None) or None
         if revisionID is not None:
@@ -51,6 +52,8 @@ class BranchRequest(Request):
         return revision
 
     def valid_revisions_from_request(self):
+
+        print("self._branchIndex in branchRequest ", self._branchIndex)
 
         revision = Branch.revision_from_data(
             branchName=self._branchName, revisionNumber=self._revisionNumber,

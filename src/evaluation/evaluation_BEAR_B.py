@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     if createStore:
         # seed, numberUpdates, indexCloseness, indexWidth, snapshots, branches, modifiedUpdates, reference, content
-        snapshotIndices = [[0], [0, 1], [0, 1], [0, 1], [0, 1, 2], [0], [0], [0, 1], [0]]       # -> 48
+        snapshotIndices = [[0], [10, 100], [0, 1], [0, 1], [None, 'N', 'F'], [None], [0], [0, 1], [0]]       # -> 48
         permutationsSnapshotIndices = list(itertools.product(*snapshotIndices))
         branchIndices = [[0], [0, 1], [0], [1], [0], [1], [0], [0, 1], [0]]     # -> 4
         permutationsBranchIndices = list(itertools.product(*branchIndices))
@@ -58,8 +58,6 @@ if __name__ == "__main__":
                 args = get_default_configuration()
                 args['referenceStrategy'] = {'explicit': config.REFERENCE_EXPLICIT,
                                              'implicit': config.REFERENCE_IMPLICIT}
-                args['fetchingStrategy'] = {'queryAllUpdates': config.FETCHING_ALL,
-                                            'querySpecificUpdates': config.FETCHING_SPECIFIC}
                 args['UpdateContentStrategy'] = {'repeated': config.CONTENT_REPEATED, 'related': config.CONTENT_RELATED}
 
                 application = create_app(args).test_client()
@@ -67,9 +65,37 @@ if __name__ == "__main__":
                 store = StoreCreator(application=application, config=config,
                                      modificationsFolder=config.raw_change_data_dir,
                                      updateDataFile=config.updates_file_name)
-                store.set_up_revision_store()
-                store.reset_store_creator()
+                store.reset_revision_store()
 
     if evaluateQueries:
-        evaluator = Evaluator(config=config, application=application)
-        evaluator.evaluate()
+        # seed, numberUpdates, indexCloseness, indexWidth, snapshots, branches, modifiedUpdates, reference, content
+        snapshotIndices = [[0], [0, 1], [0, 1], [0, 1], [0, 1, 2], [0], [0], [0, 1], [0]]       # -> 48
+        permutationsSnapshotIndices = list(itertools.product(*snapshotIndices))
+        branchIndices = [[0], [0, 1], [0], [1], [0], [1], [0], [0, 1], [0]]     # -> 4
+        permutationsBranchIndices = list(itertools.product(*branchIndices))
+        modifiedIndices = [[0], [0, 1], [0], [1], [0], [0], [1, 2], [0, 1], [0, 1]]     # -> 16
+        permutationsModifiedIndices = list(itertools.product(*modifiedIndices))
+
+        permutationsIndices = snapshotIndices + branchIndices + modifiedIndices
+        for indices in permutationsIndices:
+            print("indices ", indices)
+            config = BearBConfiguration(seedIndex=indices[0], indexCloseness=indices[2], indexWidth=indices[3],
+                                        triplesPerUpdateIndex=indices[1], snapshotIndex=indices[4],
+                                        branchIndex=indices[5], modifiedUpdateIndex=indices[6],
+                                        referenceIndex=indices[7], contentIndex=indices[8])
+                # TODO set up de revision store from a
+            if os.path.isfile(config.revision_store_file_name):
+                args = get_default_configuration()
+                args['referenceStrategy'] = {'explicit': config.REFERENCE_EXPLICIT,
+                                             'implicit': config.REFERENCE_IMPLICIT}
+                args['fetchingStrategy'] = {'queryAllUpdates': config.FETCHING_ALL,
+                                            'querySpecificUpdates': config.FETCHING_SPECIFIC}
+                args['UpdateContentStrategy'] = {'repeated': config.CONTENT_REPEATED, 'related': config.CONTENT_RELATED}
+
+                application = create_app(args).test_client()
+
+                evaluator = Evaluator(config=config, application=application,
+                                      revisionStoreFileName=config.revision_store_file_name)
+                evaluator.set_up_revision_store()
+                evaluator.evaluate()
+                evaluator.reset_revision_store()

@@ -41,7 +41,7 @@ class Revision(object):
 
     @preceding_revision.setter
     def preceding_revision(self, precedingRevision):
-        if precedingRevision:
+        if precedingRevision is not None:
             self._RDFPatterns.append(Triple((self._identifier, self.predicateOfPrecedingRevision, precedingRevision)))
         self._precedingRevision = precedingRevision
 
@@ -51,7 +51,7 @@ class Revision(object):
 
     @hexadecimal_of_hash.setter
     def hexadecimal_of_hash(self, hexadecimalOfHash):
-        if hexadecimalOfHash:
+        if hexadecimalOfHash is not None:
             self._RDFPatterns.append(Triple((self._identifier, BITR4QS.hash, hexadecimalOfHash)))
         self._hexadecimalOfHash = hexadecimalOfHash
 
@@ -61,7 +61,7 @@ class Revision(object):
 
     @revision_number.setter
     def revision_number(self, revisionNumber):
-        if revisionNumber:
+        if revisionNumber is not None:
             self._RDFPatterns.append(Triple((self._identifier, BITR4QS.revisionNumber, revisionNumber)))
         self._revisionNumber = revisionNumber
 
@@ -123,9 +123,9 @@ class Revision(object):
 
     def __dict__(self):
         result = {'identifier': str(self._identifier), 'hexadecimalOfHash': str(self._hexadecimalOfHash)}
-        if self._precedingRevision:
+        if self._precedingRevision is not None:
             result['precedingRevision'] = str(self._precedingRevision)
-        if self._revisionNumber:
+        if self._revisionNumber is not None:
             result['revisionNumber'] = str(self._revisionNumber)
         return result
 

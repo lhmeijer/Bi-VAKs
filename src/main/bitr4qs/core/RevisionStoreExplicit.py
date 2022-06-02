@@ -69,7 +69,7 @@ class RevisionStoreExplicit(RevisionStore):
         ?revision :tag ?tag . }}
         WHERE {{ {1} :precedingRevision* ?revision .{2}
         ?revision :precedingRevision ?precedingRevision .
-        ?revision :tag ?tag . 
+        OPTIONAL {{ ?revision :tag ?tag . }}
         }}""".format(str(BITR4QS), revisionA.n3(), revisionEndConstrain)
         stringOfTagRevisions = self._revisionStore.execute_construct_query(SPARQLQuery, 'nquads')
         return stringOfTagRevisions

@@ -72,21 +72,24 @@ class Parser(object):
         orderedValidRevisions = {}
         nOfRevisions = len(validRevisions)
         i = 0
-        while i == nOfRevisions:
+        while i < nOfRevisions:
             if str(endRevision) in transactionRevisions:
                 revision = transactionRevisions[str(endRevision)]
                 endRevision = revision.preceding_revision
+                validRevisionIDs = revision.valid_revisions
+                if validRevisionIDs:
+                    for _, validRevisionID in validRevisionIDs:
+                        if str(validRevisionID) in validRevisions:
+                            validRevision = validRevisions[str(validRevisionID)]
 
-                if revision.valid_revision is not None:
-                    validRevision = validRevisions[str(revision.valid_revision)]
+                            if forwards:
+                                j = nOfRevisions - i - 1
+                                orderedValidRevisions[j] = validRevision
+                            else:
+                                orderedValidRevisions[i] = validRevision
 
-                    if forwards:
-                        j = nOfRevisions - i
-                        orderedValidRevisions[j] = validRevision
-                    else:
-                        orderedValidRevisions[i] = validRevision
-
-                    i += 1
+                            i += 1
+        print("orderedValidRevisions ", orderedValidRevisions)
         return orderedValidRevisions
 
     @classmethod
@@ -171,7 +174,7 @@ class Parser(object):
 
     @staticmethod
     def _parse_transaction_revision(revision, p, o):
-        predicates = [str(BITR4QS.branch), str(BITR4QS.snapshot), str(BITR4QS.tag), str(BITR4QS.update)]
+        predicates = [str(BITR4QS.snapshot), str(BITR4QS.tag), str(BITR4QS.update)]
         if str(p) in predicates:
             revision.add_valid_revision(o)
 

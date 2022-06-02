@@ -44,9 +44,6 @@ class RevisionStore(object):
         SPARQLQuery = "DROP ALL"
         self._revisionStore.execute_update_query(SPARQLQuery)
 
-    def data_of_revision_store(self, returnFormat):
-        return self._revisionStore.data_of_store(returnFormat)
-
     def revision_from_identifier(self, revisionID):
         """
 
@@ -126,6 +123,27 @@ class RevisionStore(object):
     @staticmethod
     def main_branch_index():
         return None
+
+    def all_revisions(self, revisionType, isValidRevision=True):
+        if not isValidRevision:
+            nameOfType = '{0}Revision'.format(revisionType.title())
+        else:
+            nameOfType = revisionType.title()
+
+        SPARQLQuery = """CONSTRUCT {{ ?revision ?p ?o }}
+        WHERE {{ 
+            ?revision rdf:type :{0} .
+            MINUS {{
+                ?other rdf:type :{0} .
+                ?other :preceding{1} ?revision .
+            }}
+            ?revision ?p ?o .
+        }}""".format(nameOfType, revisionType.title())
+        stringOfRevisions = self._revisionStore.execute_construct_query(
+            '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
+        func = getattr(self, '_' + revisionType)
+        revisions = func(stringOfRevisions, isValidRevision=isValidRevision)
+        return revisions
 
     def preceding_modifications(self, updateID: URIRef):
         SPARQLQuery = """CONSTRUCT {{
@@ -318,6 +336,18 @@ class RevisionStore(object):
         tags = parser.TagParser.parse_revisions(stringOfTag, revisionName='valid')
         return self._fetch_revision(tags)
 
+    def snapshot_from_name_dataset(self, nameDataset: Literal):
+        """
+        Function to obtain the Snapshots from its dataset name.
+        :param nameDataset:
+        :return:
+        """
+        SPARQLQuery = """DESCRIBE ?snapshot
+        WHERE {{ ?snapshot :nameDataset {0} }}""".format(nameDataset.n3())
+        string = self._revisionStore.execute_describe_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
+        snapshots = parser.SnapshotParser.parse_revisions(string, revisionName='valid')
+        return self._fetch_revision(snapshots)
+
     def can_quad_be_modified(self, quad, revisionA: URIRef, revisionB: URIRef, revisionC: URIRef = None,
                              startDate: Literal = None, endDate: Literal = None, deletion=False):
 
@@ -405,7 +435,7 @@ class RevisionStore(object):
         return True
 
     def can_quad_be_added_or_deleted(self, quad, headRevision: URIRef, startDate: Literal = None,
-                                     endDate: Literal = None, deletion=False):
+                                     endDate: Literal = None, deletion=False, revisionID=None):
         if startDate:
             startDate = datetime.strptime(str(startDate), "%Y-%m-%dT%H:%M:%S+00:00")
 
@@ -422,19 +452,23 @@ class RevisionStore(object):
         # Obtain subquery before a transaction revisions
         subQuery = self._valid_revisions_in_graph(revisionA=headRevision, queryType='SelectQuery',
                                                   revisionType='update', prefix=False)
-        SPARQLQuery = """SELECT ?p ?startDate ?endDate
+        SPARQLQuery = """SELECT ?revision ?p ?startDate ?endDate
         WHERE {{ {{ {0} }}
         OPTIONAL {{ ?revision :startedAt ?startDate . }}
         OPTIONAL {{ ?revision :endedAt ?endDate . }}
         {1}{2}
         }}""".format(subQuery, content, where)
-
+        print("SPARQLQuery ", SPARQLQuery)
         results = self._revisionStore.execute_select_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'json')
         numberInsertions = 0
         numberDeletions = 0
-
+        print("results ", results)
+        print("revisionID ", revisionID)
         for result in results['results']['bindings']:
+            if revisionID and result['revision']['value'] == str(revisionID):
+                continue
+
             otherStartDate = None
             if 'startDate' in result:
                 otherStartDate = datetime.strptime(result['startDate']['value'], "%Y-%m-%dT%H:%M:%S+00:00")
@@ -686,9 +720,10 @@ class RevisionStore(object):
             }}
             {2}{3}
         }}""".format(construct, updateWhere, where, content)
-        # print("SPARQLQuery ", SPARQLQuery)
+        print("SPARQLQuery ", SPARQLQuery)
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
+        print("stringOfUpdates ", stringOfUpdates)
         updateParser.parse_aggregate(stringOfUpdates, forward)
 
     def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str,
@@ -714,18 +749,19 @@ class RevisionStore(object):
         """
         stringOfSnapshots = self._valid_revisions_in_graph(revisionA=headRevision, queryType='DescribeQuery',
                                                            revisionType='snapshot')
-
         snapshots = parser.SnapshotParser.parse_revisions(stringOfSnapshots, 'valid')
+
         if len(snapshots) == 0:
             return None
-
-        referenceTime = datetime.strptime(str(validTime), "%Y-%m-%dT%H:%M:%S+02:00")
+        print("validTime ", validTime)
+        referenceTime = datetime.strptime(str(validTime), "%Y-%m-%dT%H:%M:%S+00:00")
+        print("referenceTime ", referenceTime)
 
         minimumDifference = None
         minimumSnapshot = None
         for snapshotID, snapshot in snapshots.items():
 
-            time = datetime.strptime(str(snapshot.effective_date), "%Y-%m-%dT%H:%M:%S+02:00")
+            time = datetime.strptime(str(snapshot.effective_date), "%Y-%m-%dT%H:%M:%S+00:00")
             difference = referenceTime - time if referenceTime > time else time - referenceTime
 
             if minimumDifference is None:

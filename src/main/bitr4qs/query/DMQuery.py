@@ -136,5 +136,5 @@ class DMQuery(Query):
                 results['results']['deletions'].append(result)
             else:
                 results['results']['insertions'].append(result)
-
+        print('results ', results)
         return results

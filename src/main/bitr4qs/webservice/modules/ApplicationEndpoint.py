@@ -24,16 +24,30 @@ def get_number_of_quads():
         return make_response('Error after executing number of quads in revision store.', 400)
 
 
-@ApplicationEndpoint.route("/empty", methods=['POST'])
-def empty_revision_store():
+@ApplicationEndpoint.route("/reset", methods=['DELETE'])
+def reset_store():
     BiTR4QsConfiguration = current_app.config['BiTR4QsConfiguration']
     BiTR4QsCore = BiTR4QsSingleton.get(BiTR4QsConfiguration)
     try:
-        BiTR4QsCore.empty_revision_store()
+        BiTR4QsCore.reset_revision_store()
         response = make_response('success', 200)
         return response
     except Exception as e:
-        return make_response('Error after executing empty revision store.', 400)
+        return make_response('Error after executing reset revision store.', 400)
+
+
+@ApplicationEndpoint.route("/upload", methods=['POST'])
+def upload_revision_store():
+    BiTR4QsConfiguration = current_app.config['BiTR4QsConfiguration']
+    BiTR4QsCore = BiTR4QsSingleton.get(BiTR4QsConfiguration)
+
+    returnFormat = request.headers['Accept']
+    try:
+        BiTR4QsCore.upload_revision_store(data=request.data, returnFormat=returnFormat)
+        response = make_response('success', 200)
+        return response
+    except Exception as e:
+        return make_response('Error after executing upload revision store.', 400)
 
 
 @ApplicationEndpoint.route("/data", methods=['GET'])
@@ -43,7 +57,7 @@ def data_of_revision_store():
 
     returnFormat = request.headers['Accept']
     try:
-        data = BiTR4QsCore.save_file_of_revision_store(returnFormat)
+        data = BiTR4QsCore.get_revision_store(returnFormat)
         response = make_response(data, 200)
         response.headers['Content-Type'] = returnFormat
         return response

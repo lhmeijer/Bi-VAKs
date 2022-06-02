@@ -98,6 +98,6 @@ class SnapshotTest(unittest.TestCase):
         self.assertEqual(obj['effectiveDate'], "2021-06-16T00:00:00+00:00")
         self.assertEqual(obj['nameDataset'], "test-snapshot")
         self.assertEqual(obj['urlDataset'], "http://localhost:3030")
-        self.assertEqual(obj['transactionRevision'], "http://bi-tr4qs.org/vocab/Revision_93jgc0p")
+        self.assertEqual(obj['transactionRevision'], "http://bi-tr4qs.org/vocab/Revision_dk290vw")
         self.assertEqual(obj['branchIndex'], "0")
         self.assertEqual(obj['revisionNumber'], response.headers['X-CurrentRevisionNumber'])

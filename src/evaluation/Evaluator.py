@@ -5,16 +5,29 @@ import numpy as np
 from .preprocess_BEAR_B import get_queries_from_nt_file
 from datetime import datetime, timedelta
 from timeit import default_timer as timer
+from src.main.bitr4qs.store.HttpQuadStore import HttpQuadStore
 
 
 class Evaluator(object):
 
-    def __init__(self, application, config):
+    def __init__(self, application, config, revisionStoreFileName):
         self._application = application
         self._config = config
 
+        self._revisionStoreFileName = revisionStoreFileName
+
         self._queries = get_queries_from_nt_file(self._config.bear_queries_file_name)
         self._nOfQueries = len(self._queries) if not self._config.NUMBER_OF_QUERIES else self._config.NUMBER_OF_QUERIES
+
+    def set_up_revision_store(self):
+        with open(self._revisionStoreFileName) as file:
+            response = self._application.post('/upload', data=file.read(), headers=dict(accept="application/n-triples"))
+
+    def reset_revision_store(self):
+        try:
+            self._application.post('/reset')
+        except Exception:
+            raise Exception
 
     def evaluate(self):
         """
@@ -99,7 +112,7 @@ class Evaluator(object):
         for i in jumps:
             start = timer()
             results = self._application.get('/query', query_string=dict(
-                query=query.to_select_query(), queryAtomType='DM', tagA='version 0', tagB='version {0}'.format(i)),
+                query=query.to_select_query(), queryAtomType='DM', tagA='version 1', tagB='version {0}'.format(i)),
                                headers=dict(accept="application/sparql-results+json"))
             end = timer()
             time.append(timedelta(seconds=end - start).total_seconds())
@@ -110,22 +123,21 @@ class Evaluator(object):
 
             jsonResults = json.loads(results.read().decode("utf-8"))
 
-            for jsonResult in jsonResults['results']['insertions']:
-                try:
-                    self._compare_results(jsonResult, trueResults[i]['insertions'])
-                except Exception:
-                    raise Exception
+            try:
+                self._compare_results(jsonResults['results']['insertions'], trueResults[i]['insertions'])
+            except Exception:
+                raise Exception
 
-            for jsonResult in jsonResults['results']['deletions']:
-                try:
-                    self._compare_results(jsonResult, trueResults[i]['deletions'])
-                except Exception:
-                    raise Exception
+            try:
+                self._compare_results(jsonResults['results']['deletions'], trueResults[i]['deletions'])
+            except Exception:
+                raise Exception
 
         return time, totalNumberOfTriples
 
     def _evaluate_vq_query(self, queryIndex, query):
         realResults = self._extract_vq_results_from_file('{0}-{1}.txt'.format(self._config.bear_results_dir, queryIndex))
+        nOfVersionsInRealResults = np.count_nonzero(realResults == 1)
 
         time = []
         totalNumberOfTriples = []
@@ -141,14 +153,22 @@ class Evaluator(object):
         totalNumberOfTriples.append(numberOfTriples)
 
         jsonResults = json.loads(results.read().decode("utf-8"))
+        nOfVersions = 0
 
-        for variableName, variableResult in jsonResults.items():
-            if variableResult['value'] not in realResults:
+        for result in jsonResults['results']['bindings']:
+            versionNumber = int(re.findall(r'\d+', result['tagName']['value'])[0])
+            if realResults[versionNumber] == 1:
+                nOfVersions += 1
+            else:
                 raise Exception
+
+        if nOfVersionsInRealResults != nOfVersions:
+            raise Exception
 
         return time, totalNumberOfTriples
 
-    def _compare_results(self, jsonResults, trueResults):
+    @staticmethod
+    def _compare_results(jsonResults, trueResults):
 
         results = set()
         for jsonResult in jsonResults:
@@ -205,7 +225,13 @@ class Evaluator(object):
         return results
 
     def _extract_vq_results_from_file(self, fileName):
-        return self._extract_vm_results_from_file(fileName)
+        results = np.zeros(self._config.NUMBER_OF_VERSIONS+1)
+        with open(fileName, "r") as file:
+            for line in file:
+                stringWithinBrackets = re.search(r"\[.*?]", line).group(0)
+                versionNumber = int(re.findall(r'\d+', stringWithinBrackets)[0])
+                results[versionNumber] = 1
+        return results
 
 
 

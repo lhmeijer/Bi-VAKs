@@ -114,6 +114,8 @@ class Update(ValidRevision):
     def modify(self, revisionStore, headRevision, otherModifications=None, otherStartDate=None, otherEndDate=None,
                revisionNumber=None, branchIndex=None, relatedContent=False):
 
+        print("branchIndex in modify ", branchIndex)
+
         startDate = otherStartDate if otherStartDate is not None else self._startDate
         endDate = otherEndDate if otherEndDate is not None else self._endDate
 
@@ -168,10 +170,9 @@ class Update(ValidRevision):
                     raise Exception("Modified quad cannot exist in this update.")
 
         for modification in self._modifications:
-            canBeModified = revisionStore.can_quad_be_modified(
-                quad=modification.value, revisionA=headRevision, revisionB=transactionRevision.identifier,
-                revisionC=transactionRevision.preceding_revision, startDate=startDate, endDate=endDate,
-                deletion=modification.deletion)
+            canBeModified = revisionStore.can_quad_be_added_or_deleted(
+                quad=modification.value, headRevision=headRevision, startDate=startDate, endDate=endDate,
+                deletion=modification.deletion, revisionID=self._identifier)
             if not canBeModified:
                 raise Exception("Quad cannot exist in this update with this new start or end date.")
 

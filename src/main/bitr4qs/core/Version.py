@@ -18,6 +18,22 @@ class Version(object):
         return self._updateParser.number_of_processed_quads
 
     @property
+    def valid_time(self):
+        return self._validTime
+
+    @valid_time.setter
+    def valid_time(self, validTime):
+        self._validTime = validTime
+
+    @property
+    def transaction_time(self):
+        return self._transactionTime
+
+    @transaction_time.setter
+    def transaction_time(self, transactionTime):
+        self._transactionTime = transactionTime
+
+    @property
     def update_parser(self):
         return self._updateParser
 
@@ -121,8 +137,10 @@ class Version(object):
         snapshot = None
         if previousTransactionTime is None or previousValidTime is None:
             print("Determine the closest snapshot.")
-            snapshot = self._revisionStore.closest_snapshot(self._validTime, headRevision)
-
+            print("self._validTime ", self._validTime)
+            snapshot = self._revisionStore.closest_snapshot(validTime=self._validTime, headRevision=headRevision)
+            print("snapshot ", snapshot)
+        snapshot = None
         if previousTransactionTime and previousValidTime:
             self.modifications_between_two_states(transactionA=self._transactionTime, validA=self._validTime,
                                                   transactionB=previousTransactionTime, validB=previousValidTime)

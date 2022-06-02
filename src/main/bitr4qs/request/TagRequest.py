@@ -33,12 +33,12 @@ class TagRequest(Request):
 
         # Obtain the effective date
         effectiveDate = self._request.values.get('date', None) or None
-        if effectiveDate is not None:
+        if effectiveDate:
             self._effectiveDate = Literal(effectiveDate, datatype=XSD.dateTimeStamp)
 
         # Obtain the transaction time based on a given transaction revision
         revisionID = self._request.values.get('revision', None) or None
-        if revisionID is not None:
+        if revisionID:
             if revisionID == 'HEAD':
                 self._transactionRevision = 'HEAD'
             else:
@@ -48,7 +48,7 @@ class TagRequest(Request):
 
         # Obtain the name of the tag
         name = self._request.values.get('name', None) or None
-        if name is not None:
+        if name:
             self._tagName = Literal(name)
 
     def transaction_revision_from_request(self):
@@ -61,6 +61,7 @@ class TagRequest(Request):
         return revision
 
     def valid_revisions_from_request(self):
+        print("self._branchIndex in tagRequest ", self._branchIndex)
         if self._transactionRevision == 'HEAD':
             self._transactionRevision = self._currentTransactionRevision
         # print("self._tagName ", self._tagName)

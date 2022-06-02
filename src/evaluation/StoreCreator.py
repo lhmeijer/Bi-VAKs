@@ -7,6 +7,7 @@ from timeit import default_timer as timer
 import json
 from src.main.bitr4qs.namespace import BITR4QS
 import os
+from src.main.bitr4qs.store.HttpQuadStore import HttpQuadStore
 
 
 class StoreCreator(object):
@@ -31,15 +32,11 @@ class StoreCreator(object):
 
         np.random.seed(self._config.SEED)
 
-    def reset_store_creator(self):
-        self._application.post('/empty')
-        numberOfQuadsResponse = self._application.get('/quads')
-        numberOfQuads = numberOfQuadsResponse.data.decode("utf-8")
-        print("numberOfQuads ", numberOfQuads)
-        if numberOfQuads > 0:
-            raise Exception("Revision store should be empty.")
-
-
+    def reset_revision_store(self):
+        try:
+            self._application.post('/reset')
+        except Exception:
+            raise Exception
 
     def set_up_revision_store(self):
 

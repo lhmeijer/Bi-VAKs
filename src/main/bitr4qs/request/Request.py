@@ -65,6 +65,7 @@ class Request(object):
                 raise e
         else:
             self._branchIndex = revisionStore.main_branch_index()
+            print('self._branchIndex in request ', self._branchIndex)
 
         # Obtain the head of the transaction revisions and its revision number
         try:

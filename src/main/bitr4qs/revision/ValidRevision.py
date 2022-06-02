@@ -23,6 +23,6 @@ class ValidRevision(Revision):
 
     def __dict__(self):
         result = super().__dict__()
-        if self._branchIndex:
+        if self._branchIndex is not None:
             result['branchIndex'] = str(self._branchIndex)
         return result

@@ -41,12 +41,11 @@ class RevisionStoreImplicit(RevisionStore):
         # Execute the SELECT query on the revision store
         result = self._revisionStore.execute_select_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'json')
-        # print("result ", result)
 
         if 'branchIndex' in result['results']['bindings'][0]:
             branchIndex = int(result['results']['bindings'][0]['branchIndex']['value']) + 1
         else:
-            branchIndex = int(1)
+            branchIndex = 1
 
         return Literal(branchIndex, datatype=XSD.nonNegativeInteger)
 
@@ -59,97 +58,98 @@ class RevisionStoreImplicit(RevisionStore):
         """
         pairs = []
         while revisionA is not None:
-            if revisionB is not None:
-                SPARQLQuery = """SELECT ?revisionNumberA ?branchIndex ?revision ?stopRevisionNumber
+            if revisionB:
+                SPARQLQuery = """SELECT ?revisionNumberA ?branchIndexA ?branchIndexB ?revision ?revisionNumberB
                 WHERE {{
                     {0} :revisionNumber ?revisionNumberA .
                     OPTIONAL {{ 
-                        {1} :branch ?branch .
+                        {0} :branch ?branch .
                         ?branch :branchedOffAt ?revision .
-                        ?branch :branchIndex ?branchIndex. 
+                        ?branch :branchIndex ?branchIndexA. 
                     }}
                     {1} :revisionNumber ?revisionNumberB .
-                    BIND(IF( ?revisionNumberA < ?revisionNumberB, ?revisionNumberB, ?revisionNumberA) AS ?stopRevisionNumber) 
+                    OPTIONAL {{ 
+                        {1} :branch ?branchB .
+                        ?branchB :branchIndex ?branchIndexB. 
+                    }}
                 }}""".format(revisionA.n3(), revisionB.n3())
                 # Execute the SELECT query on the revision store
                 result = self._revisionStore.execute_select_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'json')
-                revisionNumber = Literal(result['results']['bindings'][0]['revisionNumberA']['value'], datatype=XSD.nonNegativeInteger)
-                stopRevisionNumber = Literal(result['results']['bindings'][0]['stopRevisionNumber']['value'], datatype=XSD.nonNegativeInteger)
+                if 'branchIndexB' in result['results']['bindings'][0]:
+                    branchIndexB = int(result['results']['bindings'][0]['branchIndexB']['value'])
+                else:
+                    branchIndexB = 0
 
             else:
-                SPARQLQuery = """SELECT ?revisionNumber ?branchIndex ?revision
+                SPARQLQuery = """SELECT ?revisionNumberA ?branchIndexA ?revision
                 WHERE {{ 
-                    {0} :revisionNumber ?revisionNumber .
+                    {0} :revisionNumber ?revisionNumberA .
                     OPTIONAL {{ 
                         {0} :branch ?branch .
                         ?branch :branchedOffAt ?revision .
-                        ?branch :branchIndex ?branchIndex. 
+                        ?branch :branchIndex ?branchIndexA . 
                     }}
                 }}""".format(revisionA.n3())
                 # Execute the SELECT query on the revision store
                 result = self._revisionStore.execute_select_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'json')
-                print("result ", result)
-                revisionNumber = Literal(result['results']['bindings'][0]['revisionNumber']['value'], datatype=XSD.nonNegativeInteger)
-                stopRevisionNumber = revisionNumber
+                branchIndexB = None
+
+            revisionNumberA = int(result['results']['bindings'][0]['revisionNumberA']['value'])
 
             if 'revision' in result['results']['bindings'][0]:
                 revisionA = URIRef(result['results']['bindings'][0]['revision']['value'])
-                branchIndex = Literal(result['results']['bindings'][0]['branchIndex']['value'], datatype=XSD.nonNegativeInteger)
+                branchIndexA = int(result['results']['bindings'][0]['branchIndexA']['value'])
             else:
                 revisionA = None
-                branchIndex = Literal(0, datatype=XSD.nonNegativeInteger)
+                branchIndexA = 0
 
-            if revisionNumber != stopRevisionNumber:
+            if branchIndexB is not None and branchIndexA == branchIndexB:
                 revisionA = None
-                pairs.append((revisionNumber, branchIndex, stopRevisionNumber))
+                revisionNumberB = int(result['results']['bindings'][0]['revisionNumberB']['value'])
+                pairs.append((revisionNumberA, branchIndexA, revisionNumberB))
             else:
-                pairs.append((revisionNumber, branchIndex))
+                pairs.append((revisionNumberA, branchIndexA))
         print("pairs ", pairs)
         return pairs
 
     @staticmethod
-    def _select_valid_revision(pair, variableName='?revision'):
+    def _select_valid_revision(pair, revisionNumber='?revisionNumber', branchIndex='?branchIndex'):
         if len(pair) == 3:
-            filterString = "FILTER ( ?revisionNumber <= {0} && ?revisionNumber >= {1} )".format(pair[0].n3(), pair[2].n3())
+            filterString = "( {3} = {0} && {4} <= {1} && {4} > {2} )".format(
+                pair[1], pair[0], pair[2], branchIndex, revisionNumber)
         else:
-            filterString = "FILTER ( ?revisionNumber <= {0} )".format(pair[0].n3())
-        SPARQLString = """{2} :branchIndex {0} . 
-        {2} :revisionNumber ?revisionNumber .
-        {1}""".format(pair[1].n3(), filterString, variableName)
-        return SPARQLString
+            filterString = "( {2} = {0} && {3} <= {1} )".format(pair[1], pair[0], branchIndex, revisionNumber)
+        return filterString
 
     @staticmethod
-    def _select_transaction_revision(pair, variableName='?revision'):
-        if len(pair) == 3:
-            filterString = "FILTER ( ?revisionNumber <= {0} && ?revisionNumber >= {1} )".format(pair[0].n3(),
-                                                                                                pair[2].n3())
-        else:
-            filterString = "FILTER ( ?revisionNumber <= {0} )".format(pair[0].n3())
+    def _select_transaction_revision(pair, revisionNumber='?revisionNumber', branchIndex='?branchIndex'):
 
-        if pair[1].value == 0:
-            SPARQLString = """{0} :revisionNumber ?revisionNumber .
-            {1}
-            FILTER NOT EXISTS {{ {0} :branch ?branch }}""".format(variableName, filterString)
+        if pair[1] == 0:
+            if len(pair) == 3:
+                filterString = "( !bound({2}) && {3} <= {0} && {3} > {1} )".format(
+                    pair[0], pair[2], branchIndex, revisionNumber)
+            else:
+                filterString = "( !bound({1}) && {2} <= {0} )".format(pair[0], branchIndex, revisionNumber)
         else:
-            SPARQLString = """{2} :revisionNumber ?revisionNumber .
-            {1}
-            {2} :branch ?branch .
-            ?branch :branchIndex {0} .""".format(pair[1].n3(), filterString, variableName)
-        return SPARQLString
+            if len(pair) == 3:
+                filterString = "( {3} = {2} && {4} <= {0} && {4} > {1} )".format(
+                    pair[0], pair[2], pair[1], branchIndex, revisionNumber)
+            else:
+                filterString = "( {2} = {1} && {3} <= {0} )".format(pair[0], pair[1], branchIndex, revisionNumber)
+        return filterString
 
     def _transaction_revision(self, transactionRevisionA, transactionRevision, transactionRevisionB=None):
 
         pairs = self._get_pairs_of_revision_numbers_and_branch_indices(transactionRevisionA, transactionRevisionB)
-        variable = '?revision'
-        if len(pairs) == 1:
-            unions = self._select_transaction_revision(pairs[0], variable)
-        else:
-            unions = "\nUNION\n".join("{{ {0} }}".format(self._select_transaction_revision(pair, variable)) for pair in pairs)
+        revisionFilter = " || ".join(self._select_transaction_revision(pair) for pair in pairs)
 
         SPARQLQuery = """CONSTRUCT {{ ?revision ?p ?o }}
-        WHERE {{ {0}
+        WHERE {{ 
+        ?revision :revisionNumber ?revisionNumber .
+        OPTIONAL {{ ?revision :branch ?branch . ?branch :branchIndex ?branchIndex . }}
+        FILTER ( {0} )
         FILTER ( {1} = ?revision )
-        ?revision ?p ?o . }}""".format(unions, transactionRevision.n3())
+        ?revision ?p ?o . }}""".format(revisionFilter, transactionRevision.n3())
         return '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery))
 
     def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str,
@@ -162,28 +162,30 @@ class RevisionStoreImplicit(RevisionStore):
         :return:
         """
         pairs = self._get_pairs_of_revision_numbers_and_branch_indices(revisionA, revisionB)
-        variable = '?revision'
 
-        if len(pairs) == 1:
-            unions = self._select_valid_revision(pairs[0], variable)
-            otherUnions = self._select_valid_revision(pairs[0], '?other')
-        else:
-            unions = " UNION ".join("{{ {0} }}".format(self._select_valid_revision(pair, variable)) for pair in pairs)
-            otherUnions = " UNION ".join("{{ {0} }}".format(self._select_valid_revision(pair, '?other')) for pair in pairs)
+        revisionFilter = " || ".join(self._select_valid_revision(pair) for pair in pairs)
+        otherFilter = " || ".join(self._select_valid_revision(pair, revisionNumber='?otherRevisionNumber',
+                                                              branchIndex='?otherBranchIndex') for pair in pairs)
 
         queryString = "DESCRIBE" if queryType == 'DescribeQuery' else 'SELECT'
-        prefixString = "PREFIX : <{0}>\n".format(str(BITR4QS)) if prefix else ""
+        prefixString = '\n'.join((self.prefixRDF, self.prefixBiTR4Qs)) if prefix else ""
 
-        SPARQLQuery = """{0}{1} {2}
+        SPARQLQuery = """{0}
+        {1} ?revision
         WHERE {{ 
-            ?revision rdf:type :{3} .
-            {4}{5}
+            ?revision rdf:type :{2} .
+            ?revision :revisionNumber ?revisionNumber .
+            ?revision :branchIndex ?branchIndex .
+            FILTER ( {3} ){4}
             MINUS {{
-                ?other rdf:type :{3} .
-                ?other :preceding{3} {2}.
-                {6}
+                ?other rdf:type :{2} .
+                ?other :revisionNumber ?otherRevisionNumber .
+                ?other :branchIndex ?otherBranchIndex .
+                ?other :preceding{2} ?revision.
+                FILTER ( {5} )
             }}
-        }}""".format(prefixString, queryString, variable, revisionType.title(), unions, timeConstrain, otherUnions)
+        }}""".format(prefixString, queryString, revisionType.title(), revisionFilter, timeConstrain, otherFilter)
+        print("SPARQLQuery ", SPARQLQuery)
         if prefix and queryType == 'DescribeQuery':
             stringOfValidRevisions = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
             return stringOfValidRevisions
@@ -221,49 +223,57 @@ class RevisionStoreImplicit(RevisionStore):
     def get_modifications_of_updates_between_revisions(self, revisionA, revisionB, date, updateParser, quadPattern,
                                                        forward=True):
         pairs = self._get_pairs_of_revision_numbers_and_branch_indices(revisionA, revisionB)
-        unions = " UNION ".join("{{ {0} }}".format(self._select_valid_revision(pair)) for pair in pairs)
+        revisionFilter = " || ".join(self._select_valid_revision(pair) for pair in pairs)
+
         otherPairs = self._get_pairs_of_revision_numbers_and_branch_indices(revisionB)
 
         construct, where = self._construct_where_for_update(quadPattern=quadPattern)
         updateTimeString = self._update_time_string(date=date)
 
         if self.config.related_update_content():
-            otherUnions = " UNION ".join("{{ {0} }}".format(self._select_valid_revision(
-                pair, variableName='?precedingUpdate')) for pair in otherPairs)
+            otherFilter = " || ".join(self._select_valid_revision(
+                pair, branchIndex='?precedingBranchIndex', revisionNumber='?precedingRevisionNumber') for pair in pairs)
             updatePrecedingTimeString = self._update_time_string(date=date, variableName='?precedingUpdate')
-            SPARQLQuery = """PREFIX : <{0}>
-            CONSTRUCT {{ {1} }}
+            SPARQLQuery = """CONSTRUCT {{ {0} }}
             WHERE {{
                     {{
                     SELECT ?precedingUpdate
                     WHERE {{
                          ?revision rdf:type :Update .
-                         {2}{3}
+                         ?revision :revisionNumber ?revisionNumber .
+                         ?revision :branchIndex ?branchIndex .
+                         FILTER ( {1} ){2}
                          ?revision :precedingUpdate ?precedingUpdate .
                         }}
                     }}
-                {4}{5}
+                ?precedingUpdate :revisionNumber ?precedingRevisionNumber .
+                ?precedingUpdate :branchIndex ?precedingBranchIndex .
+                FILTER ( {3} ){4}
                 ?precedingUpdate :precedingUpdate* ?revision .    
-                {6} }}""".format(str(BITR4QS), construct, unions, updateTimeString, otherUnions,
-                                 updatePrecedingTimeString, where)
+                {5} 
+                }}""".format(construct, revisionFilter, updateTimeString, otherFilter,updatePrecedingTimeString, where)
         else:
-            otherUnions = "UNION".join("{{ {0} }}".format(self._select_valid_revision(pair)) for pair in otherPairs)
-            SPARQLQuery = """PREFIX : <{0}>
-            CONSTRUCT {{ {1} }}
+
+            SPARQLQuery = """CONSTRUCT {{ {0} }}
             WHERE {{
                     {{
                     SELECT ?precedingUpdate
                     WHERE {{
                          ?revision rdf:type :Update .
-                         {2}{3}
+                         ?revision :revisionNumber ?revisionNumber .
+                         ?revision :branchIndex ?branchIndex .
+                         FILTER ( {1} ){2}
                          ?revision :precedingUpdate ?precedingUpdate .
                         }}
                     }}
                 BIND ( ?precedingUpdate AS ?revision )
-                {4}{3}
-                {5} }}""".format(str(BITR4QS), construct, unions, updateTimeString, otherUnions, where)
+                ?revision :revisionNumber ?revisionNumber .
+                ?revision :branchIndex ?branchIndex .
+                FILTER ( {1} ){2}
+                {3} }}""".format(construct, revisionFilter, updateTimeString, where)
         print('SPARQLQuery ', SPARQLQuery)
-        stringOfUpdates = self._revisionStore.execute_construct_query(SPARQLQuery, 'nquads')
+        stringOfUpdates = self._revisionStore.execute_construct_query(
+            '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
         print("stringOfUpdates ", stringOfUpdates)
         updateParser.parse_aggregate(stringOfUpdates, forward)
 

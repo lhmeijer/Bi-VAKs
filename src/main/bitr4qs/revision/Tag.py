@@ -23,8 +23,8 @@ class Tag(ValidRevision):
                  tagName: Literal = None,
                  effectiveDate: Literal = None,
                  transactionRevision: URIRef = None,
-                 revisionNumber=None,
-                 branchIndex=None):
+                 revisionNumber: Literal = None,
+                 branchIndex: Literal = None):
         super().__init__(identifier, precedingRevision, hexadecimalOfHash, revisionNumber, branchIndex)
         self.tag_name = tagName
         self.effective_date = effectiveDate
