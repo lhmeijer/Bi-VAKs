@@ -2,7 +2,6 @@ from .RevisionStore import RevisionStore
 from .RevisionStoreExplicit import RevisionStoreExplicit
 from .RevisionStoreImplicit import RevisionStoreImplicit
 from src.main.bitr4qs.revision.HeadRevision import HeadRevision
-from src.main.bitr4qs.store.HttpQuadStore import HttpQuadStore
 
 
 class BiTR4QsSingleton(object):
@@ -11,7 +10,6 @@ class BiTR4QsSingleton(object):
 
     @classmethod
     def get(cls, config):
-        print("cls.BiTR4QsCore ", cls.BiTR4QsCore)
         if cls.BiTR4QsCore is not None:
             return cls.BiTR4QsCore
         else:
@@ -44,7 +42,10 @@ class BiTR4Qs(object):
         :return:
         """
         for revision in revisions:
-            revision.add_to_revision_store(self._revisionStore)
+            try:
+                revision.add_to_revision_store(self._revisionStore)
+            except Exception as e:
+                raise e
 
     def _head_revision(self, precedingHeadRevision, revision):
         """
@@ -55,12 +56,18 @@ class BiTR4Qs(object):
         """
         # Check whether there exists a head revision. If yes -> remove entirely from the revision store.
         if precedingHeadRevision:
-            precedingHeadRevision.delete_to_revision_store(self._revisionStore)
+            try:
+                precedingHeadRevision.delete_to_revision_store(self._revisionStore)
+            except Exception as e:
+                raise e
 
         # Create new head revision and add it to the revision store.
-        headRevision = HeadRevision.revision_from_data(branch=revision.branch, precedingRevision=revision.identifier,
-                                                       revisionNumber=revision.revision_number)
-        headRevision.add_to_revision_store(self._revisionStore)
+        try:
+            headRevision = HeadRevision.revision_from_data(
+                branch=revision.branch, precedingRevision=revision.identifier, revisionNumber=revision.revision_number)
+            headRevision.add_to_revision_store(self._revisionStore)
+        except Exception as e:
+            raise e
 
     def modify_versioning_operation(self, revisionID, request):
         """
@@ -76,20 +83,23 @@ class BiTR4Qs(object):
             revision = self._revisionStore.revision(
                 revisionID=revisionID, revisionType=request.type, isValidRevision=True,
                 transactionRevisionA=transactionRevision.preceding_revision)
-            print("revision ", revision.__dict__())
+
             modifiedRevisions = request.modifications_from_request(revision=revision, revisionStore=self._revisionStore)
         except Exception as e:
-            print("e ", e)
+            print("exception ", e)
             raise e
 
         # Attach the created valid revisions to the transaction revisions for explicit reference.
         self._valid_revisions_to_transaction_revision(transactionRevision, modifiedRevisions)
+        try:
+            # Insert the transaction revision and the valid revisions to the revision store.
+            self._to_revision_store([transactionRevision] + modifiedRevisions)
 
-        # Insert the transaction revision and the valid revisions to the revision store.
-        self._to_revision_store([transactionRevision] + modifiedRevisions)
-
-        # Delete the old HEAD revision and add a new HEAD revision.
-        self._head_revision(request.head_revision, transactionRevision)
+            # Delete the old HEAD revision and add a new HEAD revision.
+            self._head_revision(request.head_revision, transactionRevision)
+        except Exception as e:
+            print("exception ", e)
+            raise e
 
         # Return the modified revisions.
         return [modifiedRevision.__dict__() for modifiedRevision in modifiedRevisions]
@@ -143,17 +153,21 @@ class BiTR4Qs(object):
         except AssertionError:
             raise Exception
         except Exception as e:
-            print("e ", e)
+            print("exception ", e)
             raise e
 
         # Attach the created valid revisions to the transaction revisions for explicit reference.
         self._valid_revisions_to_transaction_revision(transactionRevision, validRevisions)
+        print("transactionRevision ", transactionRevision.__dict__())
+        try:
+            # Insert the transaction revision and the valid revisions to the revision store.
+            self._to_revision_store([transactionRevision] + validRevisions)
 
-        # Insert the transaction revision and the valid revisions to the revision store.
-        self._to_revision_store([transactionRevision] + validRevisions)
-
-        # Delete the old HEAD revision and add a new HEAD revision.
-        self._head_revision(request.head_revision, transactionRevision)
+            # Delete the old HEAD revision and add a new HEAD revision.
+            self._head_revision(request.head_revision, transactionRevision)
+        except Exception as e:
+            print("exception ", e)
+            raise e
 
         # Return the valid revisions.
         return [validRevision.__dict__() for validRevision in validRevisions]
@@ -179,9 +193,10 @@ class BiTR4Qs(object):
     def reset_revision_store(self):
         try:
             snapshots = self._revisionStore.all_revisions('snapshot', isValidRevision=True)
-            for _, snapshot in snapshots.items():
-                snapshot.delete_datastore()
-            self._revisionStore.empty_revision_store()
+            if len(snapshots) > 0:
+                for _, snapshot in snapshots.items():
+                    snapshot.delete_dataset()
+            self._revisionStore.revision_store.empty_dataset()
             numberOfQuads = self.get_number_of_quads_in_revision_store()
         except Exception as e:
             raise Exception
@@ -190,13 +205,17 @@ class BiTR4Qs(object):
             raise Exception("Revision Store should be empty.")
 
     def upload_revision_store(self, data, returnFormat):
-        self._revisionStore.revision_store.upload_to_datastore(data, returnFormat=returnFormat, encoded=True)
-        snapshots = self._revisionStore.all_revisions('snapshot', isValidRevision=True)
-        for _, snapshot in snapshots.items():
-            snapshot.create_datastore(self._revisionStore)
+        try:
+            self._revisionStore.revision_store.upload_to_dataset(data, returnFormat=returnFormat, encoded=True)
+            snapshots = self._revisionStore.all_revisions('snapshot', isValidRevision=True)
+            for _, snapshot in snapshots.items():
+                snapshot.create_dataset(self._revisionStore)
+        except Exception as e:
+            print("e ", e)
+            raise e
 
     def get_revision_store(self, returnFormat):
-        return self._revisionStore.revision_store.get_datastore(returnFormat, decoded=True)
+        return self._revisionStore.revision_store.get_dataset(returnFormat, decoded=True)
 
 
 class BiTR4QsImplicit(BiTR4Qs):

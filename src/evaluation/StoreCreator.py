@@ -7,16 +7,18 @@ from timeit import default_timer as timer
 import json
 from src.main.bitr4qs.namespace import BITR4QS
 import os
-from src.main.bitr4qs.store.HttpQuadStore import HttpQuadStore
 
 
 class StoreCreator(object):
 
-    def __init__(self, application, modificationsFolder, updateDataFile, config):
+    def __init__(self, application, modificationsFolder, updateDataFile, config, revisionStoreFileName,
+                 ingestionResultsFileName):
         self._application = application
         self._modificationsFolder = modificationsFolder
         self._updateDataFile = updateDataFile
         self._config = config
+        self._revisionStoreFileName = revisionStoreFileName
+        self._ingestionResultsFileName = ingestionResultsFileName
 
         self._updateIndex = 0
         self._updateIDs = []
@@ -25,18 +27,55 @@ class StoreCreator(object):
         self._totalNumberOfUpdates = 0
 
         self._runtimeUpdates = []
+        self._numberOfProcessedQuads = []
         self._runtimeModifiedUpdates = []
         self._runtimeSnapshots = []
         self._runtimeBranches = []
         self._runtimeTags = []
+        self._totalNumberOfSeconds = 0
 
         np.random.seed(self._config.SEED)
 
     def reset_revision_store(self):
         try:
-            self._application.post('/reset')
+            self._application.delete('/reset')
         except Exception:
             raise Exception
+
+    def _create_tag(self):
+        start = timer()
+        tag = self._application.post('/tag', data=dict(
+            name='version {0}'.format(str(self._versionNumber)), author='Jeroen Klein',
+            date=self._config.QUERY_TIME, description='Add a new tag {0}.'.format(str(self._versionNumber)),
+            revision='HEAD', branch=self._branch))
+        end = timer()
+        seconds = timedelta(seconds=end - start).total_seconds()
+        self._runtimeTags.append(seconds)
+        self._totalNumberOfSeconds += seconds
+
+    def _create_snapshot(self):
+        start = timer()
+        snapshotID = self._application.post('/snapshot', data=dict(
+            nameDataset='snapshot-{0}'.format(self._versionNumber), urlDataset='http://localhost:3030',
+            author='Vincent Koster', date=self._config.SNAPSHOT_EFFECTIVE_DATE,
+            description='Add a new snapshot.', revision='HEAD', branch=self._branch))
+        end = timer()
+        seconds = timedelta(seconds=end - start).total_seconds()
+        self._runtimeSnapshots.append(seconds)
+        self._totalNumberOfSeconds += seconds
+
+    def _create_branch(self):
+        start = timer()
+        # Create a Branch
+        oldBranch = self._branch
+        self._branch = 'branch {0}'.format(str(self._versionNumber))
+        branchID = self._application.post('/branch', data=dict(
+            name=self._branch, author='Yvette Post', branch=oldBranch,
+            description='Add a new branch {0}.'.format(self._versionNumber)))
+        end = timer()
+        seconds = timedelta(seconds=end - start).total_seconds()
+        self._runtimeBranches.append(seconds)
+        self._totalNumberOfSeconds += seconds
 
     def set_up_revision_store(self):
 
@@ -56,67 +95,44 @@ class StoreCreator(object):
 
         while self._versionNumber < self._config.NUMBER_OF_VERSIONS:
             print("Create a Tag with version number ", self._versionNumber)
-            start = timer()
-            # Create a Tag
-            tag = self._application.post('/tag', data=dict(
-                name='version {0}'.format(str(self._versionNumber)), author='Jeroen Klein',
-                date=self._config.QUERY_TIME, description='Add a new tag {0}.'.format(str(self._versionNumber)),
-                revision='HEAD', branch=self._branch))
-            end = timer()
-            self._runtimeTags.append(timedelta(seconds=end - start).total_seconds())
+            self._create_tag()
 
             # Create Updates
             self._send_updates(updateData)
 
             if self._config.VERSIONS_TO_SNAPSHOT and self._versionNumber % self._config.VERSIONS_TO_SNAPSHOT == 0:
-                start = timer()
-                # Create a Snapshot
-                snapshotID = self._application.post('/snapshot', data=dict(
-                    nameDataset='snapshot-{0}'.format(self._versionNumber), urlDataset='http://localhost:3030',
-                    author='Vincent Koster', date=self._config.SNAPSHOT_EFFECTIVE_DATE,
-                    description='Add a new snapshot.', revision='HEAD', branch=self._branch))
-                end = timer()
-                self._runtimeSnapshots.append(timedelta(seconds=end - start).total_seconds())
+                print("Create a Snapshot with name snapshot-", self._versionNumber)
+                self._create_snapshot()
 
             if self._config.VERSIONS_TO_BRANCH and self._versionNumber % self._config.VERSIONS_TO_BRANCH == 0:
-                start = timer()
-                # Create a Branch
-                self._branch = 'branch {0}'.format(str(self._versionNumber))
-                branchID = self._application.post('/branch', data=dict(
-                    name=self._branch, author='Yvette Post',
-                    description='Add a new branch {0}.'.format(self._versionNumber)))
-                end = timer()
-                self._runtimeBranches.append(timedelta(seconds=end - start).total_seconds())
+                print("Create a Branch with name branch ", self._versionNumber)
+                self._create_branch()
 
             self._versionNumber += 1
 
-        start = timer()
-        # Create a Tag
-        tag = self._application.post('/tag', data=dict(
-            name='version {0}'.format(str(self._versionNumber)), author='Jeroen Klein',
-            date=self._config.QUERY_TIME, description='Add a new tag {0}.'.format(str(self._versionNumber)),
-            revision='HEAD', branch=self._branch))
-        end = timer()
-        self._runtimeTags.append(timedelta(seconds=end - start).total_seconds())
+        # Create the last Tag
+        self._create_tag()
 
         numberOfQuadsResponse = self._application.get('/quads')
         numberOfQuads = numberOfQuadsResponse.data.decode("utf-8")
         print("numberOfQuads ", numberOfQuads)
 
         dataResponse = self._application.get('/data', headers=dict(accept="application/n-triples"))
-        with open(self._config.revision_store_file_name, 'w') as file:
+        with open(self._revisionStoreFileName, 'w') as file:
             file.write(dataResponse.data.decode("utf-8"))
 
         size = os.path.getsize(self._config.revision_store_file_name)
-        print("size in MB", size/1000000)
+        time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02.00")
 
-        ingestionResults = {'NUMBER_quads': numberOfQuads, 'fileSizeInMB': size/1000000,
+        ingestionResults = {'creationDate':str(time), 'NUMBER_quads': numberOfQuads, 'FILE_SIZE_MB': size/1000000,
+                            'TOTAL_IngestionTime': str(timedelta(seconds=self._totalNumberOfSeconds)),
                             'MEAN_IngestionTimeUpdates': np.mean(np.array(self._runtimeUpdates)),
                             'STANDARD_DEVIATION_IngestionTimeUpdates': np.std(np.array(self._runtimeUpdates)),
                             'MEAN_IngestionTimeTags': np.mean(np.array(self._runtimeTags)),
                             'STANDARD_DEVIATION_IngestionTimeTags': np.std(np.array(self._runtimeTags)),
                             'IngestionTimeUpdates': self._runtimeUpdates,
-                            'IngestionTimeTags': self._runtimeTags
+                            'IngestionTimeTags': self._runtimeTags,
+                            'NumberOfProcessedQuads': self._numberOfProcessedQuads
                             }
 
         if self._config.VERSIONS_TO_SNAPSHOT:
@@ -134,7 +150,7 @@ class StoreCreator(object):
             ingestionResults['MEAN_IngestionTimeModifiedUpdates'] = np.mean(np.array(self._runtimeModifiedUpdates))
             ingestionResults['STANDARD_DEVIATION_IngestionTimeModifiedUpdates'] = np.std(np.array(self._runtimeModifiedUpdates))
 
-        with open(self._config.ingestion_results_file_name, 'w') as file:
+        with open(self._ingestionResultsFileName, 'w') as file:
             json.dump(ingestionResults, file)
 
     def _read_modifications_file(self, fileName, deletion=False):
@@ -170,18 +186,29 @@ class StoreCreator(object):
 
             SPARQLUpdateQuery = self._update_sparql_from_modifications(updateInsertions + updateDeletions)
 
+            numberOfQuadsResponse = self._application.get('/quads')
+            self._numberOfProcessedQuads.append(int(numberOfQuadsResponse.data.decode("utf-8")))
+
             start = timer()
             updateResponse = self._application.post('/update', data=dict(
                 update=SPARQLUpdateQuery, author='Tom de Vries', startDate=updateData[self._updateIndex][4],
                 branch=self._branch, description='Add update {0}.'.format(str(self._updateIndex+1)),
                 endDate=updateData[self._updateIndex][5], test=''))
             end = timer()
-            self._runtimeUpdates.append(timedelta(seconds=end - start).total_seconds())
+            seconds = timedelta(seconds=end - start).total_seconds()
+            self._runtimeUpdates.append(seconds)
+            self._totalNumberOfSeconds += seconds
+
+            statuscode = updateResponse.status_code
+            if statuscode > 300:
+                raise Exception("Something is not correct.")
+
             update = json.loads(updateResponse.data.decode("utf-8"))
+            print("update ", update)
             self._updateIDs.append(update["identifier"])
 
             if self._config.UPDATES_TO_MODIFIED_UPDATE \
-                    and self._updateIndex % self._config.UPDATES_TO_MODIFIED_UPDATE == 0:
+                    and (self._updateIndex + 1) % self._config.UPDATES_TO_MODIFIED_UPDATE == 0:
 
                 if self._config.FROM_LAST_X_UPDATES:
                     randomInt = np.random.randint(self._updateIndex - self._config.FROM_LAST_X_UPDATES,
@@ -200,12 +227,20 @@ class StoreCreator(object):
                     endDate = (endTimestamp + timedelta(seconds=1)).strftime("%Y-%m-%dT%H:%M:%S+00:00")
 
                 start = timer()
+
                 updateID = self._updateIDs[randomInt].replace(str(BITR4QS), '')
+                self._updateIDs.pop(randomInt)
+
                 update = self._application.post('/update/{0}'.format(updateID), data=dict(
-                    author='Tom de Vries', description='Modify update.', branch=self._branch, startDate=startDate,
-                    endDate=endDate))
+                    author='Tom de Vries', description='Modify update {0}.'.format(updateID), branch=self._branch,
+                    startDate=startDate, endDate=endDate, test=''))
                 end = timer()
-                self._runtimeModifiedUpdates.append(timedelta(seconds=end - start).total_seconds())
+                seconds = timedelta(seconds=end - start).total_seconds()
+                self._runtimeModifiedUpdates.append(seconds)
+                self._totalNumberOfSeconds += seconds
+
+                update = json.loads(updateResponse.data.decode("utf-8"))
+                self._updateIDs.append(update["identifier"])
 
             self._updateIndex += 1
             if self._updateIndex % 100 == 0:

@@ -26,8 +26,8 @@ class Snapshot(ValidRevision):
                  urlDataset: Literal = None,
                  effectiveDate: Literal = None,
                  transactionRevision: URIRef = None,
-                 revisionNumber=None,
-                 branchIndex=None):
+                 revisionNumber: Literal = None,
+                 branchIndex: Literal = None):
         super().__init__(identifier, precedingRevision, hexadecimalOfHash, revisionNumber, branchIndex)
         self.name_dataset = nameDataset
         self.url_dataset = urlDataset
@@ -45,7 +45,7 @@ class Snapshot(ValidRevision):
         self._nameDataset = nameDataset
 
     @property
-    def url_dataset(self):
+    def url_dataset(self) -> Literal:
         return self._urlDataset
 
     @url_dataset.setter
@@ -55,7 +55,7 @@ class Snapshot(ValidRevision):
         self._urlDataset = urlDataset
 
     @property
-    def effective_date(self):
+    def effective_date(self) -> Literal:
         return self._effectiveDate
 
     @effective_date.setter
@@ -76,21 +76,37 @@ class Snapshot(ValidRevision):
 
     def add_to_revision_store(self, revisionStore):
         super().add_to_revision_store(revisionStore)
-        self.create_datastore(revisionStore=revisionStore)
+        self.create_dataset(revisionStore=revisionStore)
 
-    def create_datastore(self, revisionStore):
+    def create_dataset(self, revisionStore):
+        """
+
+        :param revisionStore:
+        :return:
+        """
         datastore = HttpQuadStore.create_dataset(nameDataset=self._nameDataset.value, urlDataset=self._urlDataset.value)
         updateParser = UpdateParser()
         revisionStore.get_updates_in_revision_graph(revisionA=self._transactionRevision, date=self._effectiveDate,
                                                     updateParser=updateParser)
         modifications_in_n_quad = updateParser.modifications_to_n_quads()
-        datastore.upload_to_datastore(modifications_in_n_quad, 'application/n-quads')
+        datastore.upload_to_dataset(modifications_in_n_quad, 'application/n-quads')
 
-    def delete_datastore(self):
+    def delete_dataset(self):
+        """
+
+        :return:
+        """
         datastore = HttpQuadStore(self._nameDataset.value, self._urlDataset.value)
         datastore.delete_dataset()
 
-    def query(self, SPARQLQuery, queryType, returnFormat):
+    def query_dataset(self, SPARQLQuery, queryType, returnFormat):
+        """
+
+        :param SPARQLQuery:
+        :param queryType:
+        :param returnFormat:
+        :return:
+        """
         # create a quad store from name dataset and url
         datastore = HttpQuadStore(self._nameDataset.value, self._urlDataset.value)
         # query the quad store, which returns an RDF Graph/Dataset

@@ -42,10 +42,10 @@ class RevisionStoreImplicit(RevisionStore):
         result = self._revisionStore.execute_select_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'json')
 
-        if 'branchIndex' in result['results']['bindings'][0]:
+        if 'branchIndex' in result['results']['bindings']:
             branchIndex = int(result['results']['bindings'][0]['branchIndex']['value']) + 1
         else:
-            branchIndex = 1
+            branchIndex = 0
 
         return Literal(branchIndex, datatype=XSD.nonNegativeInteger)
 
@@ -109,7 +109,7 @@ class RevisionStoreImplicit(RevisionStore):
                 pairs.append((revisionNumberA, branchIndexA, revisionNumberB))
             else:
                 pairs.append((revisionNumberA, branchIndexA))
-        print("pairs ", pairs)
+        # print("pairs ", pairs)
         return pairs
 
     @staticmethod
@@ -185,7 +185,7 @@ class RevisionStoreImplicit(RevisionStore):
                 FILTER ( {5} )
             }}
         }}""".format(prefixString, queryString, revisionType.title(), revisionFilter, timeConstrain, otherFilter)
-        print("SPARQLQuery ", SPARQLQuery)
+        # print("SPARQLQuery ", SPARQLQuery)
         if prefix and queryType == 'DescribeQuery':
             stringOfValidRevisions = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
             return stringOfValidRevisions
@@ -271,10 +271,10 @@ class RevisionStoreImplicit(RevisionStore):
                 ?revision :branchIndex ?branchIndex .
                 FILTER ( {1} ){2}
                 {3} }}""".format(construct, revisionFilter, updateTimeString, where)
-        print('SPARQLQuery ', SPARQLQuery)
+        # print('SPARQLQuery ', SPARQLQuery)
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
-        print("stringOfUpdates ", stringOfUpdates)
+        # print("stringOfUpdates ", stringOfUpdates)
         updateParser.parse_aggregate(stringOfUpdates, forward)
 
     def _transaction_revision_from_valid_revision(self, validRevisionID, revisionType):
@@ -290,7 +290,7 @@ class RevisionStoreImplicit(RevisionStore):
             FILTER NOT EXISTS {{ ?revision :branchIndex ?branchIndex1 }}
             ?revision ?p ?o .
         }}""".format(validRevisionID.n3())
-        print("SPARQLQuery ", SPARQLQuery)
+        # print("SPARQLQuery ", SPARQLQuery)
         return '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery))
 
     def _valid_revisions_from_transaction_revision(self, transactionRevisionID, revisionType):

@@ -20,13 +20,23 @@ class UpdateRequest(Request):
         self._shouldBeTested = None
 
     def evaluate_request(self, revisionStore):
+        """
+        Function to evaluate an update request.
+        :param revisionStore:
+        :return:
+        """
         self.evaluate_request_to_modify(revisionStore)
 
     def evaluate_request_to_modify(self, revisionStore):
+        """
+        Function to evaluate an update request when we would like to modify an existing update.
+        :param revisionStore:
+        :return:
+        """
 
         super().evaluate_request(revisionStore)
 
-        # Obtain start date
+        # Obtain the start date from the user's request. If unknown -> startDate = None
         startDate = self._request.values.get('startDate', None) or None
         if startDate is not None:
             if startDate == 'unknown':
@@ -34,7 +44,7 @@ class UpdateRequest(Request):
             else:
                 self._startDate = Literal(str(startDate), datatype=XSD.dateTimeStamp)
 
-        # Obtain end date
+        # Obtain end date from the user's request. If unknown -> endDate = None
         endDate = self._request.values.get('endDate', None) or None
         if endDate is not None:
             if endDate == 'unknown':
@@ -42,12 +52,19 @@ class UpdateRequest(Request):
             else:
                 self._endDate = Literal(str(endDate), datatype=XSD.dateTimeStamp)
 
-        self._shouldBeTested = self._request.values.get('test', None) or None
+        shouldBeTested = self._request.values.get('test', None) or None
+        if shouldBeTested:
+            if shouldBeTested == 'yes' or shouldBeTested == 'no':
+                self._shouldBeTested = shouldBeTested
 
         # Obtain the modifications
         self._modifications = self._request.values.get('modifications', None) or None
 
     def transaction_revision_from_request(self):
+        """
+        Function to get an UpdateRevision from the data extracted from the user's request.
+        :return:
+        """
         revision = UpdateRevision.revision_from_data(
             precedingRevision=self._precedingTransactionRevision, creationDate=self._creationDate, author=self._author,
             description=self._description, branch=self._branch, revisionNumber=self._revisionNumber)
@@ -55,6 +72,10 @@ class UpdateRequest(Request):
         return revision
 
     def valid_revisions_from_request(self):
+        """
+        Function to get an Update from the data extracted from the user's request.
+        :return:
+        """
         revision = Update.revision_from_data(
             startDate=self._startDate, revisionNumber=self._revisionNumber, endDate=self._endDate,
             modifications=self._modifications, branchIndex=self._branchIndex)
@@ -76,6 +97,18 @@ class UpdateQueryRequest(UpdateRequest):
                 self._evaluate_insert_or_delete_data(update, revisionStore, deletion=True)
             else:
                 pass
+
+        # Determine whether we should test that the modifications can be added or deleted from the revision store.
+        if self._shouldBeTested is not None:
+            try:
+                canBeAdded = revisionStore.can_modifications_be_added_or_deleted(
+                    modifications=self._modifications, headRevision=self._precedingTransactionRevision,
+                    startDate=self._startDate, endDate=self._endDate)
+            except Exception as e:
+                raise e
+            # If shouldBeTest == 'no' we only run the test, but we do not mind the answer. -> Compute ingestion time
+            if not canBeAdded and self._shouldBeTested == 'yes':
+                raise Exception('We cannot insert or delete some quads or triples.')
 
     def _can_quad_be_added_to_update(self, quad, revisionStore, deletion=False):
         """
@@ -101,24 +134,26 @@ class UpdateQueryRequest(UpdateRequest):
         # Check whether a deleted or inserted triple can be added to the update
         for triple in update.triples:
             tripleNode = Triple(triple)
-            canBeAdded = self._can_quad_be_added_to_update(tripleNode, revisionStore, deletion)
-            if canBeAdded:
-                self._modifications.append(Modification(tripleNode, deletion))
-            elif not canBeAdded and not self._shouldBeTested:
-                self._modifications.append(Modification(tripleNode, deletion))
-            else:
-                raise Exception('We cannot insert or delete triple {0}.'.format(str(triple)))
+            self._modifications.append(Modification(tripleNode, deletion))
+            # canBeAdded = self._can_quad_be_added_to_update(tripleNode, revisionStore, deletion)
+            # if canBeAdded:
+            #     self._modifications.append(Modification(tripleNode, deletion))
+            # elif not canBeAdded and not self._shouldBeTested:
+            #     self._modifications.append(Modification(tripleNode, deletion))
+            # else:
+            #     raise Exception('We cannot insert or delete triple {0}.'.format(str(triple)))
 
         for graph in update.quads:
             for triple in update.quads[graph]:
                 quadNode = Quad(triple, graph)
-                canBeAdded = self._can_quad_be_added_to_update(quadNode, revisionStore, deletion)
-                if canBeAdded:
-                    self._modifications.append(Modification(quadNode, deletion))
-                elif not canBeAdded and not self._shouldBeTested:
-                    self._modifications.append(Modification(quadNode, deletion))
-                else:
-                    raise Exception('We cannot insert or delete quad {0}.'.format(str(quadNode)))
+                self._modifications.append(Modification(quadNode, deletion))
+                # canBeAdded = self._can_quad_be_added_to_update(quadNode, revisionStore, deletion)
+                # if canBeAdded:
+                #     self._modifications.append(Modification(quadNode, deletion))
+                # elif not canBeAdded and not self._shouldBeTested:
+                #     self._modifications.append(Modification(quadNode, deletion))
+                # else:
+                #     raise Exception('We cannot insert or delete quad {0}.'.format(str(quadNode)))
 
     def evaluate_request(self, revisionStore):
         self.evaluate_request_to_modify(revisionStore)
@@ -136,7 +171,8 @@ class ModifiedRepeatedUpdateRequest(UpdateRequest):
         modifiedRevision = revision.modify(
             otherStartDate=self._startDate, otherEndDate=self._endDate, branchIndex=self._branchIndex,
             otherModifications=self._modifications, revisionNumber=self._revisionNumber, revisionStore=revisionStore,
-            relatedContent=False, headRevision=self._headRevision.preceding_revision)
+            relatedContent=False, headRevision=self._headRevision.preceding_revision,
+            shouldBeTested=self._shouldBeTested)
         return [modifiedRevision]
 
     def reversions_from_request(self, revision, revisionStore):
@@ -159,7 +195,8 @@ class ModifiedRelatedUpdateRequest(UpdateRequest):
         modifiedRevision = revision.modify(
             otherStartDate=self._startDate, otherEndDate=self._endDate, branchIndex=self._branchIndex,
             otherModifications=self._modifications, revisionNumber=self._revisionNumber, revisionStore=revisionStore,
-            relatedContent=True, headRevision=self._headRevision.preceding_revision)
+            relatedContent=True, headRevision=self._headRevision.preceding_revision,
+            shouldBeTested=self._shouldBeTested)
         return [modifiedRevision]
 
     def reversions_from_request(self, revision, revisionStore):

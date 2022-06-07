@@ -65,7 +65,6 @@ class Request(object):
                 raise e
         else:
             self._branchIndex = revisionStore.main_branch_index()
-            print('self._branchIndex in request ', self._branchIndex)
 
         # Obtain the head of the transaction revisions and its revision number
         try:
@@ -76,7 +75,7 @@ class Request(object):
             raise e
 
         # Obtain the creation date of the transaction revision
-        time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02.00")
+        time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02:00")
         self._creationDate = Literal(str(time), datatype=XSD.dateTimeStamp)
 
     def evaluate_request_to_modify(self, revisionStore):

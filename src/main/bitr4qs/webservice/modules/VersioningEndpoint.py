@@ -26,6 +26,7 @@ def update(updateID):
 def initialise():
     BiTR4QsConfiguration = current_app.config['BiTR4QsConfiguration']
     BiTR4QsCore = BiTR4QsSingleton.get(BiTR4QsConfiguration)
+    print("BiTR4QsCore ", BiTR4QsCore)
     initialRequest = requests.InitialRequest(request)
 
     try:
@@ -36,7 +37,7 @@ def initialise():
             response.headers['X-CurrentRevisionNumber'] = initialRequest.revision_number
         return response
     except Exception as e:
-        return make_response('Error after executing the tag query.', 400)
+        return make_response('Error after executing the initialise query.', 400)
 
 
 @versioningEndpoint.route("/tag", defaults={'tagID': None}, methods=['POST'])

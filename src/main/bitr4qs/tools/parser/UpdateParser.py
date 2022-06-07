@@ -143,12 +143,96 @@ class UpdateParser(Parser):
             else:
                 continue
 
-            hashOfModification = modification.value.__hash__()
-            if hashOfModification in self._modifications:
-                self._modifications[hashOfModification]['counter'] += -1 if modification.deletion else 1
-            else:
-                self._modifications[hashOfModification] = {'counter': -1, 'modification': modification.value} \
-                    if modification.deletion else {'counter': 1, 'modification': modification.value}
+            self._add_modification_to_modifications(modification)
+
+    def _add_modification_to_modifications(self, modification):
+        """
+
+        :param modification:
+        :return:
+        """
+        hashOfModification = modification.value.__hash__()
+        if hashOfModification in self._modifications:
+            self._modifications[hashOfModification]['counter'] += -1 if modification.deletion else 1
+        else:
+            self._modifications[hashOfModification] = {'counter': -1, 'modification': modification.value} \
+                if modification.deletion else {'counter': 1, 'modification': modification.value}
+
+    def parse_sorted_combined(self, stringOfValidRevisions, stringOfTransactionRevisions, forwards=True):
+        """
+
+        :param stringOfValidRevisions:
+        :param stringOfTransactionRevisions:
+        :param forwards:
+        :return:
+        """
+        updatesRevisions = self.parse_revisions(stringOfTransactionRevisions, 'transaction')
+        updates = self.parse_revisions(stringOfValidRevisions, 'valid')
+
+        listOfUpdateRevisions = list(updatesRevisions.values())
+        listOfUpdateRevisions.sort(key=lambda x: x.revision_number, reverse=not forwards)
+
+        for updateRevision in listOfUpdateRevisions:
+            updateIDs = updateRevision.valid_revisions
+            if updateIDs:
+                for _, updateID in updateIDs:
+                    if str(updateID) in updates:
+                        update = updates[str(updateID)]
+                        for modification in update.modifications:
+                            self._add_modification_to_modifications(modification)
+
+    def parse_sorted_implicit(self, stringOfValidRevisions, forwards=True):
+        """
+
+        :param stringOfValidRevisions:
+        :param forwards:
+        :return:
+        """
+        updates = self.parse_revisions(stringOfValidRevisions, 'valid')
+        listOfUpdates = list(updates.values())
+        listOfUpdates.sort(key=lambda x: x.revision_number, reverse=not forwards)
+
+        for update in listOfUpdates:
+            for modification in update.modifications:
+                self._add_modification_to_modifications(modification)
+
+    def parse_sorted_explicit(self, stringOfValidRevisions, stringOfTransactionRevisions, endRevision: URIRef,
+                              forwards=True):
+        """
+
+        :param stringOfValidRevisions:
+        :param stringOfTransactionRevisions:
+        :param endRevision:
+        :param forwards:
+        :return:
+        """
+        updatesRevisions = self.parse_revisions(stringOfTransactionRevisions, 'transaction')
+        updates = self.parse_revisions(stringOfValidRevisions, 'valid')
+
+        orderedUpdates = {}
+        nOfRevisions = len(updates)
+        i = 0
+        while i < nOfRevisions:
+            if str(endRevision) in updatesRevisions:
+                updateRevision = updatesRevisions[str(endRevision)]
+                endRevision = updateRevision.preceding_revision
+                updateIDs = updateRevision.valid_revisions
+                if updateIDs:
+                    for _, updateID in updateIDs:
+                        if str(updateID) in updates:
+                            update = updates[str(updateID)]
+
+                            if forwards:
+                                j = nOfRevisions - i - 1
+                                orderedUpdates[j] = update
+                            else:
+                                orderedUpdates[i] = update
+
+                            i += 1
+
+        for i in range(len(orderedUpdates)):
+            for modification in orderedUpdates[i].modifications:
+                self._add_modification_to_modifications(modification)
 
     def get_list_of_modifications(self):
         modificationsInList = []
@@ -165,13 +249,6 @@ class UpdateParser(Parser):
 
     def modifications_to_n_quads(self):
         n_quads = ''.join(v['modification'].n_quad() if v['counter'] > 0 else "" for _, v in self._modifications.items())
-        # index = 0
-        # for _, v in self._modifications.items():
-        #     if index in list(range(100)):
-        #         print("{0} {1}".format(index, type(v['modification'].object)))
-        #         print("{0} {1}".format(index, v['modification'].object.encode()))
-        #         print("v['modification'].n_quad() ", v['modification'].n_quad())
-        #     index += 1
         return n_quads
 
     def modifications_to_sparql_update_query(self):

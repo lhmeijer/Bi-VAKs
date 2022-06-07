@@ -4,6 +4,8 @@ import src.main.bitr4qs.tools.parser as parser
 from src.main.bitr4qs.namespace import BITR4QS
 from datetime import datetime
 from src.main.bitr4qs.exception import RevisionConstructionError
+from src.main.bitr4qs.term.Triple import Triple
+import numpy as np
 
 
 class RevisionStore(object):
@@ -35,14 +37,6 @@ class RevisionStore(object):
             return int(results['results']['bindings'][0]['numQuads']['value'])
         else:
             raise Exception
-
-    def empty_revision_store(self):
-        """
-        Function to empty the revision store
-        :return:
-        """
-        SPARQLQuery = "DROP ALL"
-        self._revisionStore.execute_update_query(SPARQLQuery)
 
     def revision_from_identifier(self, revisionID):
         """
@@ -154,14 +148,14 @@ class RevisionStore(object):
         {0} :precedingUpdate* ?update .
         {{ GRAPH ?g {{ ?update ?p1 ?o1 }} }} UNION {{  ?update ?p2 ?o2 . }}
         }}""".format(updateID.n3())
-        print("SPARQLQuery ", SPARQLQuery)
+        # print("SPARQLQuery ", SPARQLQuery)
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
-        print("stringOfUpdates ", stringOfUpdates)
+        # print("stringOfUpdates ", stringOfUpdates)
         updateParser = parser.UpdateParser()
         updateParser.parse_aggregate(stringOfUpdates, forward=True)
         modifications = updateParser.get_list_of_modifications()
-        print('\n'.join(str(a) for a in modifications))
+        # print('\n'.join(str(a) for a in modifications))
         return modifications
 
     def preceding_revisions(self, revisionID: URIRef, revisionType=None, isValidRevision=True, propertyPath=''):
@@ -245,7 +239,7 @@ class RevisionStore(object):
             SPARQLQuery = self._transaction_revision(transactionRevisionA=transactionRevisionA,
                                                      transactionRevision=revisionID,
                                                      transactionRevisionB=transactionRevisionB)
-        print("SPARQLQuery ", SPARQLQuery)
+        # print("SPARQLQuery ", SPARQLQuery)
         stringOfRevision = self._revisionStore.execute_construct_query(SPARQLQuery, 'nquads')
         func = getattr(self, '_' + revisionType)
         revisions = func(stringOfRevision=stringOfRevision, isValidRevision=isValidRevision)
@@ -379,7 +373,7 @@ class RevisionStore(object):
         OPTIONAL {{ ?revision :endedAt ?endDate . }} 
         {1}{2} 
         }}""".format(subQueryBetween, content, where)
-        print("SPARQLQuery ", SPARQLQuery)
+        # print("SPARQLQuery ", SPARQLQuery)
         results = self._revisionStore.execute_select_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'json')
 
@@ -413,7 +407,7 @@ class RevisionStore(object):
         OPTIONAL {{ ?revision :endedAt ?endDate . }} 
         {1}{2}
         }}""".format(subQueryBefore, content, where)
-        print("SPARQLQuery ", SPARQLQuery)
+        # print("SPARQLQuery ", SPARQLQuery)
         results = self._revisionStore.execute_select_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'json')
 
@@ -434,39 +428,61 @@ class RevisionStore(object):
 
         return True
 
-    def can_quad_be_added_or_deleted(self, quad, headRevision: URIRef, startDate: Literal = None,
-                                     endDate: Literal = None, deletion=False, revisionID=None):
+    def can_modifications_be_added_or_deleted(self, modifications, headRevision: URIRef, startDate: Literal = None,
+                                              endDate: Literal = None, revisionID=None):
+
+        indexOfStringModifications = dict(zip([modification.value.n_quad() for modification in modifications],
+                                          list(range(len(modifications)))))
+        timeFilter = ""
         if startDate:
+            timeFilter += """\nOPTIONAL {{ ?revision :endedAt ?endDate . }}
+            FILTER ( !bound(?endDate) || {0} <= ?endDate )""".format(startDate.n3())
             startDate = datetime.strptime(str(startDate), "%Y-%m-%dT%H:%M:%S+00:00")
 
         if endDate:
+            timeFilter += """\nOPTIONAL {{ ?revision :startedAt ?startDate . }}
+            FILTER ( !bound(?startDate) || ?startDate <= {0} )""".format(endDate.n3())
             endDate = datetime.strptime(str(endDate), "%Y-%m-%dT%H:%M:%S+00:00")
-
+        # TODO add to quads
+        content = ""
         if self.config.related_update_content():
             content = "\n?revision :precedingUpdate* ?allUpdate ."
-            where = quad.query_via_unknown_update(construct=False, subjectName='?allUpdate')
+            where = '{{ ?allUpdate ?p ?o .\n FILTER ( ?o = {0} ) }}'.format(modifications[0].value.rdf_star())
+            for i in range(1, len(modifications)):
+                where += "UNION {{ ?allUpdate ?p ?o .\n FILTER ( ?o = {0} ) }}".format(modifications[i].value.rdf_star())
         else:
-            content = ""
-            where = quad.query_via_unknown_update(construct=False, subjectName='?revision')
+            where = '{{ ?revision ?p ?o .\n FILTER ( ?o = {0} ) }}'.format(modifications[0].value.rdf_star())
+            for i in range(1, len(modifications)):
+                where += " UNION {{ ?revision ?p ?o .\n FILTER ( ?o = {0} ) }}".format(modifications[i].value.rdf_star())
 
-        # Obtain subquery before a transaction revisions
         subQuery = self._valid_revisions_in_graph(revisionA=headRevision, queryType='SelectQuery',
-                                                  revisionType='update', prefix=False)
-        SPARQLQuery = """SELECT ?revision ?p ?startDate ?endDate
+                                                  revisionType='update', prefix=False, timeConstrain=timeFilter)
+        SPARQLQuery = """SELECT ?revision ?p ?o ?startDate ?endDate
         WHERE {{ {{ {0} }}
         OPTIONAL {{ ?revision :startedAt ?startDate . }}
         OPTIONAL {{ ?revision :endedAt ?endDate . }}
-        {1}{2}
+        {1}{2} 
         }}""".format(subQuery, content, where)
-        print("SPARQLQuery ", SPARQLQuery)
+        # print('SPARQLQuery ', SPARQLQuery)
+
         results = self._revisionStore.execute_select_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'json')
-        numberInsertions = 0
-        numberDeletions = 0
-        print("results ", results)
-        print("revisionID ", revisionID)
+        # print("results ", results)
+        numberInsertions = np.zeros(len(modifications))
+        numberDeletions = np.zeros(len(modifications))
+
         for result in results['results']['bindings']:
+
             if revisionID and result['revision']['value'] == str(revisionID):
+                continue
+
+            triple = Triple.triple_from_json(result['o']['value'])
+            nQuad = triple.n_quad()
+            if nQuad in indexOfStringModifications:
+                index = indexOfStringModifications[nQuad]
+            else:
+                print("{0} is not in modifications".format(triple.__str__()))
+                # Raise exception
                 continue
 
             otherStartDate = None
@@ -476,7 +492,7 @@ class RevisionStore(object):
             if 'endDate' in result:
                 otherEndDate = datetime.strptime(result['endDate']['value'], "%Y-%m-%dT%H:%M:%S+00:00")
 
-            if deletion and 'http://bi-tr4qs.org/vocab/inserts' == result['p']['value']:
+            if modifications[index].deletion and 'http://bi-tr4qs.org/vocab/inserts' == result['p']['value']:
                 if startDate and otherStartDate and startDate < otherStartDate:
                     continue
                 elif not startDate and otherStartDate:
@@ -487,25 +503,15 @@ class RevisionStore(object):
                 elif not endDate and otherEndDate:
                     continue
 
-                numberInsertions += 1
+                numberInsertions[index] += 1
 
-            elif deletion and 'http://bi-tr4qs.org/vocab/deletes' == result['p']['value']:
-                if endDate and otherStartDate and endDate < otherStartDate:
-                    continue
-                if startDate and otherEndDate and startDate > otherEndDate:
-                    continue
+            elif modifications[index].deletion and 'http://bi-tr4qs.org/vocab/deletes' == result['p']['value']:
+                numberDeletions[index] += 1
 
-                numberDeletions += 1
+            elif not modifications[index].deletion and 'http://bi-tr4qs.org/vocab/inserts' == result['p']['value']:
+                numberInsertions[index] += 1
 
-            elif not deletion and 'http://bi-tr4qs.org/vocab/inserts' == result['p']['value']:
-                if endDate and otherStartDate and endDate < otherStartDate:
-                    continue
-                if startDate and otherEndDate and startDate > otherEndDate:
-                    continue
-
-                numberInsertions += 1
-
-            elif not deletion and 'http://bi-tr4qs.org/vocab/deletes' == result['p']['value']:
+            elif not modifications[index].deletion and 'http://bi-tr4qs.org/vocab/deletes' == result['p']['value']:
                 if startDate and otherStartDate and startDate < otherStartDate:
                     continue
                 elif not startDate and otherStartDate:
@@ -516,127 +522,224 @@ class RevisionStore(object):
                 elif not endDate and otherEndDate:
                     continue
 
-                numberDeletions += 1
+                numberDeletions[index] += 1
 
-        if deletion and numberDeletions + 1 == numberInsertions:
-            return True
-        if not deletion and numberDeletions == numberInsertions:
-            return True
-        return False
+        for i in range(len(modifications)):
+            if modifications[i].deletion and numberDeletions[i] + 1 != numberInsertions[i]:
+                return False
+            if not modifications[i].deletion and numberDeletions[i] != numberInsertions[i]:
+                return False
+        return True
 
     # def can_quad_be_added_or_deleted(self, quad, headRevision: URIRef, startDate: Literal = None,
-    #                                  endDate: Literal = None, deletion=False):
-    #     """
-    #     - A quad Q can be inserted if N=M, where N stands for the number of updates that insert Q and somewhere overlap,
-    #     and where M stands for the number of updates that deletes Q and fully overlap
-    #     - A quad Q with valid time t can be deleted if N=M+1, where N stands for the number of updates that insert Q and
-    #     fully overlap t and where M stands for the number of updates that deletes Q and somewhere overlap t
-    #     :param quad:
-    #     :param headRevision:
-    #     :param startDate:
-    #     :param endDate:
-    #     :param deletion:
-    #     :return:
-    #     """
+    #                                  endDate: Literal = None, deletion=False, revisionID=None):
+    #     timeFilter = ""
+    #     if startDate:
+    #         timeFilter += """\nOPTIONAL {{ ?revision :endedAt ?endDate . }}
+    #         FILTER ( !bound(?endDate) || {0} <= ?endDate )""".format(startDate.n3())
+    #         startDate = datetime.strptime(str(startDate), "%Y-%m-%dT%H:%M:%S+00:00")
     #
-    #     assert headRevision is not None, "The HEAD Revision is not allowed to be None."
-    #
-    #     updateWhere = self._valid_revisions_in_graph(revisionA=headRevision, queryType='SelectQuery',
-    #                                                  revisionType='update', prefix=False)
-    #
-    #     if deletion:
-    #         stringA = quad.query_via_delete_update(construct=False, subjectName='?revision')
-    #         stringB = quad.query_via_insert_update(construct=False, subjectName='?revision')
-    #     else:
-    #         stringA = quad.query_via_insert_update(construct=False, subjectName='?revision')
-    #         stringB = quad.query_via_delete_update(construct=False, subjectName='?revision')
-    #
-    #     if startDate is None and endDate is None:
-    #         timeString = """{{ {0} }}
-    #         UNION
-    #         {{ {1}
-    #         NOT EXISTS {{ ?revision :endedAt ?endDate }}
-    #         NOT EXISTS {{ ?revision :startedAt ?startDate }} }}
-    #         """.format(stringA, stringB)
-    #     elif startDate is None:
-    #         timeString = """{{ {0}
-    #         OPTIONAL {{ ?revision :startedAt ?startDate . }}
-    #         FILTER ( !bound(?startDate) || ?startDate <= {2} )
-    #         }}
-    #         UNION
-    #         {{ {1}
-    #         ?revision :endedAt ?endDate . FILTER ( {2} <= ?endDate )
-    #         }}
-    #         UNION
-    #         {{ {1}
-    #         NOT EXISTS {{ ?revision :endedAt ?endDate }}
-    #         NOT EXISTS {{ ?revision :startedAt ?startDate }}
-    #         }}
-    #         """.format(stringA, stringB, endDate.n3())
-    #     elif endDate is None:
-    #         timeString = """{{ {0}
-    #         OPTIONAL {{ ?revision :endedAt ?endDate . }}
-    #         FILTER ( !bound(?endDate) || {2} <= ?endDate )
-    #         }}
-    #         UNION
-    #         {{ {1}
-    #         ?revision :startedAt ?startDate . FILTER ( ?startDate >= {2} )
-    #         }}
-    #         UNION
-    #         {{ {1}
-    #         NOT EXISTS {{ ?revision :endedAt ?endDate }}
-    #         NOT EXISTS {{ ?revision :startedAt ?startDate }}
-    #         }}
-    #         """.format(stringA, stringB, startDate.n3())
-    #     else:
-    #         timeString = """{{
-    #             {0}
-    #             OPTIONAL {{ ?revision :startedAt ?startDate }}
-    #             FILTER ( !bound(?startDate) || ?startDate <= {3} )
-    #             OPTIONAL {{ ?revision :endedAt ?endDate }}
-    #             FILTER ( !bound(?endDate) || {2} <= ?endDate )
-    #         }} UNION {{
-    #             {1}
-    #             OPTIONAL {{ ?revision :startedAt ?startDate }}
-    #             FILTER (!bound(?startDate) || ?startDate <= {2} )
-    #             OPTIONAL {{ ?revision :endedAt ?endDate }}
-    #             FILTER ( !bound(?endDate) || {3} <= ?endDate )
-    #         }} """.format(stringA, stringB, startDate.n3(), endDate.n3())
+    #     if endDate:
+    #         timeFilter += """\nOPTIONAL {{ ?revision :startedAt ?startDate . }}
+    #         FILTER ( !bound(?startDate) || ?startDate <= {0} )""".format(endDate.n3())
+    #         endDate = datetime.strptime(str(endDate), "%Y-%m-%dT%H:%M:%S+00:00")
     #
     #     if self.config.related_update_content():
     #         content = "\n?revision :precedingUpdate* ?allUpdate ."
-    #         construct = quad.query_via_unknown_update(construct=True, subjectName='?allUpdate')
     #         where = quad.query_via_unknown_update(construct=False, subjectName='?allUpdate')
     #     else:
     #         content = ""
-    #         construct = quad.query_via_unknown_update(construct=True, subjectName='?revision')
     #         where = quad.query_via_unknown_update(construct=False, subjectName='?revision')
     #
-    #     SPARQLQuery = """CONSTRUCT {{ {0} }}
-    #     WHERE {{
-    #         {{ {1} }}
-    #         {2}{3}
-    #         {4}
-    #     }}""".format(construct, updateWhere, timeString, content, where)
+    #     # Obtain subquery before a transaction revisions
+    #     subQuery = self._valid_revisions_in_graph(revisionA=headRevision, queryType='SelectQuery',
+    #                                               revisionType='update', prefix=False, timeConstrain=timeFilter)
     #
+    #     SPARQLQuery = """SELECT ?revision ?p ?startDate ?endDate
+    #     WHERE {{ {{ {0} }}
+    #     OPTIONAL {{ ?revision :startedAt ?startDate . }}
+    #     OPTIONAL {{ ?revision :endedAt ?endDate . }}
+    #     {1}{2}
+    #     }}""".format(subQuery, content, where)
     #     # print("SPARQLQuery ", SPARQLQuery)
-    #     stringOfUpdates = self._revisionStore.execute_construct_query(
-    #         '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
-    #     # print("stringOfUpdates ", stringOfUpdates)
-    #     updateParser = parser.UpdateParser()
-    #     updateParser.parse_aggregate(stringOfUpdates, forward=True)
-    #     modifications = updateParser.get_list_of_modifications()
+    #     results = self._revisionStore.execute_select_query(
+    #         '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'json')
+    #     numberInsertions = 0
+    #     numberDeletions = 0
+    #     # print("results ", results)
+    #     # print("revisionID ", revisionID)
+    #     for result in results['results']['bindings']:
+    #         if revisionID and result['revision']['value'] == str(revisionID):
+    #             continue
     #
-    #     if deletion:
-    #         if len(modifications) == 1 and modifications[0].insertion:
-    #             return True
-    #         else:
-    #             return False
-    #     else:
-    #         if len(modifications) == 0:
-    #             return True
-    #         else:
-    #             return False
+    #         otherStartDate = None
+    #         if 'startDate' in result:
+    #             otherStartDate = datetime.strptime(result['startDate']['value'], "%Y-%m-%dT%H:%M:%S+00:00")
+    #         otherEndDate = None
+    #         if 'endDate' in result:
+    #             otherEndDate = datetime.strptime(result['endDate']['value'], "%Y-%m-%dT%H:%M:%S+00:00")
+    #
+    #         if deletion and 'http://bi-tr4qs.org/vocab/inserts' == result['p']['value']:
+    #             if startDate and otherStartDate and startDate < otherStartDate:
+    #                 continue
+    #             elif not startDate and otherStartDate:
+    #                 continue
+    #
+    #             if endDate and otherEndDate and endDate > otherEndDate:
+    #                 continue
+    #             elif not endDate and otherEndDate:
+    #                 continue
+    #
+    #             numberInsertions += 1
+    #
+    #         elif deletion and 'http://bi-tr4qs.org/vocab/deletes' == result['p']['value']:
+    #             if endDate and otherStartDate and endDate < otherStartDate:
+    #                 continue
+    #             if startDate and otherEndDate and startDate > otherEndDate:
+    #                 continue
+    #
+    #             numberDeletions += 1
+    #
+    #         elif not deletion and 'http://bi-tr4qs.org/vocab/inserts' == result['p']['value']:
+    #             if endDate and otherStartDate and endDate < otherStartDate:
+    #                 continue
+    #             if startDate and otherEndDate and startDate > otherEndDate:
+    #                 continue
+    #
+    #             numberInsertions += 1
+    #
+    #         elif not deletion and 'http://bi-tr4qs.org/vocab/deletes' == result['p']['value']:
+    #             if startDate and otherStartDate and startDate < otherStartDate:
+    #                 continue
+    #             elif not startDate and otherStartDate:
+    #                 continue
+    #
+    #             if endDate and otherEndDate and endDate > otherEndDate:
+    #                 continue
+    #             elif not endDate and otherEndDate:
+    #                 continue
+    #
+    #             numberDeletions += 1
+    #
+    #     if deletion and numberDeletions + 1 == numberInsertions:
+    #         return True
+    #     if not deletion and numberDeletions == numberInsertions:
+    #         return True
+    #     return False
+
+    def can_quad_be_added_or_deleted(self, quad, headRevision: URIRef, startDate: Literal = None,
+                                     endDate: Literal = None, deletion=False):
+        """
+        - A quad Q can be inserted if N=M, where N stands for the number of updates that insert Q and somewhere overlap,
+        and where M stands for the number of updates that deletes Q and fully overlap
+        - A quad Q with valid time t can be deleted if N=M+1, where N stands for the number of updates that insert Q and
+        fully overlap t and where M stands for the number of updates that deletes Q and somewhere overlap t
+        :param quad:
+        :param headRevision:
+        :param startDate:
+        :param endDate:
+        :param deletion:
+        :return:
+        """
+
+        assert headRevision is not None, "The HEAD Revision is not allowed to be None."
+
+        updateWhere = self._valid_revisions_in_graph(revisionA=headRevision, queryType='SelectQuery',
+                                                     revisionType='update', prefix=False)
+
+        if deletion:
+            stringA = quad.query_via_delete_update(construct=False, subjectName='?revision')
+            stringB = quad.query_via_insert_update(construct=False, subjectName='?revision')
+        else:
+            stringA = quad.query_via_insert_update(construct=False, subjectName='?revision')
+            stringB = quad.query_via_delete_update(construct=False, subjectName='?revision')
+
+        if startDate is None and endDate is None:
+            timeString = """{{ {0} }}
+            UNION
+            {{ {1}
+            NOT EXISTS {{ ?revision :endedAt ?endDate }}
+            NOT EXISTS {{ ?revision :startedAt ?startDate }} }}
+            """.format(stringA, stringB)
+        elif startDate is None:
+            timeString = """{{ {0}
+            OPTIONAL {{ ?revision :startedAt ?startDate . }}
+            FILTER ( !bound(?startDate) || ?startDate <= {2} )
+            }}
+            UNION
+            {{ {1}
+            ?revision :endedAt ?endDate . FILTER ( {2} <= ?endDate )
+            }}
+            UNION
+            {{ {1}
+            NOT EXISTS {{ ?revision :endedAt ?endDate }}
+            NOT EXISTS {{ ?revision :startedAt ?startDate }}
+            }}
+            """.format(stringA, stringB, endDate.n3())
+        elif endDate is None:
+            timeString = """{{ {0}
+            OPTIONAL {{ ?revision :endedAt ?endDate . }}
+            FILTER ( !bound(?endDate) || {2} <= ?endDate )
+            }}
+            UNION
+            {{ {1}
+            ?revision :startedAt ?startDate . FILTER ( ?startDate >= {2} )
+            }}
+            UNION
+            {{ {1}
+            NOT EXISTS {{ ?revision :endedAt ?endDate }}
+            NOT EXISTS {{ ?revision :startedAt ?startDate }}
+            }}
+            """.format(stringA, stringB, startDate.n3())
+        else:
+            timeString = """{{
+                {0}
+                OPTIONAL {{ ?revision :startedAt ?startDate }}
+                FILTER ( !bound(?startDate) || ?startDate <= {3} )
+                OPTIONAL {{ ?revision :endedAt ?endDate }}
+                FILTER ( !bound(?endDate) || {2} <= ?endDate )
+            }} UNION {{
+                {1}
+                OPTIONAL {{ ?revision :startedAt ?startDate }}
+                FILTER (!bound(?startDate) || ?startDate <= {2} )
+                OPTIONAL {{ ?revision :endedAt ?endDate }}
+                FILTER ( !bound(?endDate) || {3} <= ?endDate )
+            }} """.format(stringA, stringB, startDate.n3(), endDate.n3())
+
+        if self.config.related_update_content():
+            content = "\n?revision :precedingUpdate* ?allUpdate ."
+            construct = quad.query_via_unknown_update(construct=True, subjectName='?allUpdate')
+            where = quad.query_via_unknown_update(construct=False, subjectName='?allUpdate')
+        else:
+            content = ""
+            construct = quad.query_via_unknown_update(construct=True, subjectName='?revision')
+            where = quad.query_via_unknown_update(construct=False, subjectName='?revision')
+
+        SPARQLQuery = """CONSTRUCT {{ {0} }}
+        WHERE {{
+            {{ {1} }}
+            {2}{3}
+            {4}
+        }}""".format(construct, updateWhere, timeString, content, where)
+
+        # print("SPARQLQuery ", SPARQLQuery)
+        stringOfUpdates = self._revisionStore.execute_construct_query(
+            '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
+        # print("stringOfUpdates ", stringOfUpdates)
+        updateParser = parser.UpdateParser()
+        updateParser.parse_aggregate(stringOfUpdates, forward=True)
+        modifications = updateParser.get_list_of_modifications()
+
+        if deletion:
+            if len(modifications) == 1 and modifications[0].insertion:
+                return True
+            else:
+                return False
+        else:
+            if len(modifications) == 0:
+                return True
+            else:
+                return False
 
     @staticmethod
     def _update_time_string(date: Literal = None, leftOfInterval: Literal = None, rightOfInterval: Literal = None,
@@ -720,10 +823,10 @@ class RevisionStore(object):
             }}
             {2}{3}
         }}""".format(construct, updateWhere, where, content)
-        print("SPARQLQuery ", SPARQLQuery)
+        # print("SPARQLQuery ", SPARQLQuery)
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
-        print("stringOfUpdates ", stringOfUpdates)
+        # print("stringOfUpdates ", stringOfUpdates)
         updateParser.parse_aggregate(stringOfUpdates, forward)
 
     def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str,
@@ -753,9 +856,9 @@ class RevisionStore(object):
 
         if len(snapshots) == 0:
             return None
-        print("validTime ", validTime)
+        # print("validTime ", validTime)
         referenceTime = datetime.strptime(str(validTime), "%Y-%m-%dT%H:%M:%S+00:00")
-        print("referenceTime ", referenceTime)
+        # print("referenceTime ", referenceTime)
 
         minimumDifference = None
         minimumSnapshot = None

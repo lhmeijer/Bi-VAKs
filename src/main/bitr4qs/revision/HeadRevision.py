@@ -32,3 +32,9 @@ class HeadRevision(Revision):
         assert 'branch' in data, "branch should be in the data of the revision"
 
         return cls(**data)
+
+    def __dict__(self):
+        result = super().__dict__()
+        if self._branch is not None:
+            result['branch'] = str(self._branch)
+        return result

@@ -77,22 +77,6 @@ class UpdateGenerator(object):
                 return True
         return False
 
-    # @staticmethod
-    # def _does_overlap(triple, doesOverlap, otherTriples=None):
-    #     if otherTriples:
-    #         overlap = False
-    #         for i in range(len(otherTriples)):
-    #
-    #             if triple == otherTriples[i]:
-    #                 doesOverlap[i] = True
-    #                 overlap = True
-    #         if overlap:
-    #             doesOverlap.append(True)
-    #         else:
-    #             doesOverlap.append(False)
-    #     else:
-    #         doesOverlap.append(False)
-
     def _read_modifications_file(self, fileName, containsQueries):
         """
 
@@ -103,16 +87,10 @@ class UpdateGenerator(object):
         counter = 0
         sink = TripleSink()
         NTriplesParser = W3CNTriplesParser(sink=sink)
-        # triples = []
         with gzip.open('{0}{1}'.format(self._inputFolder, fileName), 'rt') as file:
             for line in file:
                 NTriplesParser.parsestring(line.strip())
-                # print('s ', sink.subject)
-                # print('p ', sink.predicate)
-                # print('o ', sink.object)
                 triple = Triple((sink.subject, sink.predicate, sink.object))
-                # self._does_overlap(triple, doesOverlap, otherTriples)
-                # triples.append(triple)
                 containsQueries.append(self._contains_query(triple))
                 counter += 1
         return counter
@@ -159,10 +137,8 @@ class UpdateGenerator(object):
                 for j in range(until):
                     tripleIndex = indices[index]
                     if tripleIndex < nOfInsertions:
-                        # if not doesOverlap[tripleIndex]:
                         inserted.append(str(tripleIndex))
                     else:
-                        # if not doesOverlap[tripleIndex]:
                         deleted.append(str(tripleIndex - nOfInsertions))
                     index += 1
                     if containsQueries[tripleIndex]:
@@ -188,9 +164,11 @@ class UpdateGenerator(object):
         minimumDate = (self._startDateOfYear + timedelta(seconds=float(minimumSeconds))).strftime("%Y-%m-%dT%H:%M:%S+00:00")
         maximumDate = (self._startDateOfYear + timedelta(seconds=float(maximumSeconds))).strftime("%Y-%m-%dT%H:%M:%S+00:00")
         distributionPerDay = np.sum(self._distribution.reshape((365, 86400)), axis=1)
+        time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02.00")
 
-        statistics = {'distributionPerDay': distributionPerDay.tolist(), 'minimumDate': minimumDate,
-                      'maximumDate': maximumDate, 'numberOfUpdates': nOfUpdates, 'numberOfTriples': nOfTriples}
+        statistics = {'creationDate': str(time), 'distributionPerDay': distributionPerDay.tolist(),
+                      'minimumDate': minimumDate, 'maximumDate': maximumDate, 'numberOfUpdates': nOfUpdates,
+                      'numberOfTriples': nOfTriples}
 
-        with open(self._config.statistics_updates_file_name, 'w') as file:
+        with open(self._statisticsFileName, 'w') as file:
             json.dump(statistics, file)

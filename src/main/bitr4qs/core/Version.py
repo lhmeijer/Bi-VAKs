@@ -136,10 +136,8 @@ class Version(object):
         # Get the closest snapshot
         snapshot = None
         if previousTransactionTime is None or previousValidTime is None:
-            print("Determine the closest snapshot.")
-            print("self._validTime ", self._validTime)
             snapshot = self._revisionStore.closest_snapshot(validTime=self._validTime, headRevision=headRevision)
-            print("snapshot ", snapshot)
+            # print("snapshot ", snapshot)
         snapshot = None
         if previousTransactionTime and previousValidTime:
             self.modifications_between_two_states(transactionA=self._transactionTime, validA=self._validTime,
@@ -152,22 +150,22 @@ class Version(object):
                 revisionA=self._transactionTime, date=self._validTime, revisionB=previousTransactionTime,
                 quadPattern=self._quadPattern, updateParser=self._updateParser)
             modifications_in_n_quad = self._updateParser.modifications_to_n_quads()
-            self._temporalStore.n_quads_to_store(modifications_in_n_quad)
+            self._temporalStore.upload_to_dataset(modifications_in_n_quad, 'application/n-quads')
         else:
             # query the snapshot using the quad pattern return a dictionary of modifications
             SPARQLConstructQuery = "CONSTRUCT WHERE {{ {0} }}".format(self._quadPattern.to_sparql())
-            stringOfNQuads = snapshot.query(SPARQLConstructQuery, 'ConstructQuery', 'nquads')
+            stringOfNQuads = snapshot.query_dataset(SPARQLConstructQuery, 'ConstructQuery', 'nquads')
             # Add the n quads to temporal store
-            response = self._temporalStore.n_quads_to_store(stringOfNQuads)
+            response = self._temporalStore.upload_to_dataset(stringOfNQuads, 'application/n-quads')
 
             self.modifications_between_two_states(transactionA=snapshot.transaction_revision, validB=self._validTime,
                                                   transactionB=self._transactionTime, validA=snapshot.effective_date)
             SPARQLUpdateQuery = self._updateParser.modifications_to_sparql_update_query()
-            print('SPARQLUpdateQuery ', SPARQLUpdateQuery)
+            # print('SPARQLUpdateQuery ', SPARQLUpdateQuery)
             self._temporalStore.execute_update_query(SPARQLUpdateQuery)
 
     def clear_version(self):
-        self._temporalStore.reset_store()
+        self._temporalStore.empty_dataset()
 
     def query_version(self, queryString, returnFormat):
         return self._temporalStore.execute_query(queryString, returnFormat)

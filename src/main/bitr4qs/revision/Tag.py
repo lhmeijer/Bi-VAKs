@@ -92,7 +92,7 @@ class Tag(ValidRevision):
 
     @classmethod
     def _revision_from_data(cls, **data):
-        # print("data ", data)
+
         assert 'revisionNumber' in data, "revisionNumber should be in the data of the revision"
         assert 'branchIndex' in data, "branchIndex should be in the data of the revision"
         assert 'tagName' in data, "tagName should be in the data of the revision"

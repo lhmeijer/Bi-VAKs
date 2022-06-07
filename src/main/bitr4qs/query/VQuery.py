@@ -74,6 +74,8 @@ class VQuery(Query):
 
         # Set the number of processed quads to construct all versions
         self._numberOfProcessedQuads = version.number_of_processed_quads()
+
+        version.clear_version()
         print("results ", results)
         return results
 

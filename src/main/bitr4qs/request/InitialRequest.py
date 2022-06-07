@@ -39,7 +39,7 @@ class InitialRequest(Request):
             pass
 
         # Obtain the creation date of the transaction revision
-        time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02.00")
+        time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02:00")
         self._creationDate = Literal(str(time), datatype=XSD.dateTimeStamp)
 
         # Check whether revision store is empty
@@ -84,14 +84,13 @@ class InitialRequest(Request):
         # Check whether the user already uses an existing dataset, and create a snapshot and update from it.
         if self._nameDataset and self._urlDataset:
             datastore = HttpQuadStore(self._nameDataset, self._urlDataset)
-            response = datastore.data_of_store('application/n-quads').split('\n')
+            response = datastore.get_dataset('application/n-quads').split('\n')
 
             # Parse the N-Quads to a list of triples or quads
             update = Update(identifier=None, startDate=self._startDate, endDate=self._endDate,
                             branchIndex=self._branchIndex, revisionNumber=self._revisionNumber)
             updateParser = UpdateNQuadParser(sink=update)
             for nquad in response:
-                # print("nquad ", nquad)
                 updateParser.parsestring(nquad)
             update.generate_identifier()
             return [update]

@@ -24,7 +24,6 @@ class UpdateQuery(Query):
                 self._configure_query_dataset()
                 self._translatedQuery = translate_update(self._parsedQuery, base=self._base)
             except ParseException:
-                print("ParseException")
                 raise UnsupportedQuery()
 
         if self._base is not None and not self._is_absolute_uri(self._base):

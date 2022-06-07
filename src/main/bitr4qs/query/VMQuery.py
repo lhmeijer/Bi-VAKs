@@ -18,10 +18,6 @@ class VMQuery(Query):
     def head_revision(self):
         return self._headRevision
 
-    # @head_revision.setter
-    # def head_revision(self, headRevision: URIRef):
-    #     self._headRevision = headRevision
-
     @property
     def transaction_time(self) -> URIRef:
         return self._transactionTime
@@ -87,12 +83,8 @@ class VMQuery(Query):
 
         # Set the valid time to the current time if no other valid time is given.
         if self._validTime is None:
-            time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02.00")
+            time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02:00")
             self._validTime = Literal(str(time), datatype=XSD.dateTimeStamp)
-
-        print("self._headRevision ", self._headRevision)
-        print("self._transactionTime ", self._transactionTime)
-        print("self._validTime ", self._validTime)
 
     def apply_query(self, revisionStore):
         """

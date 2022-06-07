@@ -10,11 +10,12 @@ from src.main.bitr4qs.store.HttpQuadStore import HttpQuadStore
 
 class Evaluator(object):
 
-    def __init__(self, application, config, revisionStoreFileName):
+    def __init__(self, application, config, revisionStoreFileName, queryResultsFileName):
         self._application = application
         self._config = config
 
         self._revisionStoreFileName = revisionStoreFileName
+        self._queryResultsFileName = queryResultsFileName
 
         self._queries = get_queries_from_nt_file(self._config.bear_queries_file_name)
         self._nOfQueries = len(self._queries) if not self._config.NUMBER_OF_QUERIES else self._config.NUMBER_OF_QUERIES
@@ -25,7 +26,7 @@ class Evaluator(object):
 
     def reset_revision_store(self):
         try:
-            self._application.post('/reset')
+            self._application.delete('/reset')
         except Exception:
             raise Exception
 
@@ -60,7 +61,7 @@ class Evaluator(object):
         meanTriplesPerQuery = np.mean(numpyTriplesPerQuery, axis=0)
         standardDeviationTriplesPerQuery = np.std(numpyTriplesPerQuery, axis=0)
 
-        with open(self._config.query_results_file_name, 'a') as file:
+        with open(self._queryResultsFileName, 'a') as file:
             file.write('MEAN_TimePerVersion,{0}\n'.format(','.join(str(m) for m in meanTimePerVersion)))
             file.write('STANDARD_DEVIATION_TimePerVersion,{0}\n'.format(
                 ','.join(str(s) for s in standardDeviationTimePerVersion)))
@@ -139,11 +140,17 @@ class Evaluator(object):
         realResults = self._extract_vq_results_from_file('{0}-{1}.txt'.format(self._config.bear_results_dir, queryIndex))
         nOfVersionsInRealResults = np.count_nonzero(realResults == 1)
 
+        if self._config.VERSIONS_TO_BRANCH:
+            branch = self._config.BRANCH
+        else:
+            branch = None
+
         time = []
         totalNumberOfTriples = []
 
         start = timer()
-        results = self._application.get('/query', query_string=dict(query=query.to_select_query(), queryAtomType='VQ'),
+        results = self._application.get('/query', query_string=dict(
+            query=query.to_select_query(), queryAtomType='VQ', branch=branch),
                                         headers=dict(accept="application/sparql-results+json"))
         end = timer()
         time.append(timedelta(seconds=end - start).total_seconds())
@@ -183,6 +190,7 @@ class Evaluator(object):
             results.add(s)
 
         differenceResults = results - trueResults
+        print("results ", results)
         if len(differenceResults) > 0:
             print('differenceResults', differenceResults)
             print("List is not empty ", len(differenceResults))
@@ -199,23 +207,20 @@ class Evaluator(object):
                 versionNumber = int(re.findall(r'\d+', stringWithinBrackets)[0])
                 resultString = line.strip().replace(stringWithinBrackets, '').replace('?', '')
 
-                # if versionNumber not in results:
-                #     results[versionNumber] = set()
                 results[versionNumber].add(resultString)
         return results
 
-    @staticmethod
-    def _extract_dm_results_from_file(fileName):
+    def _extract_dm_results_from_file(self, fileName):
         results = {}
+        for i in range(self._config.NUMBER_OF_VERSIONS + 1):
+            results[i] = {'insertions': set(), 'deletions': set()}
+
         with open(fileName, "r") as file:
             for line in file:
 
                 stringWithinBrackets = re.search(r"\[.*?]", line).group(0)
                 versionNumber = int(re.findall(r'\d+', stringWithinBrackets)[0])
                 resultString = line.strip().replace(stringWithinBrackets, '').replace('?', '')
-
-                if versionNumber not in results:
-                    results[versionNumber] = {'insertions': set(), 'deletions': set()}
 
                 if 'ADD' in stringWithinBrackets:
                     results[versionNumber]['insertions'].add(resultString)

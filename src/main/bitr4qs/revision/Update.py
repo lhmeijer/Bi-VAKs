@@ -112,16 +112,14 @@ class Update(ValidRevision):
         return result
 
     def modify(self, revisionStore, headRevision, otherModifications=None, otherStartDate=None, otherEndDate=None,
-               revisionNumber=None, branchIndex=None, relatedContent=False):
-
-        print("branchIndex in modify ", branchIndex)
+               revisionNumber=None, branchIndex=None, relatedContent=False, shouldBeTested=None):
 
         startDate = otherStartDate if otherStartDate is not None else self._startDate
         endDate = otherEndDate if otherEndDate is not None else self._endDate
 
         # Nothing has been changed so no need for a modified update
-        if startDate == self._startDate and endDate == self._endDate and not otherModifications:
-            return None
+        # if startDate == self._startDate and endDate == self._endDate and not otherModifications:
+        #     return None
 
         # Check if the update content is related
         if relatedContent:
@@ -129,7 +127,6 @@ class Update(ValidRevision):
 
         transactionRevision = revisionStore.transaction_from_valid_and_valid_from_transaction(
             revisionID=self._identifier, transactionFromValid=True, revisionType='update')
-        print('transactionRevision ', transactionRevision.__dict__())
 
         newModifications = []
         if otherModifications:
@@ -169,12 +166,18 @@ class Update(ValidRevision):
                 else:
                     raise Exception("Modified quad cannot exist in this update.")
 
-        for modification in self._modifications:
-            canBeModified = revisionStore.can_quad_be_added_or_deleted(
-                quad=modification.value, headRevision=headRevision, startDate=startDate, endDate=endDate,
-                deletion=modification.deletion, revisionID=self._identifier)
-            if not canBeModified:
-                raise Exception("Quad cannot exist in this update with this new start or end date.")
+        canBeModified = revisionStore.can_modifications_be_added_or_deleted(
+            modifications=self._modifications, headRevision=headRevision, startDate=self._startDate,
+            endDate=self._endDate)
+        if shouldBeTested and not canBeModified:
+            raise Exception("Quads or triples cannot exist in this update with this new start or end date.")
+
+        # for modification in self._modifications:
+        #     canBeModified = revisionStore.can_quad_be_added_or_deleted(
+        #         quad=modification.value, headRevision=headRevision, startDate=startDate, endDate=endDate,
+        #         deletion=modification.deletion, revisionID=self._identifier)
+        #     if shouldBeTested and not canBeModified:
+        #         raise Exception("Quads or triples cannot exist in this update with this new start or end date.")
 
         if relatedContent:
             modifications = newModifications
@@ -184,7 +187,7 @@ class Update(ValidRevision):
         modifiedUpdate = Update.revision_from_data(
             modifications=modifications, branchIndex=branchIndex, startDate=startDate, endDate=endDate,
             revisionNumber=revisionNumber, precedingRevision=self._identifier)
-        print("modifiedUpdate ", modifiedUpdate.__dict__())
+
         return modifiedUpdate
 
     def revert(self, revisionStore, headRevision, revisionNumber=None, branchIndex=None, relatedContent=True):

@@ -70,7 +70,6 @@ class HttpQuadStore(object):
 
     def execute_update_query(self, updateQueryString):
         request = self._create_update_request(updateQueryString, 'application/sparql-results+json')
-        # print("request ", request.data)
         try:
             response = urlopen(request)
         except HTTPError as e:
@@ -129,7 +128,11 @@ class HttpQuadStore(object):
             return False
         return result
 
-    def upload_to_datastore(self, data, returnFormat, encoded=False):
+    def empty_dataset(self):
+        SPARQLQuery = "DROP ALL"
+        self.execute_update_query(SPARQLQuery)
+
+    def upload_to_dataset(self, data, returnFormat, encoded=False):
         dataEndpoint = "{0}/{1}/data".format(self._urlDataset, self._nameDataset)
         headers = {'Content-Type': returnFormat}
         #application/n-quads
@@ -143,7 +146,7 @@ class HttpQuadStore(object):
             raise HTTPError
         return response
 
-    def get_datastore(self, returnFormat, decoded=True):
+    def get_dataset(self, returnFormat, decoded=True):
         dataEndpoint = "{0}/{1}/data".format(self._urlDataset, self._nameDataset)
         headers = {'Content-Type': returnFormat}
         request = Request(dataEndpoint, headers=headers, method='GET')
@@ -164,7 +167,6 @@ class HttpQuadStore(object):
         request = Request(endpoint, data=data.encode('utf-8'), headers=headers, method='POST')
         try:
             response = urlopen(request)
-            print("response ", response)
         except HTTPError as e:
             print(e)
             raise HTTPError
@@ -176,7 +178,6 @@ class HttpQuadStore(object):
         request = Request(endpoint, method='DELETE')
         try:
             response = urlopen(request)
-            print("response ", response.read().decode("utf-8"))
         except HTTPError as e:
             print(e)
             raise HTTPError

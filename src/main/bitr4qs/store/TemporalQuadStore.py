@@ -11,10 +11,6 @@ class TemporalQuadStore(HttpQuadStore):
         self.effective_date = effectiveDate
         self.transaction_revision = transactionRevision
 
-    def reset_store(self):
-        SPARQLQuery = "DROP ALL"
-        self.execute_update_query(SPARQLQuery)
-
     def add_modifications_to_store(self, modifications):
         deleteString, insertString = "", ""
         insert = False
