@@ -21,7 +21,7 @@ class BearBConfiguration(object):
     _snapshot_effective_dates = {'F': '2015-03-01T00:00:00+00:00', 'N': '2015-07-01T00:00:00+00:00'}
 
     QUERY_TYPE = 'p'    # po or p
-    QUERY_ATOM = 'VM'   # VM, DM, VQ
+    QUERY_ATOM = 'VQ'   # VM, DM, VQ
     NUMBER_OF_VERSIONS = 89
 
     _bear_b_results = {'VM': 'mat-{0}-queries'.format(QUERY_TYPE), 'DM': 'diff-{0}-queries'.format(QUERY_TYPE),
@@ -77,7 +77,7 @@ class BearBConfiguration(object):
         # Fetching all updates or specific updates
         self.FETCHING_ALL = True if fetching == 'all' else False
         self.FETCHING_SPECIFIC = True if fetching == 'specific' else False
-        _fetching = 'FA' if self.REFERENCE_IMPLICIT else 'FS'
+        _fetching = 'FA' if self.FETCHING_ALL else 'FS'
 
         # Content of updates repeated or related
         self.CONTENT_RELATED = True if content == 'related' else False
@@ -87,11 +87,12 @@ class BearBConfiguration(object):
         _ingestion_results = '_'.join((str(self.SEED), str(self.TRIPLES_PER_UPDATE), _closeness, _width,
                                        _reference, _repeated, _snapshots, _branches, _modified_updates))
 
-        self.ingestion_results_file_name = os.path.join(os.path.dirname(__file__), '..', '..', 'results', 'BEAR-B',
-                                                        'ingestion', '{0}_{1}.json'.format(_ingestion_results, time))
+        self.ingestion_results_file_name = os.path.join(
+            os.path.dirname(__file__), '..', '..', 'results', 'BEAR-B', 'ingestion-2', reference,
+            '{0}_{1}.json'.format(_ingestion_results, time))
 
         self.revision_store_file_name = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'BEAR-B-revisions',
-                                                     _ingestion_results + '.nt')
+                                                     reference, _ingestion_results + '.nt')
 
         self.NUMBER_OF_QUERIES = numberOfQueries
 
@@ -99,6 +100,6 @@ class BearBConfiguration(object):
                                    _fetching, _repeated, _snapshots, _branches, _modified_updates, self.QUERY_ATOM,
                                    self.QUERY_TYPE, time))
         self.query_results_file_name = os.path.join(os.path.dirname(__file__), '..', '..', 'results', 'BEAR-B', 'query',
-                                                    _query_results + '.txt')
+                                                    self.QUERY_ATOM, reference, _query_results + '.txt')
 
 

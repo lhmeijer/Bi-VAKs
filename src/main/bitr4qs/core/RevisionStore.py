@@ -112,7 +112,7 @@ class RevisionStore(object):
 
     @staticmethod
     def new_revision_number(revisionNumber=None):
-        return None
+        return None, None
 
     @staticmethod
     def main_branch_index():
@@ -140,6 +140,11 @@ class RevisionStore(object):
         return revisions
 
     def preceding_modifications(self, updateID: URIRef):
+        """
+
+        :param updateID:
+        :return:
+        """
         SPARQLQuery = """CONSTRUCT {{
             GRAPH ?g {{ ?update ?p1 ?o1 }}
             ?update ?p2 ?o2 .
@@ -813,7 +818,7 @@ class RevisionStore(object):
         construct, where = self._construct_where_for_update(quadPattern=quadPattern)
 
         content = ""
-        if self.config.related_update_content():
+        if self._config.related_update_content():
             content = "\n?revision :precedingUpdate* ?revision ."
 
         SPARQLQuery = """CONSTRUCT {{ {0} }}
@@ -827,7 +832,14 @@ class RevisionStore(object):
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
         # print("stringOfUpdates ", stringOfUpdates)
-        updateParser.parse_aggregate(stringOfUpdates, forward)
+        if self._config.aggregated_modifications():
+            updateParser.parse_aggregate(stringOfUpdates, forward)
+        else:
+            self._get_sorted_updates(updateParser, stringOfUpdates, revisionA, revisionB, forward)
+
+    def _get_sorted_updates(self, updateParser, stringOfUpdates, revisionA: URIRef, revisionB: URIRef = None,
+                            forward=True):
+        pass
 
     def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str,
                                   revisionB: URIRef = None, prefix=True, timeConstrain=""):
@@ -845,7 +857,7 @@ class RevisionStore(object):
 
     def closest_snapshot(self, validTime: Literal, headRevision: URIRef):
         """
-        Function to return the closest Snapshot from the HEAD revision in the revision graph.
+        Function to return the closest Snapshot from the HEAD revision in the revision graph based on the valid time.
         :param validTime: The time to determine the closest Snapshot from.
         :param headRevision: The latest transaction revision in the revision graph.
         :return:
@@ -856,9 +868,7 @@ class RevisionStore(object):
 
         if len(snapshots) == 0:
             return None
-        # print("validTime ", validTime)
         referenceTime = datetime.strptime(str(validTime), "%Y-%m-%dT%H:%M:%S+00:00")
-        # print("referenceTime ", referenceTime)
 
         minimumDifference = None
         minimumSnapshot = None

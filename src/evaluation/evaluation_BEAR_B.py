@@ -13,8 +13,8 @@ if __name__ == "__main__":
 
     computeChanges = False
     generateUpdates = False
-    createStore = False
-    evaluateQueries = True
+    createStore = True
+    evaluateQueries = False
 
     if computeChanges:
         config = BearBConfiguration()
@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     if generateUpdates:
 
-        possibleIndices = [[0], [10, 100], [1000000, 10000000], [432000, 4320000]]
+        possibleIndices = [[0], [10], [1000000, 10000000], [432000, 4320000]]
         permutationsIndices = list(itertools.product(*possibleIndices))
 
         for indices in permutationsIndices:
@@ -39,19 +39,19 @@ if __name__ == "__main__":
 
     if createStore:
         # seed, numberUpdates, indexCloseness, indexWidth, snapshots, branches, modifiedUpdates, reference, content
-        snapshotIndices = [[0], [100], [1000000, 10000000], [432000, 4320000], [(None, None), ('F', 30), ('N', 30)],
-                           [None], [(None, None)], ['explicit', 'implicit'], ['repeated']]       # -> 48
+        snapshotIndices = [[0], [50, 100], [1000000, 10000000], [432000, 4320000], [(None, None), ('F', 30), ('N', 30)],
+                           [None], [(None, None)], ['implicit'], ['repeated']]       # -> 48
         permutationsSnapshotIndices = list(itertools.product(*snapshotIndices))
-        branchIndices = [[0], [100], [1000000], [4320000], [(None, None)], [3], [(None, None)],
-                         ['explicit', 'implicit'], ['repeated']]     # -> 4
+        branchIndices = [[0], [50, 100], [1000000], [4320000], [(None, None)], [3], [(None, None)],
+                         ['implicit'], ['repeated']]     # -> 4
         permutationsBranchIndices = list(itertools.product(*branchIndices))
-        modifiedIndices = [[0], [100], [1000000], [4320000], [(None, None)], [None], [(None, 5), (5, 5)],
-                           ['explicit', 'implicit'], ['repeated', 'related']]     # -> 16
+        modifiedIndices = [[0], [50, 100], [1000000], [4320000], [(None, None)], [None], [(None, 5), (5, 5)],
+                           ['implicit'], ['repeated', 'related']]     # -> 16
         permutationsModifiedIndices = list(itertools.product(*modifiedIndices))
 
         # permutationsIndices = permutationsSnapshotIndices + permutationsBranchIndices + permutationsModifiedIndices
 
-        permutationsIndices = [(0, 100, 1000000, 4320000, (None, None), None, (None, None), 'implicit', 'repeated')]
+        permutationsIndices = [(0, 10, 1000000, 4320000, (None, None), None, (None, 5), 'explicit', 'repeated')]
         for indices in permutationsIndices:
             print("indices ", indices)
             config = BearBConfiguration(seed=indices[0], closeness=indices[2], width=indices[3], snapshot=indices[4],
@@ -64,17 +64,17 @@ if __name__ == "__main__":
                 args = get_default_configuration()
                 args['referenceStrategy'] = {'explicit': config.REFERENCE_EXPLICIT,
                                              'implicit': config.REFERENCE_IMPLICIT}
-                args['UpdateContentStrategy'] = {'repeated': config.CONTENT_REPEATED, 'related': config.CONTENT_RELATED}
+                args['updateContentStrategy'] = {'repeated': config.CONTENT_REPEATED, 'related': config.CONTENT_RELATED}
 
-                application = create_app(args).test_client()
+                with create_app(args).test_client() as application:
 
-                store = StoreCreator(application=application, config=config,
-                                     modificationsFolder=config.raw_change_data_dir,
-                                     updateDataFile=config.updates_file_name,
-                                     revisionStoreFileName=config.revision_store_file_name,
-                                     ingestionResultsFileName=config.ingestion_results_file_name)
-                store.set_up_revision_store()
-                store.reset_revision_store()
+                    store = StoreCreator(application=application, config=config,
+                                         modificationsFolder=config.raw_change_data_dir,
+                                         updateDataFile=config.updates_file_name,
+                                         revisionStoreFileName=config.revision_store_file_name,
+                                         ingestionResultsFileName=config.ingestion_results_file_name)
+                    store.set_up_revision_store()
+                    store.reset_revision_store()
 
     if evaluateQueries:
         # seed, numberUpdates, indexCloseness, indexWidth, snapshots, branches, modifiedUpdates, reference, content
@@ -89,8 +89,8 @@ if __name__ == "__main__":
         permutationsModifiedIndices = list(itertools.product(*modifiedIndices))
 
         # permutationsIndices = permutationsSnapshotIndices + permutationsBranchIndices + permutationsModifiedIndices
-        permutationsIndices = [(0, 100, 1000000, 432000, (None, None), None, (None, None), 'explicit', 'repeated',
-                                'specific')]
+        permutationsIndices = [(0, 100, 1000000, 4320000, (None, None), None, (None, None), 'implicit', 'repeated',
+                                'all')]
         for indices in permutationsIndices:
             print("indices ", indices)
 
@@ -104,13 +104,16 @@ if __name__ == "__main__":
                                         reference=indices[7], fetching=indices[9], content=indices[8],
                                         numberOfQueries=nOfQueries)
 
+            print("config.REFERENCE_EXPLICIT ", config.REFERENCE_EXPLICIT)
+            print("config.REFERENCE_IMPLICIT ", config.REFERENCE_IMPLICIT)
+
             if os.path.isfile(config.revision_store_file_name):
                 args = get_default_configuration()
                 args['referenceStrategy'] = {'explicit': config.REFERENCE_EXPLICIT,
                                              'implicit': config.REFERENCE_IMPLICIT}
                 args['fetchingStrategy'] = {'queryAllUpdates': config.FETCHING_ALL,
                                             'querySpecificUpdates': config.FETCHING_SPECIFIC}
-                args['UpdateContentStrategy'] = {'repeated': config.CONTENT_REPEATED, 'related': config.CONTENT_RELATED}
+                args['updateContentStrategy'] = {'repeated': config.CONTENT_REPEATED, 'related': config.CONTENT_RELATED}
 
                 application = create_app(args).test_client()
 

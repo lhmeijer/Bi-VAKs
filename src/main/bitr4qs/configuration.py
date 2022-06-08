@@ -6,9 +6,10 @@ def get_default_configuration():
     return {
         'port': 5000,
         'host': '::',
-        'referenceStrategy': {'implicit': False, 'explicit': True},
+        'referenceStrategy': {'implicit': False, 'explicit': True, 'combined': False},
         'fetchingStrategy': {'queryAllUpdates': True, 'querySpecificUpdates': False},
-        'UpdateContentStrategy': {'repeated': True, 'related': False},
+        'updateContentStrategy': {'repeated': True, 'related': False},
+        'modificationsStrategy': {'aggregated': True, 'sorted': False},
         'revisionStore': {'name': 'revision-store', 'url': 'http://localhost:3030'},
         'temporalStore': {'name': 'temporal-store', 'url': 'http://localhost:3030'}
     }
@@ -27,21 +28,22 @@ def initialise(args):
 
 class BiTR4QsConfiguration:
 
-    def __init__(self, port, host, referenceStrategy, fetchingStrategy, UpdateContentStrategy, revisionStore,
-                 temporalStore):
+    def __init__(self, port, host, referenceStrategy, fetchingStrategy, updateContentStrategy, modificationsStrategy,
+                 revisionStore, temporalStore):
         self._port = port
         self._host = host
         self._referenceStrategy = referenceStrategy
         self._fetchingStrategy = fetchingStrategy
-        self._UpdateContentStrategy = UpdateContentStrategy
+        self._updateContentStrategy = updateContentStrategy
+        self._modificationsStrategy = modificationsStrategy
         self._revisionStore = revisionStore
         self._temporalStore = temporalStore
 
     def repeated_update_content(self):
-        return self._UpdateContentStrategy['repeated']
+        return self._updateContentStrategy['repeated']
 
     def related_update_content(self):
-        return self._UpdateContentStrategy['related']
+        return self._updateContentStrategy['related']
 
     def query_all_updates(self):
         return self._fetchingStrategy['queryAllUpdates']
@@ -54,6 +56,15 @@ class BiTR4QsConfiguration:
 
     def explicit_reference(self):
         return self._referenceStrategy['explicit']
+
+    def combined_reference(self):
+        return self._referenceStrategy['combined']
+
+    def aggregated_modifications(self):
+        return self._modificationsStrategy['aggregated']
+
+    def sorted_modifications(self):
+        return self._modificationsStrategy['sorted']
 
     @property
     def revision_store(self):

@@ -14,7 +14,7 @@ class Quad(Triple):
 
     @graph.setter
     def graph(self, graph):
-        assert isinstance(graph, URIRef), "Context information %s must be an rdflib term" % (s,)
+        assert isinstance(graph, URIRef), "Context information %s must be an rdflib term" % (graph,)
         self._graph = graph
 
     def quad(self):

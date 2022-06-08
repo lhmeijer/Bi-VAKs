@@ -10,7 +10,7 @@ class VMQueryTest(unittest.TestCase):
         args = get_default_configuration()
         args['referenceStrategy'] = {'explicit': True, 'implicit': False}
         args['fetchingStrategy'] = {'queryAllUpdates': True, 'querySpecificUpdates': False}
-        args['UpdateContentStrategy'] = {'repeated': True, 'related': False}
+        args['updateContentStrategy'] = {'repeated': True, 'related': False}
         app = create_app(args).test_client()
         query = """
         PREFIX :  <http://recipehub.nl/recipes#>
@@ -32,7 +32,7 @@ class VMQueryTest(unittest.TestCase):
         args = get_default_configuration()
         args['referenceStrategy'] = {'explicit': True, 'implicit': False}
         args['fetchingStrategy'] = {'queryAllUpdates': True, 'querySpecificUpdates': False}
-        args['UpdateContentStrategy'] = {'repeated': True, 'related': False}
+        args['updateContentStrategy'] = {'repeated': True, 'related': False}
         app = create_app(args).test_client()
         query = """
         PREFIX :  <http://recipehub.nl/recipes#>

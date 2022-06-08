@@ -1,4 +1,4 @@
-from rdflib.term import URIRef, Literal, Variable
+from rdflib.term import URIRef, Variable
 from .TriplePattern import TriplePattern
 
 

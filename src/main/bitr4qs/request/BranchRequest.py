@@ -41,7 +41,8 @@ class BranchRequest(Request):
                                               transactionRevisionA=self._precedingTransactionRevision)
             self._branchedOffRevision = revision.identifier
             self._precedingTransactionRevision = revision.identifier
-            self._revisionNumber = revisionStore.new_revision_number(revision.revision_number)
+            self._revisionNumber, self._revisionNumberValidRevision = revisionStore.new_revision_number(
+                revision.revision_number)
 
     def transaction_revision_from_request(self):
         revision = BranchRevision.revision_from_data(
@@ -53,7 +54,7 @@ class BranchRequest(Request):
     def valid_revisions_from_request(self):
 
         revision = Branch.revision_from_data(
-            branchName=self._branchName, revisionNumber=self._revisionNumber,
+            branchName=self._branchName, revisionNumber=self._revisionNumberValidRevision,
             branchedOffRevision=self._branchedOffRevision, branchIndex=self._branchIndex)
 
         return [revision]
@@ -65,5 +66,5 @@ class BranchRequest(Request):
 
         modifiedRevisions = revision.modify(
             otherBranchName=self._branchName, otherBranchedOffRevision=self._branchedOffRevision,
-            branchIndex=self._branchIndex, revisionNumber=self._revisionNumber, revisionStore=revisionStore)
+            branchIndex=self._branchIndex, revisionNumber=self._revisionNumberValidRevision, revisionStore=revisionStore)
         return modifiedRevisions

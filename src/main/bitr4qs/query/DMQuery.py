@@ -2,7 +2,6 @@ from .Query import Query
 from rdflib.term import URIRef, Literal
 from src.main.bitr4qs.core.Version import Version
 from rdflib.namespace import XSD
-from src.main.bitr4qs.tools.parser.UpdateParser import UpdateParser
 
 
 class DMQuery(Query):
@@ -36,7 +35,7 @@ class DMQuery(Query):
         tagNameB = self._request.values.get('tagB', None) or None
         if tagNameB:
             try:
-                tagB = revisionStore.tag_from_name(Literal(tagNameA))
+                tagB = revisionStore.tag_from_name(Literal(tagNameB))
                 self._transactionTimeB = tagB.transaction_revision
                 self._validTimeB = tagB.effective_date
             except Exception as e:
@@ -107,16 +106,16 @@ class DMQuery(Query):
         variables = self._quadPattern.variables()
         print("variables ", variables)
         results = {'head': {'vars': [var for var, _ in variables]}, 'results': {'insertions': [], 'deletions': []}}
-        print("results ", results)
+        # print("results ", results)
         for modification in modifications:
-            print("modification ", modification)
+            # print("modification ", modification)
             result = {}
             for variable, index in variables:
-                print("variable ", variable)
-                print('index ', index)
+                # print("variable ", variable)
+                # print('index ', index)
                 if index == 0:
                     value = modification.value.subject
-                    print('modification.value.subject ', modification.value.subject)
+                    # print('modification.value.subject ', modification.value.subject)
                 elif index == 1:
                     value = modification.value.predicate
                 elif index == 2:
@@ -126,15 +125,18 @@ class DMQuery(Query):
 
                 if isinstance(value, URIRef):
                     result[variable] = {'type': 'uri', 'value': str(value)}
-                    print("result ", result)
+                    # print("result ", result)
                 elif isinstance(value, Literal):
-                    print(value.datatype)
-                    print(value.language)
-                    result[variable] = {'type': 'literal', 'value': str(value)}
+                    if value.datatype:
+                        result[variable] = {'type': 'literal', 'value': str(value), 'datatype': str(value.datatype)}
+                    elif value.language:
+                        result[variable] = {'type': 'literal', 'value': str(value), 'xml:lang': str(value.language)}
+                    else:
+                        result[variable] = {'type': 'literal', 'value': str(value)}
 
             if modification.deletion:
                 results['results']['deletions'].append(result)
             else:
                 results['results']['insertions'].append(result)
-        print('results ', results)
+        # print('results ', results)
         return results

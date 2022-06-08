@@ -82,6 +82,7 @@ class Revision(object):
         # SPARQLUpdateQuery = """INSERT DATA {{ {0} }}
         # """.format('\n'.join(triple.sparql() for triple in self._RDFPatterns))
         nquads = ''.join(triple.n_quad() for triple in self._RDFPatterns)
+        # print("nquads ", nquads)
         revisionStore.revision_store.upload_to_dataset(nquads, 'application/n-quads')
 
     def delete_to_revision_store(self, revisionStore):

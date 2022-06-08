@@ -1,12 +1,10 @@
 from src.main.bitr4qs.core.BiTR4Qs import BiTR4QsSingleton
-from src.main.bitr4qs.query.UpdateQuery import UpdateQuery
-from src.main.bitr4qs.namespace import BITR4QS
 from flask import Blueprint, request, make_response, current_app
-from src.main.bitr4qs.exception import UnsupportedQuery, NonAbsoluteBaseError, SparqlProtocolError
-import src.main.bitr4qs.query as queries
-from src.main.bitr4qs.request.UpdateRequest import UpdateQueryRequest
-from .VersioningEndpoint import versioning_operation
-from rdflib.term import URIRef
+import sys
+
+cli = sys.modules['flask.cli']
+cli.show_server_banner = lambda *x: None
+
 
 ApplicationEndpoint = Blueprint('application_endpoint', __name__)
 
@@ -63,6 +61,14 @@ def data_of_revision_store():
         return response
     except Exception as e:
         return make_response('Error after executing to get all data from revision store.', 400)
+
+
+@ApplicationEndpoint.route("/shutdown", methods=['GET'])
+def shutdown_application():
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is None:
+        raise RuntimeError('Not running with the Werkzeug Server')
+    func()
 
 # @ApplicationEndpoint.route("/revision/<path:revisionID>", methods=['GET'])
 # def get_revision(revisionID):

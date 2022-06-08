@@ -5,7 +5,7 @@ import numpy as np
 from .preprocess_BEAR_B import get_queries_from_nt_file
 from datetime import datetime, timedelta
 from timeit import default_timer as timer
-from src.main.bitr4qs.store.HttpQuadStore import HttpQuadStore
+from src.main.bitr4qs.term.TriplePattern import TriplePattern
 
 
 class Evaluator(object):
@@ -38,8 +38,8 @@ class Evaluator(object):
         timePerQuery = []
         triplesPerQuery = []
 
-        # for queryIndex, query in self._queries.items():
         for i in range(1, self._nOfQueries + 1):
+        # for i in range(26, self._nOfQueries + 1):
             func = getattr(self, '_evaluate_{0}_query'.format(self._config.QUERY_ATOM.lower()))
             # time, triples = func(queryIndex, query)
             time, triples = func(i, self._queries[i])
@@ -76,7 +76,6 @@ class Evaluator(object):
         totalNumberOfTriples = []
 
         print("Query\n", query.select_query())
-        # for i in range(28, 89):
         for i in range(self._config.NUMBER_OF_VERSIONS):
             print("We query now version ", i+1)
 
@@ -106,24 +105,26 @@ class Evaluator(object):
 
         trueResults = self._extract_dm_results_from_file('{0}-{1}.txt'.format(self._config.bear_results_dir, queryIndex))
         jumps = list(range(0, self._config.NUMBER_OF_VERSIONS, 5)) + [self._config.NUMBER_OF_VERSIONS]
-
+        print("jumps ", jumps)
         time = []
         totalNumberOfTriples = []
 
-        for i in jumps:
+        for i in jumps[1:]:
+            print("We query now version 1 and version ", i)
             start = timer()
             results = self._application.get('/query', query_string=dict(
-                query=query.to_select_query(), queryAtomType='DM', tagA='version 1', tagB='version {0}'.format(i)),
+                query=query.select_query(), queryAtomType='DM', tagA='version 1', tagB='version {0}'.format(i)),
                                headers=dict(accept="application/sparql-results+json"))
             end = timer()
-            time.append(timedelta(seconds=end - start).total_seconds())
+            time.append(float(timedelta(seconds=end - start).total_seconds()))
 
             # Obtain the number of triples it needed to obtain the insertions and deletions between to versions.
             numberOfTriples = results.headers['N-ProcessedQuads']
-            totalNumberOfTriples.append(numberOfTriples)
+            totalNumberOfTriples.append(int(numberOfTriples))
 
-            jsonResults = json.loads(results.read().decode("utf-8"))
-
+            jsonResults = json.loads(results.data.decode("utf-8"))
+            print("jsonResults ", jsonResults)
+            print("trueResults[i] ", trueResults[i])
             try:
                 self._compare_results(jsonResults['results']['insertions'], trueResults[i]['insertions'])
             except Exception:
@@ -139,6 +140,7 @@ class Evaluator(object):
     def _evaluate_vq_query(self, queryIndex, query):
         realResults = self._extract_vq_results_from_file('{0}-{1}.txt'.format(self._config.bear_results_dir, queryIndex))
         nOfVersionsInRealResults = np.count_nonzero(realResults == 1)
+        print("nOfVersionsInRealResults ", nOfVersionsInRealResults)
 
         if self._config.VERSIONS_TO_BRANCH:
             branch = self._config.BRANCH
@@ -150,25 +152,25 @@ class Evaluator(object):
 
         start = timer()
         results = self._application.get('/query', query_string=dict(
-            query=query.to_select_query(), queryAtomType='VQ', branch=branch),
+            query=query.select_query(), queryAtomType='VQ', branch=branch),
                                         headers=dict(accept="application/sparql-results+json"))
         end = timer()
-        time.append(timedelta(seconds=end - start).total_seconds())
+        time.append(float(timedelta(seconds=end - start).total_seconds()))
 
         # Obtain the number of triples it needed to obtain all versions which give an answer for query x.
         numberOfTriples = results.headers['N-ProcessedQuads']
-        totalNumberOfTriples.append(numberOfTriples)
+        totalNumberOfTriples.append(int(numberOfTriples))
 
-        jsonResults = json.loads(results.read().decode("utf-8"))
+        jsonResults = json.loads(results.data.decode("utf-8"))
         nOfVersions = 0
 
         for result in jsonResults['results']['bindings']:
-            versionNumber = int(re.findall(r'\d+', result['tagName']['value'])[0])
+            versionNumber = int(re.findall(r'\d+', result['tagName']['value'])[0]) - 1
             if realResults[versionNumber] == 1:
                 nOfVersions += 1
             else:
-                raise Exception
-
+                raise Exception("Version {0} should not contain any response.".format(versionNumber))
+        print("nOfVersions ", nOfVersions)
         if nOfVersionsInRealResults != nOfVersions:
             raise Exception
 
@@ -179,14 +181,25 @@ class Evaluator(object):
 
         results = set()
         for jsonResult in jsonResults:
-            result = []
+            result = [None, None, None]
             for variableName, variableResult in jsonResult.items():
-                if variableResult['type'] == 'uri':
-                    result.append(URIRef(variableResult['value']).n3())
-                elif variableResult['type'] == 'literal':
-                    result.append(variableResult['value'])
+                index = 0 if variableName == '?s' else (1 if variableName == '?p' else 2)
 
-            s = ' '.join(result).encode('utf-8').decode('us-ascii', errors='ignore').replace('?', '')
+                if variableResult['type'] == 'uri':
+                    result[index] = URIRef(variableResult['value']).n3()
+                elif variableResult['type'] == 'literal':
+                    lang = None
+                    datatype = 'http://www.w3.org/2001/XMLSchema#string'
+                    if 'xml:lang' in variableResult:
+                        lang = variableResult['xml:lang']
+                        datatype = None
+                    elif 'datatype' in variableResult:
+                        datatype = variableResult['datatype']
+                    result[index] = TriplePattern.quote_literal(
+                        Literal(variableResult['value'], lang=lang, datatype=datatype))
+            result = list(filter(None, result))
+            # s = ' '.join(result).encode('utf-8').decode('us-ascii', errors='ignore').replace('?', '')
+            s = ' '.join(result)
             results.add(s)
 
         differenceResults = results - trueResults
@@ -194,7 +207,7 @@ class Evaluator(object):
         if len(differenceResults) > 0:
             print('differenceResults', differenceResults)
             print("List is not empty ", len(differenceResults))
-            raise Exception
+            # raise Exception
 
     def _extract_vm_results_from_file(self, fileName):
         results = {}
@@ -202,10 +215,13 @@ class Evaluator(object):
             results[i] = set()
 
         with open(fileName, "r") as file:
-            for line in file:
-                stringWithinBrackets = re.search(r"\[.*?]", line).group(0)
+            lines = file.read().split('[Solution')
+            for line in lines[1:]:
+                line = '[Solution' + line
+                stringWithinBrackets = re.search(r"\[Solution.*?]", line).group(0)
                 versionNumber = int(re.findall(r'\d+', stringWithinBrackets)[0])
-                resultString = line.strip().replace(stringWithinBrackets, '').replace('?', '')
+                resultString = line.strip().replace(stringWithinBrackets, '').encode('utf-8')\
+                    .decode('us-ascii', errors='ignore').replace('?', '')
 
                 results[versionNumber].add(resultString)
         return results
@@ -220,7 +236,7 @@ class Evaluator(object):
 
                 stringWithinBrackets = re.search(r"\[.*?]", line).group(0)
                 versionNumber = int(re.findall(r'\d+', stringWithinBrackets)[0])
-                resultString = line.strip().replace(stringWithinBrackets, '').replace('?', '')
+                resultString = line.strip().replace(stringWithinBrackets, '')
 
                 if 'ADD' in stringWithinBrackets:
                     results[versionNumber]['insertions'].add(resultString)
@@ -230,12 +246,16 @@ class Evaluator(object):
         return results
 
     def _extract_vq_results_from_file(self, fileName):
-        results = np.zeros(self._config.NUMBER_OF_VERSIONS+1)
+        results = np.zeros(self._config.NUMBER_OF_VERSIONS)
         with open(fileName, "r") as file:
-            for line in file:
-                stringWithinBrackets = re.search(r"\[.*?]", line).group(0)
+            lines = file.read().split('[Solution')
+            for line in lines[1:]:
+                line = '[Solution' + line
+                stringWithinBrackets = re.search(r"\[Solution.*?]", line).group(0)
                 versionNumber = int(re.findall(r'\d+', stringWithinBrackets)[0])
-                results[versionNumber] = 1
+                if versionNumber < self._config.NUMBER_OF_VERSIONS:
+                    results[versionNumber] = 1
+        print("results ", results)
         return results
 
 

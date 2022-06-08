@@ -83,6 +83,7 @@ class Version(object):
         print('transactionB ', transactionB)
         print("validA ", validA)
         print("validB ", validB)
+
         if transactionA == transactionB:
             self.modifications_between_valid_states(validA=validA, validB=validB, transactionTime=transactionA)
 
@@ -130,19 +131,20 @@ class Version(object):
         :return:
         """
         if self._temporalStore is None:
-            print("Initialise Temporal Store.")
             self._temporalStore = HttpTemporalStoreSingleton.get(self._revisionStore.config)
+
+        self._updateParser.reset_modifications()
 
         # Get the closest snapshot
         snapshot = None
         if previousTransactionTime is None or previousValidTime is None:
             snapshot = self._revisionStore.closest_snapshot(validTime=self._validTime, headRevision=headRevision)
-            # print("snapshot ", snapshot)
-        snapshot = None
+            print("snapshot ", snapshot)
         if previousTransactionTime and previousValidTime:
-            self.modifications_between_two_states(transactionA=self._transactionTime, validA=self._validTime,
-                                                  transactionB=previousTransactionTime, validB=previousValidTime)
+            self.modifications_between_two_states(transactionA=previousTransactionTime, validA=previousValidTime,
+                                                  transactionB=self._transactionTime, validB=self._validTime)
             SPARQLUpdateQuery = self._updateParser.modifications_to_sparql_update_query()
+            # print('SPARQLUpdateQuery ', SPARQLUpdateQuery)
             self._temporalStore.execute_update_query(SPARQLUpdateQuery)
         elif not snapshot and not previousValidTime:
             # get all updates from initial revision to given revision A

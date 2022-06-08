@@ -73,13 +73,13 @@ class TriplePattern(object):
     def matches(self, triple):
 
         if not isinstance(self._subject, Variable):
-            if self._subject.n3() != triple.subject.n3():
+            if self.represent_term(self._subject) != self.represent_term(triple.subject):
                 return False
         if not isinstance(self._predicate, Variable):
-            if self._predicate.n3() != triple.predicate.n3():
+            if self.represent_term(self._predicate) != self.represent_term(triple.predicate):
                 return False
         if not isinstance(self._object, Variable):
-            if self._object.n3() != triple.object.n3():
+            if self.represent_term(self._object) != self.represent_term(triple.object):
                 return False
         return True
 
@@ -100,16 +100,17 @@ class TriplePattern(object):
 
     def represent_term(self, term):
         if isinstance(term, Literal):
-            return self._quote_literal(term)
+            return self.quote_literal(term)
         else:
             return term.n3()
 
-    def _quote_literal(self, l_):
+    @staticmethod
+    def quote_literal(l_):
         """
         a simpler version of term.Literal.n3()
         """
 
-        encoded = self._quote_encode(l_)
+        encoded = TriplePattern._quote_encode(l_)
 
         if l_.language:
             if l_.datatype:
@@ -124,4 +125,18 @@ class TriplePattern(object):
     def _quote_encode(l_):
         return '"%s"' % l_.replace("\\", "\\\\").replace("\n", "\\n").replace(
             '"', '\\"').replace("\r", "\\r")
+
+    def result_based_on_query_type(self, queryType):
+        if queryType == 's':
+            return ' '.join((self.represent_term(self._predicate), self.represent_term(self._object)))
+        elif queryType == 'p':
+            return ' '.join((self.represent_term(self._subject), self.represent_term(self._object)))
+        elif queryType == 'o':
+            return ' '.join((self.represent_term(self._subject), self.represent_term(self._predicate)))
+        elif queryType == 'sp':
+            return self.represent_term(self._object)
+        elif queryType == 'so':
+            return self.represent_term(self._predicate)
+        elif queryType == 'po':
+            return self.represent_term(self._subject)
 

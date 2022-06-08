@@ -77,7 +77,7 @@ class UpdateRequest(Request):
         :return:
         """
         revision = Update.revision_from_data(
-            startDate=self._startDate, revisionNumber=self._revisionNumber, endDate=self._endDate,
+            startDate=self._startDate, revisionNumber=self._revisionNumberValidRevision, endDate=self._endDate,
             modifications=self._modifications, branchIndex=self._branchIndex)
         return [revision]
 
@@ -170,8 +170,8 @@ class ModifiedRepeatedUpdateRequest(UpdateRequest):
 
         modifiedRevision = revision.modify(
             otherStartDate=self._startDate, otherEndDate=self._endDate, branchIndex=self._branchIndex,
-            otherModifications=self._modifications, revisionNumber=self._revisionNumber, revisionStore=revisionStore,
-            relatedContent=False, headRevision=self._headRevision.preceding_revision,
+            otherModifications=self._modifications, revisionNumber=self._revisionNumberValidRevision,
+            relatedContent=False, headRevision=self._headRevision.preceding_revision, revisionStore=revisionStore,
             shouldBeTested=self._shouldBeTested)
         return [modifiedRevision]
 
@@ -179,9 +179,9 @@ class ModifiedRepeatedUpdateRequest(UpdateRequest):
 
         assert isinstance(revision, Update), "Valid Revision should be a Update"
 
-        revertedRevision = revision.revert(revisionStore=revisionStore, revisionNumber=self._revisionNumber,
-                                           branchIndex=self._branchIndex, relatedContent=False,
-                                           headRevision=self._headRevision.preceding_revision)
+        revertedRevision = revision.revert(
+            revisionStore=revisionStore, revisionNumber=self._revisionNumberValidRevision,
+            branchIndex=self._branchIndex, relatedContent=False, headRevision=self._headRevision.preceding_revision)
         return revertedRevision
 
 
@@ -194,8 +194,8 @@ class ModifiedRelatedUpdateRequest(UpdateRequest):
 
         modifiedRevision = revision.modify(
             otherStartDate=self._startDate, otherEndDate=self._endDate, branchIndex=self._branchIndex,
-            otherModifications=self._modifications, revisionNumber=self._revisionNumber, revisionStore=revisionStore,
-            relatedContent=True, headRevision=self._headRevision.preceding_revision,
+            otherModifications=self._modifications, revisionNumber=self._revisionNumberValidRevision,
+            relatedContent=True, headRevision=self._headRevision.preceding_revision, revisionStore=revisionStore,
             shouldBeTested=self._shouldBeTested)
         return [modifiedRevision]
 
@@ -203,8 +203,8 @@ class ModifiedRelatedUpdateRequest(UpdateRequest):
 
         assert isinstance(revision, Update), "Valid Revision should be a Update"
 
-        revertedRevision = revision.revert(revisionStore=revisionStore, revisionNumber=self._revisionNumber,
-                                           branchIndex=self._branchIndex, relatedContent=True,
-                                           headRevision=self._headRevision.preceding_revision)
+        revertedRevision = revision.revert(
+            revisionStore=revisionStore, revisionNumber=self._revisionNumberValidRevision,
+            branchIndex=self._branchIndex, relatedContent=True, headRevision=self._headRevision.preceding_revision)
         return revertedRevision
 

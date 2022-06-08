@@ -1,5 +1,5 @@
 from .ValidRevision import ValidRevision
-from rdflib.term import URIRef, Literal
+from rdflib.term import Literal
 from src.main.bitr4qs.term.Triple import Triple
 from src.main.bitr4qs.term.Modification import Modification
 from src.main.bitr4qs.term.RDFStarTriple import RDFStarTriple
@@ -166,11 +166,17 @@ class Update(ValidRevision):
                 else:
                     raise Exception("Modified quad cannot exist in this update.")
 
-        canBeModified = revisionStore.can_modifications_be_added_or_deleted(
-            modifications=self._modifications, headRevision=headRevision, startDate=self._startDate,
-            endDate=self._endDate)
-        if shouldBeTested and not canBeModified:
-            raise Exception("Quads or triples cannot exist in this update with this new start or end date.")
+        # Determine whether we should test that the modifications can be added or deleted from the revision store.
+        if shouldBeTested is not None:
+            try:
+                canBeModified = revisionStore.can_modifications_be_added_or_deleted(
+                    modifications=self._modifications, headRevision=headRevision, startDate=self._startDate,
+                    endDate=self._endDate, revisionID=self._identifier)
+            except Exception as e:
+                raise e
+            # If shouldBeTest == 'no' we only run the test, but we do not mind the answer. -> Compute ingestion time
+            if not canBeModified and shouldBeTested == 'yes':
+                raise Exception('Quads or triples cannot exist in this update with this new start or end date.')
 
         # for modification in self._modifications:
         #     canBeModified = revisionStore.can_quad_be_added_or_deleted(

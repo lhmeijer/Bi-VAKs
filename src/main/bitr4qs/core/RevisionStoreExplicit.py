@@ -51,12 +51,23 @@ class RevisionStoreExplicit(RevisionStore):
         # print('SPARQLQuery ', SPARQLQuery)
         stringOfUpdates = self._revisionStore.execute_construct_query(SPARQLQuery, 'nquads')
         # print("stringOfUpdates ", stringOfUpdates)
-        updateParser.parse_aggregate(stringOfUpdates, forward)
+        if self._config.aggregated_modifications():
+            updateParser.parse_aggregate(stringOfUpdates, forward)
+        else:
+            self._get_sorted_updates(updateParser, stringOfUpdates, revisionA, revisionB, forward)
 
-    def _tag_revisions_in_revision_graph(self, revisionA: URIRef, revisionB: URIRef = None):
+    def _get_sorted_updates(self, updateParser, stringOfUpdates, revisionA: URIRef, revisionB: URIRef = None,
+                            forward=True):
+        stringOfUpdateRevisions = self._transaction_revisions_in_revision_graph(revisionA, ['update'], revisionB)
+        updateParser.parse_sorted_explicit(stringOfUpdates, stringOfUpdateRevisions, endRevision=revisionA,
+                                           forward=forward)
+
+    def _transaction_revisions_in_revision_graph(self, revisionA: URIRef, validRevisionTypes: list,
+                                                 revisionB: URIRef = None):
         """
 
         :param revisionA:
+        :param validRevisionTypes:
         :param revisionB:
         :return:
         """
@@ -64,15 +75,17 @@ class RevisionStoreExplicit(RevisionStore):
         if revisionB is not None:
             revisionEndConstrain = "\n?revision :precedingRevision+ {0} .".format(revisionB.n3())
 
-        SPARQLQuery = """PREFIX : <{0}>
-        CONSTRUCT {{ ?revision :precedingRevision ?precedingRevision . 
-        ?revision :tag ?tag . }}
+        construct = '\n'.join("?revision :{0} ?{0} .".format(revisionType) for revisionType in validRevisionTypes)
+        where = '\n'.join("OPTIONAL {{ ?revision :{0} ?{0} }}".format(revisionType) for revisionType in validRevisionTypes)
+
+        SPARQLQuery = """CONSTRUCT {{ ?revision :precedingRevision ?precedingRevision . 
+        {0} }}
         WHERE {{ {1} :precedingRevision* ?revision .{2}
         ?revision :precedingRevision ?precedingRevision .
-        OPTIONAL {{ ?revision :tag ?tag . }}
-        }}""".format(str(BITR4QS), revisionA.n3(), revisionEndConstrain)
-        stringOfTagRevisions = self._revisionStore.execute_construct_query(SPARQLQuery, 'nquads')
-        return stringOfTagRevisions
+        {3} }}""".format(construct, revisionA.n3(), revisionEndConstrain, where)
+        stringOfRevisions = self._revisionStore.execute_construct_query(
+            '\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
+        return stringOfRevisions
 
     def tags_in_revision_graph(self, revisionA: URIRef, revisionB: URIRef = None):
         """
@@ -83,7 +96,7 @@ class RevisionStoreExplicit(RevisionStore):
         """
         tags = self._valid_revisions_in_graph(revisionA=revisionA, revisionType='tag', revisionB=revisionB,
                                               queryType='DescribeQuery')
-        tagRevisions = self._tag_revisions_in_revision_graph(revisionA, revisionB)
+        tagRevisions = self._transaction_revisions_in_revision_graph(revisionA, ['tag'], revisionB)
         tags = parser.TagParser.parse_sorted_explicit(tags, tagRevisions, endRevision=revisionA)
         return tags
 
@@ -196,7 +209,7 @@ class RevisionStoreExplicit(RevisionStore):
         else:
             where = ""
 
-        if revisionType == 'update' or revisionType == 'revert':
+        if revisionType == 'update' or revisionType == 'revert' or revisionType == 'branch':
             construct = 'GRAPH ?g { ?revision ?p1 ?o1 }\n?revision ?p2 ?o2'
         else:
             construct = '?revision ?p ?o'

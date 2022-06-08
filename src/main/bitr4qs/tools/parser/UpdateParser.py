@@ -12,6 +12,9 @@ class UpdateParser(Parser):
         self._modifications = {}
         self._numberOfProcessedQuads = 0
 
+    def reset_modifications(self):
+        self._modifications = {}
+
     @property
     def number_of_processed_quads(self):
         return self._numberOfProcessedQuads
@@ -158,19 +161,19 @@ class UpdateParser(Parser):
             self._modifications[hashOfModification] = {'counter': -1, 'modification': modification.value} \
                 if modification.deletion else {'counter': 1, 'modification': modification.value}
 
-    def parse_sorted_combined(self, stringOfValidRevisions, stringOfTransactionRevisions, forwards=True):
+    def parse_sorted_combined(self, stringOfValidRevisions, stringOfTransactionRevisions, forward=True):
         """
 
         :param stringOfValidRevisions:
         :param stringOfTransactionRevisions:
-        :param forwards:
+        :param forward:
         :return:
         """
         updatesRevisions = self.parse_revisions(stringOfTransactionRevisions, 'transaction')
         updates = self.parse_revisions(stringOfValidRevisions, 'valid')
 
         listOfUpdateRevisions = list(updatesRevisions.values())
-        listOfUpdateRevisions.sort(key=lambda x: x.revision_number, reverse=not forwards)
+        listOfUpdateRevisions.sort(key=lambda x: x.revision_number, reverse=not forward)
 
         for updateRevision in listOfUpdateRevisions:
             updateIDs = updateRevision.valid_revisions
@@ -179,31 +182,35 @@ class UpdateParser(Parser):
                     if str(updateID) in updates:
                         update = updates[str(updateID)]
                         for modification in update.modifications:
+                            if not forward:
+                                modification.invert()
                             self._add_modification_to_modifications(modification)
 
-    def parse_sorted_implicit(self, stringOfValidRevisions, forwards=True):
+    def parse_sorted_implicit(self, stringOfValidRevisions, forward=True):
         """
 
         :param stringOfValidRevisions:
-        :param forwards:
+        :param forward:
         :return:
         """
         updates = self.parse_revisions(stringOfValidRevisions, 'valid')
         listOfUpdates = list(updates.values())
-        listOfUpdates.sort(key=lambda x: x.revision_number, reverse=not forwards)
+        listOfUpdates.sort(key=lambda x: x.revision_number, reverse=not forward)
 
         for update in listOfUpdates:
             for modification in update.modifications:
+                if not forward:
+                    modification.invert()
                 self._add_modification_to_modifications(modification)
 
     def parse_sorted_explicit(self, stringOfValidRevisions, stringOfTransactionRevisions, endRevision: URIRef,
-                              forwards=True):
+                              forward=True):
         """
 
         :param stringOfValidRevisions:
         :param stringOfTransactionRevisions:
         :param endRevision:
-        :param forwards:
+        :param forward:
         :return:
         """
         updatesRevisions = self.parse_revisions(stringOfTransactionRevisions, 'transaction')
@@ -222,7 +229,7 @@ class UpdateParser(Parser):
                         if str(updateID) in updates:
                             update = updates[str(updateID)]
 
-                            if forwards:
+                            if forward:
                                 j = nOfRevisions - i - 1
                                 orderedUpdates[j] = update
                             else:
@@ -232,6 +239,8 @@ class UpdateParser(Parser):
 
         for i in range(len(orderedUpdates)):
             for modification in orderedUpdates[i].modifications:
+                if not forward:
+                    modification.invert()
                 self._add_modification_to_modifications(modification)
 
     def get_list_of_modifications(self):

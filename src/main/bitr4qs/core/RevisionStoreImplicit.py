@@ -20,9 +20,10 @@ class RevisionStoreImplicit(RevisionStore):
         """
         if revisionNumber is not None:
             assert isinstance(revisionNumber, Literal)
-            return Literal(revisionNumber.value + 1, datatype=revisionNumber.datatype)
+            newRevisionNumber = Literal(revisionNumber.value + 1, datatype=revisionNumber.datatype)
         else:
-            return Literal(1, datatype=XSD.nonNegativeInteger)
+            newRevisionNumber = Literal(1, datatype=XSD.nonNegativeInteger)
+        return newRevisionNumber, newRevisionNumber
 
     def new_branch_index(self):
         """
@@ -220,8 +221,31 @@ class RevisionStoreImplicit(RevisionStore):
         tags = parser.TagParser.parse_sorted_implicit(tags)
         return tags
 
+    def _get_sorted_updates(self, updateParser, stringOfUpdates, revisionA: URIRef, revisionB: URIRef = None,
+                            forward=True):
+        """
+
+        :param updateParser:
+        :param stringOfUpdates:
+        :param revisionA:
+        :param revisionB:
+        :param forward:
+        :return:
+        """
+        updateParser.parse_sorted_implicit(stringOfUpdates, forward=forward)
+
     def get_modifications_of_updates_between_revisions(self, revisionA, revisionB, date, updateParser, quadPattern,
                                                        forward=True):
+        """
+
+        :param revisionA:
+        :param revisionB:
+        :param date:
+        :param updateParser:
+        :param quadPattern:
+        :param forward:
+        :return:
+        """
         pairs = self._get_pairs_of_revision_numbers_and_branch_indices(revisionA, revisionB)
         revisionFilter = " || ".join(self._select_valid_revision(pair) for pair in pairs)
 
@@ -232,7 +256,7 @@ class RevisionStoreImplicit(RevisionStore):
 
         if self.config.related_update_content():
             otherFilter = " || ".join(self._select_valid_revision(
-                pair, branchIndex='?precedingBranchIndex', revisionNumber='?precedingRevisionNumber') for pair in pairs)
+                pair, branchIndex='?precedingBranchIndex', revisionNumber='?precedingRevisionNumber') for pair in otherPairs)
             updatePrecedingTimeString = self._update_time_string(date=date, variableName='?precedingUpdate')
             SPARQLQuery = """CONSTRUCT {{ {0} }}
             WHERE {{
@@ -275,10 +299,18 @@ class RevisionStoreImplicit(RevisionStore):
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
         # print("stringOfUpdates ", stringOfUpdates)
-        updateParser.parse_aggregate(stringOfUpdates, forward)
+        if self._config.aggregated_modifications():
+            updateParser.parse_aggregate(stringOfUpdates, forward)
+        else:
+            self._get_sorted_updates(updateParser, stringOfUpdates, revisionA, revisionB, forward)
 
     def _transaction_revision_from_valid_revision(self, validRevisionID, revisionType):
+        """
 
+        :param validRevisionID:
+        :param revisionType:
+        :return:
+        """
         SPARQLQuery = """CONSTRUCT {{ ?revision ?p ?o }}
         WHERE {{ 
             {0} :branchIndex ?branchIndex .

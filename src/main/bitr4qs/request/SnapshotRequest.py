@@ -68,7 +68,7 @@ class SnapshotRequest(Request):
             self._transactionRevision = self._currentTransactionRevision
 
         revision = Snapshot.revision_from_data(
-            nameDataset=self._nameDataset, revisionNumber=self._revisionNumber, effectiveDate=self._effectiveDate,
+            nameDataset=self._nameDataset, revisionNumber=self._revisionNumberValidRevision, effectiveDate=self._effectiveDate,
             transactionRevision=self._transactionRevision, branchIndex=self._branchIndex, urlDataset=self._urlDataset)
         return [revision]
 
@@ -80,5 +80,5 @@ class SnapshotRequest(Request):
         modifiedRevision = revision.modify(
             otherNameDataset=self._nameDataset, otherUrlDataset=self._urlDataset, branchIndex=self._branchIndex,
             otherEffectiveDate=self._effectiveDate, otherTransactionRevision=self._transactionRevision,
-            revisionNumber=self._revisionNumber, revisionStore=revisionStore)
+            revisionNumber=self._revisionNumberValidRevision, revisionStore=revisionStore)
         return [modifiedRevision]

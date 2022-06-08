@@ -19,6 +19,7 @@ class Request(object):
         self._currentTransactionRevision = None
 
         self._revisionNumber = None
+        self._revisionNumberValidRevision = None
         self._branchIndex = None
 
         self._headRevision = None
@@ -70,7 +71,8 @@ class Request(object):
         try:
             self._headRevision = revisionStore.head_revision(self._branch)
             self._precedingTransactionRevision = self._headRevision.preceding_revision
-            self._revisionNumber = revisionStore.new_revision_number(self._headRevision.revision_number)
+            self._revisionNumber, self._revisionNumberValidRevision = revisionStore.new_revision_number(
+                self._headRevision.revision_number)
         except Exception as e:
             raise e
 
@@ -95,6 +97,6 @@ class Request(object):
         pass
 
     def reversions_from_request(self, revision, revisionStore):
-        revertedRevision = revision.revert(revisionStore=revisionStore, revisionNumber=self._revisionNumber,
-                                           branchIndex=self._branchIndex)
+        revertedRevision = revision.revert(revisionStore=revisionStore, branchIndex=self._branchIndex,
+                                           revisionNumber=self._revisionNumberValidRevision)
         return revertedRevision

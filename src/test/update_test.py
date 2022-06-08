@@ -9,7 +9,7 @@ class UpdateTest(unittest.TestCase):
     def test_modify_update_start_date_explicit_repeated(self):
         args = get_default_configuration()
         args['referenceStrategy'] = {'explicit': True, 'implicit': False}
-        args['UpdateContentStrategy'] = {'repeated': True, 'related': False}
+        args['updateContentStrategy'] = {'repeated': True, 'related': False}
         app = create_app(args).test_client()
         response = app.post('/update/Update_ljs29c', data=dict(author='Edith Vonk',
                                                                startDate='2021-07-02T00:00:00+00:00',
@@ -23,7 +23,7 @@ class UpdateTest(unittest.TestCase):
     def test_modify_modified_update_end_date_explicit_repeated(self):
         args = get_default_configuration()
         args['referenceStrategy'] = {'explicit': True, 'implicit': False}
-        args['UpdateContentStrategy'] = {'repeated': True, 'related': False}
+        args['updateContentStrategy'] = {'repeated': True, 'related': False}
         app = create_app(args).test_client()
         response = app.post('/update/Update_45hgxa', data=dict(author='Edith Vonk', branch='SweetRecipes',
                                                                endDate='2021-10-10T00:00:00+00:00',
@@ -39,7 +39,7 @@ class UpdateTest(unittest.TestCase):
     def test_modify_update_start_date_implicit_repeated(self):
         args = get_default_configuration()
         args['referenceStrategy'] = {'explicit': False, 'implicit': True}
-        args['UpdateContentStrategy'] = {'repeated': True, 'related': False}
+        args['updateContentStrategy'] = {'repeated': True, 'related': False}
         app = create_app(args).test_client()
         response = app.post('/update/Update_ljs29c', data=dict(author='Erik Doerr',
                                                                startDate='2021-07-02T00:00:00+00:00',
@@ -55,7 +55,7 @@ class UpdateTest(unittest.TestCase):
     def test_modify_modified_update_end_date_implicit_repeated(self):
         args = get_default_configuration()
         args['referenceStrategy'] = {'explicit': False, 'implicit': True}
-        args['UpdateContentStrategy'] = {'repeated': True, 'related': False}
+        args['updateContentStrategy'] = {'repeated': True, 'related': False}
         app = create_app(args).test_client()
         response = app.post('/update/Update_45hgxa', data=dict(author='Edith Vonk', branch='SweetRecipes',
                                                                endDate='2021-10-10T00:00:00+00:00',
@@ -72,7 +72,7 @@ class UpdateTest(unittest.TestCase):
     def test_modify_update_start_date_explicit_related(self):
         args = get_default_configuration()
         args['referenceStrategy'] = {'explicit': True, 'implicit': False}
-        args['UpdateContentStrategy'] = {'repeated': False, 'related': True}
+        args['updateContentStrategy'] = {'repeated': False, 'related': True}
         app = create_app(args).test_client()
         response = app.post('/update/Update_ljs29c', data=dict(author='Edith Vonk',
                                                                startDate='2021-07-02T00:00:00+00:00',
@@ -87,7 +87,7 @@ class UpdateTest(unittest.TestCase):
     def test_modify_modified_update_end_date_explicit_related(self):
         args = get_default_configuration()
         args['referenceStrategy'] = {'explicit': True, 'implicit': False}
-        args['UpdateContentStrategy'] = {'repeated': False, 'related': True}
+        args['updateContentStrategy'] = {'repeated': False, 'related': True}
         app = create_app(args).test_client()
         response = app.post('/update/Update_45hgxa', data=dict(author='Edith Vonk', branch='SweetRecipes',
                                                                endDate='2021-10-10T00:00:00+00:00',
@@ -102,7 +102,7 @@ class UpdateTest(unittest.TestCase):
     def test_modify_update_start_date_implicit_related(self):
         args = get_default_configuration()
         args['referenceStrategy'] = {'explicit': False, 'implicit': True}
-        args['UpdateContentStrategy'] = {'repeated': False, 'related': True}
+        args['updateContentStrategy'] = {'repeated': False, 'related': True}
         app = create_app(args).test_client()
         response = app.post('/update/Update_ljs29c', data=dict(author='Edith Vonk',
                                                                startDate='2021-07-02T00:00:00+00:00',
@@ -120,7 +120,7 @@ class UpdateTest(unittest.TestCase):
     def test_modify_modified_update_end_date_implicit_related(self):
         args = get_default_configuration()
         args['referenceStrategy'] = {'explicit': False, 'implicit': True}
-        args['UpdateContentStrategy'] = {'repeated': False, 'related': True}
+        args['updateContentStrategy'] = {'repeated': False, 'related': True}
         app = create_app(args).test_client()
         response = app.post('/update/Update_45hgxa', data=dict(author='Edith Vonk', branch='SweetRecipes',
                                                                endDate='2021-10-10T00:00:00+00:00',

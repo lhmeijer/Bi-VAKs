@@ -1,6 +1,7 @@
 from .RevisionStore import RevisionStore
 from .RevisionStoreExplicit import RevisionStoreExplicit
 from .RevisionStoreImplicit import RevisionStoreImplicit
+from .RevisionStoreCombined import RevisionStoreCombined
 from src.main.bitr4qs.revision.HeadRevision import HeadRevision
 
 
@@ -17,6 +18,8 @@ class BiTR4QsSingleton(object):
                 cls.BiTR4QsCore = BiTR4QsImplicit(config)
             elif config.explicit_reference():
                 cls.BiTR4QsCore = BiTR4QsExplicit(config)
+            elif config.combined_reference():
+                cls.BiTR4QsCore = BiTR4QsCombined(config)
             else:
                 cls.BiTR4QsCore = BiTR4Qs(config)
             return cls.BiTR4QsCore
@@ -158,7 +161,7 @@ class BiTR4Qs(object):
 
         # Attach the created valid revisions to the transaction revisions for explicit reference.
         self._valid_revisions_to_transaction_revision(transactionRevision, validRevisions)
-        print("transactionRevision ", transactionRevision.__dict__())
+
         try:
             # Insert the transaction revision and the valid revisions to the revision store.
             self._to_revision_store([transactionRevision] + validRevisions)
@@ -175,13 +178,12 @@ class BiTR4Qs(object):
     def apply_query(self, query):
         try:
             query.evaluate_query(self._revisionStore)
+            response = query.apply_query(self._revisionStore)
         except Exception as e:
             print("e ", e)
             raise e
-        print("Query evaluated")
-        # if node is not None:
-        #     return node
-        return query.apply_query(self._revisionStore)
+
+        return response
 
     def get_number_of_quads_in_revision_store(self):
         try:
@@ -223,11 +225,28 @@ class BiTR4QsImplicit(BiTR4Qs):
     def revision_store(self):
         return RevisionStoreImplicit(self._config)
 
+    @staticmethod
+    def _valid_revisions_to_transaction_revision(transactionRevision, validRevisions):
+        for validRevision in validRevisions:
+            if 'Branch' in str(validRevision.identifier):
+                transactionRevision.add_valid_revision(validRevision.identifier)
+
 
 class BiTR4QsExplicit(BiTR4Qs):
 
     def revision_store(self):
         return RevisionStoreExplicit(self._config)
+
+    @staticmethod
+    def _valid_revisions_to_transaction_revision(transactionRevision, validRevisions):
+        for validRevision in validRevisions:
+            transactionRevision.add_valid_revision(validRevision.identifier)
+
+
+class BiTR4QsCombined(BiTR4Qs):
+
+    def revision_store(self):
+        return RevisionStoreCombined(self._config)
 
     @staticmethod
     def _valid_revisions_to_transaction_revision(transactionRevision, validRevisions):

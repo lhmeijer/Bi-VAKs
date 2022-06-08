@@ -4,7 +4,6 @@ from rdflib.namespace import XSD
 from src.main.bitr4qs.revision.Revert import Revert, RevertRevision
 
 
-
 class RevertRequest(Request):
 
     type = 'revert'
@@ -20,7 +19,7 @@ class RevertRequest(Request):
         self._transactionRevision = self._request.view_args.get('revisionID', None) or None
 
     def transaction_revision_from_request(self):
-        revision = TagRevision.revision_from_data(
+        revision = RevertRevision.revision_from_data(
             precedingRevision=self._precedingTransactionRevision, creationDate=self._creationDate, author=self._author,
             description=self._description, branch=self._branch, revisionNumber=self._revisionNumber)
         self._currentTransactionRevision = revision.identifier
@@ -28,7 +27,7 @@ class RevertRequest(Request):
 
     def valid_revisions_from_request(self):
         revision = Revert.revision_from_data(
-            transactionRevision=self._transactionRevision, revisionNumber=self._revisionNumber,
+            transactionRevision=self._transactionRevision, revisionNumber=self._revisionNumberValidRevision,
             branchIndex=self._branchIndex)
         return [revision]
 
@@ -39,5 +38,5 @@ class RevertRequest(Request):
 
         modifiedRevision = revision.modify(
             otherTransactionRevision=self._transactionRevision, branchIndex=self._branchIndex,
-            revisionNumber=self._revisionNumber, revisionStore=revisionStore)
+            revisionNumber=self._revisionNumberValidRevision, revisionStore=revisionStore)
         return [modifiedRevision]

@@ -85,6 +85,7 @@ class StoreCreator(object):
             for line in file:
                 updateData.append(line.strip().split(','))
         self._totalNumberOfUpdates = len(updateData)
+        print("self._totalNumberOfUpdates ", self._totalNumberOfUpdates)
 
         # Initialise revision store
         print("Initialise Revision Store!")
@@ -101,7 +102,7 @@ class StoreCreator(object):
             self._send_updates(updateData)
 
             if self._config.VERSIONS_TO_SNAPSHOT and self._versionNumber % self._config.VERSIONS_TO_SNAPSHOT == 0:
-                print("Create a Snapshot with name snapshot-", self._versionNumber)
+                print("Create a Snapshot with name snapshot-{0}".format(self._versionNumber))
                 self._create_snapshot()
 
             if self._config.VERSIONS_TO_BRANCH and self._versionNumber % self._config.VERSIONS_TO_BRANCH == 0:
@@ -111,6 +112,7 @@ class StoreCreator(object):
             self._versionNumber += 1
 
         # Create the last Tag
+        print("Create a Tag with version number ", self._versionNumber)
         self._create_tag()
 
         numberOfQuadsResponse = self._application.get('/quads')
@@ -122,7 +124,7 @@ class StoreCreator(object):
             file.write(dataResponse.data.decode("utf-8"))
 
         size = os.path.getsize(self._config.revision_store_file_name)
-        time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02.00")
+        time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02:00")
 
         ingestionResults = {'creationDate':str(time), 'NUMBER_quads': numberOfQuads, 'FILE_SIZE_MB': size/1000000,
                             'TOTAL_IngestionTime': str(timedelta(seconds=self._totalNumberOfSeconds)),
@@ -204,7 +206,6 @@ class StoreCreator(object):
                 raise Exception("Something is not correct.")
 
             update = json.loads(updateResponse.data.decode("utf-8"))
-            print("update ", update)
             self._updateIDs.append(update["identifier"])
 
             if self._config.UPDATES_TO_MODIFIED_UPDATE \
@@ -226,12 +227,11 @@ class StoreCreator(object):
                     endTimestamp = datetime.strptime(updateData[randomInt][5], "%Y-%m-%dT%H:%M:%S+00:00")
                     endDate = (endTimestamp + timedelta(seconds=1)).strftime("%Y-%m-%dT%H:%M:%S+00:00")
 
+
+                updateID = self._updateIDs.pop(randomInt)
+                updateID = updateID.replace(str(BITR4QS), '')
                 start = timer()
-
-                updateID = self._updateIDs[randomInt].replace(str(BITR4QS), '')
-                self._updateIDs.pop(randomInt)
-
-                update = self._application.post('/update/{0}'.format(updateID), data=dict(
+                updateResponse = self._application.post('/update/{0}'.format(updateID), data=dict(
                     author='Tom de Vries', description='Modify update {0}.'.format(updateID), branch=self._branch,
                     startDate=startDate, endDate=endDate, test=''))
                 end = timer()
@@ -240,6 +240,9 @@ class StoreCreator(object):
                 self._totalNumberOfSeconds += seconds
 
                 update = json.loads(updateResponse.data.decode("utf-8"))
+                if update["identifier"] in self._updateIDs:
+                    print("update ", update)
+                    raise Exception
                 self._updateIDs.append(update["identifier"])
 
             self._updateIndex += 1

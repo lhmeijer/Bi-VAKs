@@ -35,23 +35,16 @@ def sparql_query():
     except SparqlProtocolError:
         return make_response('Sparql Protocol Error', 400)
 
-    # queryType = 'SelectQuery'
-    # # get query type
-    # mimetype = _get_best_matching_mime_type(request, queryType)
-    # print("mimetype ", mimetype)
-    # if not mimetype:
-    #     return make_response("Mimetype: {} not acceptable".format(mimetype), 406)
-    # query.return_format = mimetype
-
     try:
         queryResponse = BiTR4QsCore.apply_query(query)
         response = make_response(queryResponse, 200)
-        if query.return_format:
+        if query.return_format is not None:
             response.headers['Content-Type'] = query.return_format
-        if query.number_of_processed_quads:
+        if query.number_of_processed_quads is not None:
             response.headers['N-ProcessedQuads'] = query.number_of_processed_quads
         return response
     except Exception as e:
+        print("exception ", e)
         return make_response('Error after executing the SPARQL query.', 400)
 
 

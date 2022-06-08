@@ -61,7 +61,7 @@ class TagRequest(Request):
             self._transactionRevision = self._currentTransactionRevision
 
         revision = Tag.revision_from_data(
-            tagName=self._tagName, revisionNumber=self._revisionNumber, effectiveDate=self._effectiveDate,
+            tagName=self._tagName, revisionNumber=self._revisionNumberValidRevision, effectiveDate=self._effectiveDate,
             transactionRevision=self._transactionRevision, branchIndex=self._branchIndex)
 
         return [revision]
@@ -73,6 +73,6 @@ class TagRequest(Request):
 
         modifiedRevision = revision.modify(
             otherTagName=self._tagName, branchIndex=self._branchIndex, otherEffectiveDate=self._effectiveDate,
-            otherTransactionRevision=self._transactionRevision, revisionNumber=self._revisionNumber,
+            otherTransactionRevision=self._transactionRevision, revisionNumber=self._revisionNumberValidRevision,
             revisionStore=revisionStore)
         return [modifiedRevision]
