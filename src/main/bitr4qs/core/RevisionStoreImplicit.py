@@ -221,6 +221,10 @@ class RevisionStoreImplicit(RevisionStore):
         tags = parser.TagParser.parse_sorted_implicit(tags)
         return tags
 
+    def _sorted_snapshots(self, stringOfSnapshots, revisionA, revisionB=None, forward=True):
+        snapshots = parser.SnapshotParser.parse_sorted_implicit(stringOfSnapshots, forward=forward)
+        return snapshots
+
     def _get_sorted_updates(self, updateParser, stringOfUpdates, revisionA: URIRef, revisionB: URIRef = None,
                             forward=True):
         """
@@ -263,7 +267,6 @@ class RevisionStoreImplicit(RevisionStore):
                     {{
                     SELECT ?precedingUpdate
                     WHERE {{
-                         ?revision rdf:type :Update .
                          ?revision :revisionNumber ?revisionNumber .
                          ?revision :branchIndex ?branchIndex .
                          FILTER ( {1} ){2}
@@ -275,15 +278,14 @@ class RevisionStoreImplicit(RevisionStore):
                 FILTER ( {3} ){4}
                 ?precedingUpdate :precedingUpdate* ?revision .    
                 {5} 
-                }}""".format(construct, revisionFilter, updateTimeString, otherFilter,updatePrecedingTimeString, where)
+                }}""".format(construct, revisionFilter, updateTimeString, otherFilter, updatePrecedingTimeString, where)
         else:
-
+            otherFilter = " || ".join(self._select_valid_revision(pair) for pair in otherPairs)
             SPARQLQuery = """CONSTRUCT {{ {0} }}
             WHERE {{
                     {{
                     SELECT ?precedingUpdate
                     WHERE {{
-                         ?revision rdf:type :Update .
                          ?revision :revisionNumber ?revisionNumber .
                          ?revision :branchIndex ?branchIndex .
                          FILTER ( {1} ){2}
@@ -293,8 +295,8 @@ class RevisionStoreImplicit(RevisionStore):
                 BIND ( ?precedingUpdate AS ?revision )
                 ?revision :revisionNumber ?revisionNumber .
                 ?revision :branchIndex ?branchIndex .
-                FILTER ( {1} ){2}
-                {3} }}""".format(construct, revisionFilter, updateTimeString, where)
+                FILTER ( {3} ){2}
+                {4} }}""".format(construct, revisionFilter, updateTimeString, otherFilter, where)
         # print('SPARQLQuery ', SPARQLQuery)
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')

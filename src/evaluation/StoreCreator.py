@@ -12,13 +12,14 @@ import os
 class StoreCreator(object):
 
     def __init__(self, application, modificationsFolder, updateDataFile, config, revisionStoreFileName,
-                 ingestionResultsFileName):
+                 ingestionResultsFileName, createRevisionStoreFile=True):
         self._application = application
         self._modificationsFolder = modificationsFolder
         self._updateDataFile = updateDataFile
         self._config = config
         self._revisionStoreFileName = revisionStoreFileName
         self._ingestionResultsFileName = ingestionResultsFileName
+        self._createRevisionStoreFile = createRevisionStoreFile
 
         self._updateIndex = 0
         self._updateIDs = []
@@ -34,8 +35,6 @@ class StoreCreator(object):
         self._runtimeTags = []
         self._totalNumberOfSeconds = 0
 
-        np.random.seed(self._config.SEED)
-
     def reset_revision_store(self):
         try:
             self._application.delete('/reset')
@@ -43,10 +42,13 @@ class StoreCreator(object):
             raise Exception
 
     def _create_tag(self):
+        randomInt = np.random.randint(-250000, 250000)
+        dataTimeQueryTime = datetime.strptime(self._config.QUERY_TIME, "%Y-%m-%dT%H:%M:%S+00:00")
+        queryTime = (dataTimeQueryTime + timedelta(seconds=randomInt)).strftime("%Y-%m-%dT%H:%M:%S+00:00")
         start = timer()
         tag = self._application.post('/tag', data=dict(
             name='version {0}'.format(str(self._versionNumber)), author='Jeroen Klein',
-            date=self._config.QUERY_TIME, description='Add a new tag {0}.'.format(str(self._versionNumber)),
+            date=queryTime, description='Add a new tag {0}.'.format(str(self._versionNumber)),
             revision='HEAD', branch=self._branch))
         end = timer()
         seconds = timedelta(seconds=end - start).total_seconds()
@@ -78,6 +80,8 @@ class StoreCreator(object):
         self._totalNumberOfSeconds += seconds
 
     def set_up_revision_store(self):
+
+        np.random.seed(self._config.SEED)
 
         print("Obtain the updates.")
         updateData = []
@@ -119,9 +123,10 @@ class StoreCreator(object):
         numberOfQuads = numberOfQuadsResponse.data.decode("utf-8")
         print("numberOfQuads ", numberOfQuads)
 
-        dataResponse = self._application.get('/data', headers=dict(accept="application/n-triples"))
-        with open(self._revisionStoreFileName, 'w') as file:
-            file.write(dataResponse.data.decode("utf-8"))
+        if self._createRevisionStoreFile:
+            dataResponse = self._application.get('/data', headers=dict(accept="application/n-triples"))
+            with open(self._revisionStoreFileName, 'w') as file:
+                file.write(dataResponse.data.decode("utf-8"))
 
         size = os.path.getsize(self._config.revision_store_file_name)
         time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02:00")
@@ -152,8 +157,14 @@ class StoreCreator(object):
             ingestionResults['MEAN_IngestionTimeModifiedUpdates'] = np.mean(np.array(self._runtimeModifiedUpdates))
             ingestionResults['STANDARD_DEVIATION_IngestionTimeModifiedUpdates'] = np.std(np.array(self._runtimeModifiedUpdates))
 
+        jsonResults = []
+        if os.path.isfile(self._ingestionResultsFileName):
+            with open(self._ingestionResultsFileName, 'r') as file:
+                jsonResults = json.load(file)
+
+        jsonResults.append(ingestionResults)
         with open(self._ingestionResultsFileName, 'w') as file:
-            json.dump(ingestionResults, file)
+            json.dump(jsonResults, file)
 
     def _read_modifications_file(self, fileName, deletion=False):
 

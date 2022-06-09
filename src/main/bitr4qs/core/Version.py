@@ -96,7 +96,7 @@ class Version(object):
             # Rewind all the updates which are modifications of the updates within the transaction revisions
             # Otherwise some updates will be taken into account twice.
             self._revisionStore.get_modifications_of_updates_between_revisions(
-                revisionA=transactionB, revisionB=transactionA, date=validA, updateParser=self._updateParser,
+                revisionA=transactionB, revisionB=transactionA, date=validB, updateParser=self._updateParser,
                 quadPattern=self._quadPattern, forward=False)
             # Fastforward the updates within the transaction revisions
             self._revisionStore.get_updates_in_revision_graph(
@@ -117,7 +117,7 @@ class Version(object):
                 quadPattern=self._quadPattern, forward=True)
 
             # Bring state A into a new state with valid time B
-            self.modifications_between_valid_states(validA=validA, validB=validB, transactionTime=transactionA)
+            self.modifications_between_valid_states(validA=validA, validB=validB, transactionTime=transactionB)
 
         else:
             raise Exception
@@ -146,16 +146,17 @@ class Version(object):
             SPARQLUpdateQuery = self._updateParser.modifications_to_sparql_update_query()
             # print('SPARQLUpdateQuery ', SPARQLUpdateQuery)
             self._temporalStore.execute_update_query(SPARQLUpdateQuery)
-        elif not snapshot and not previousValidTime:
+        elif snapshot is None and previousValidTime is None:
             # get all updates from initial revision to given revision A
             self._revisionStore.get_updates_in_revision_graph(
                 revisionA=self._transactionTime, date=self._validTime, revisionB=previousTransactionTime,
                 quadPattern=self._quadPattern, updateParser=self._updateParser)
             modifications_in_n_quad = self._updateParser.modifications_to_n_quads()
+            # print("modifications_in_n_quad ", modifications_in_n_quad)
             self._temporalStore.upload_to_dataset(modifications_in_n_quad, 'application/n-quads')
         else:
             # query the snapshot using the quad pattern return a dictionary of modifications
-            SPARQLConstructQuery = "CONSTRUCT WHERE {{ {0} }}".format(self._quadPattern.to_sparql())
+            SPARQLConstructQuery = "CONSTRUCT WHERE {{ {0} }}".format(self._quadPattern.sparql())
             stringOfNQuads = snapshot.query_dataset(SPARQLConstructQuery, 'ConstructQuery', 'nquads')
             # Add the n quads to temporal store
             response = self._temporalStore.upload_to_dataset(stringOfNQuads, 'application/n-quads')

@@ -18,9 +18,9 @@ class RevisionStoreExplicit(RevisionStore):
                     {{
                     SELECT ?precedingUpdate
                     WHERE {{
-                         {2} :precedingRevision* ?revision .
-                         ?revision :precedingRevision+ {3} .
-                         ?revision :update ?succeedingUpdate .{4}
+                         {2} :precedingRevision* ?transactionRevision .
+                         ?transactionRevision :precedingRevision+ {3} .
+                         ?transactionRevision :update ?succeedingUpdate .{4}
                          ?succeedingUpdate :precedingUpdate ?precedingUpdate .
                         }}
                     }}
@@ -37,14 +37,14 @@ class RevisionStoreExplicit(RevisionStore):
                     {{
                     SELECT ?revision
                     WHERE {{
-                         {2} :precedingRevision* ?revision .
-                         ?revision :precedingRevision+ {3} .
-                         ?revision :update ?succeedingUpdate .{4}
+                         {2} :precedingRevision* ?transactionRevision .
+                         ?transactionRevision :precedingRevision+ {3} .
+                         ?transactionRevision :update ?succeedingUpdate .{4}
                          ?succeedingUpdate :precedingUpdate ?revision .
                         }}
                     }}
-                {3} :precedingRevision* ?revision .
-                ?revision :update ?revision .{5}
+                {3} :precedingRevision* ?otherTransactionRevision .
+                ?otherTransactionRevision :update ?revision .{5}
                 {6} }}""".format(str(BITR4QS), construct, revisionA.n3(), revisionB.n3(), updateSucceedingTimeString,
                                  updateTimeString, where)
 
@@ -81,8 +81,9 @@ class RevisionStoreExplicit(RevisionStore):
         SPARQLQuery = """CONSTRUCT {{ ?revision :precedingRevision ?precedingRevision . 
         {0} }}
         WHERE {{ {1} :precedingRevision* ?revision .{2}
-        ?revision :precedingRevision ?precedingRevision .
+        OPTIONAL {{ ?revision :precedingRevision ?precedingRevision . }}
         {3} }}""".format(construct, revisionA.n3(), revisionEndConstrain, where)
+
         stringOfRevisions = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
         return stringOfRevisions
@@ -99,6 +100,12 @@ class RevisionStoreExplicit(RevisionStore):
         tagRevisions = self._transaction_revisions_in_revision_graph(revisionA, ['tag'], revisionB)
         tags = parser.TagParser.parse_sorted_explicit(tags, tagRevisions, endRevision=revisionA)
         return tags
+
+    def _sorted_snapshots(self, stringOfSnapshots, revisionA, revisionB=None, forward=True):
+        snapshotRevisions = self._transaction_revisions_in_revision_graph(revisionA, ['snapshot'], revisionB)
+        snapshots = parser.SnapshotParser.parse_sorted_explicit(stringOfSnapshots, snapshotRevisions,
+                                                                endRevision=revisionA, forward=forward)
+        return snapshots
 
     def is_transaction_time_a_earlier(self, revisionA, revisionB) -> bool:
         """

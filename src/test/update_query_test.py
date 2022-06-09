@@ -1,13 +1,14 @@
 import unittest
 from src.main.bitr4qs.webservice.app import create_app
 from src.main.bitr4qs.configuration import get_default_configuration
+import json
 
 
 class UpdateQueryTest(unittest.TestCase):
 
     def test_insert_multiple_triples_explicit(self):
         args = get_default_configuration()
-        args['referenceStrategy'] = {'explicit': True, 'implicit': False}
+        args['referenceStrategy'] = {'explicit': True, 'implicit': False, 'combined': False}
         app = create_app(args).test_client()
         update = """
         PREFIX :  <http://recipehub.nl/recipes#>
@@ -39,7 +40,7 @@ class UpdateQueryTest(unittest.TestCase):
 
     def test_delete_multiple_triples_explicit(self):
         args = get_default_configuration()
-        args['referenceStrategy'] = {'explicit': True, 'implicit': False}
+        args['referenceStrategy'] = {'explicit': True, 'implicit': False, 'combined': False}
         app = create_app(args).test_client()
         update = """
         PREFIX :  <http://recipehub.nl/recipes#>
@@ -64,7 +65,7 @@ class UpdateQueryTest(unittest.TestCase):
 
     def test_insert_and_delete_multiple_quads_explicit(self):
         args = get_default_configuration()
-        args['referenceStrategy'] = {'explicit': True, 'implicit': False}
+        args['referenceStrategy'] = {'explicit': True, 'implicit': False, 'combined': False}
         app = create_app(args).test_client()
         update = """
         PREFIX :  <http://recipehub.nl/recipes#>
@@ -124,7 +125,7 @@ class UpdateQueryTest(unittest.TestCase):
 
     def test_insert_triple_exist_explicit(self):
         args = get_default_configuration()
-        args['referenceStrategy'] = {'explicit': True, 'implicit': False}
+        args['referenceStrategy'] = {'explicit': True, 'implicit': False, 'combined': False}
         app = create_app(args).test_client()
         update = """
         PREFIX :  <http://recipehub.nl/recipes#>
@@ -151,7 +152,7 @@ class UpdateQueryTest(unittest.TestCase):
 
     def test_delete_triple_not_exist_explicit(self):
         args = get_default_configuration()
-        args['referenceStrategy'] = {'explicit': True, 'implicit': False}
+        args['referenceStrategy'] = {'explicit': True, 'implicit': False, 'combined': False}
         app = create_app(args).test_client()
         update = """
         PREFIX :  <http://recipehub.nl/recipes#>
@@ -178,7 +179,7 @@ class UpdateQueryTest(unittest.TestCase):
 
     def test_insert_delete_insert_delete_triples_explicit(self):
         args = get_default_configuration()
-        args['referenceStrategy'] = {'explicit': True, 'implicit': False}
+        args['referenceStrategy'] = {'explicit': True, 'implicit': False, 'combined': False}
         app = create_app(args).test_client()
         updateInsert = """
         PREFIX :  <http://recipehub.nl/recipes#>
@@ -218,7 +219,7 @@ class UpdateQueryTest(unittest.TestCase):
 
     def test_insert_and_delete_triples_to_branch_explicit(self):
         args = get_default_configuration()
-        args['referenceStrategy'] = {'explicit': True, 'implicit': False}
+        args['referenceStrategy'] = {'explicit': True, 'implicit': False, 'combined': False}
         app = create_app(args).test_client()
         update = """
         PREFIX :  <http://recipehub.nl/recipes#>
@@ -236,12 +237,12 @@ class UpdateQueryTest(unittest.TestCase):
         """
         response = app.post('/update', data=dict(update=update, author='Reinier van Beek', branch='SweetRecipes',
                                                  startDate="2021-07-01T00:00:00+00:00",
-                                                 endDate="2021-07-30T00:00:00+00:00",
+                                                 endDate="2021-07-30T00:00:00+00:00", test='yes',
                                                  description='Add strawberry and delete cashew nut .'))
 
     def test_insert_multiple_triples_implicit(self):
         args = get_default_configuration()
-        args['referenceStrategy'] = {'explicit': False, 'implicit': True}
+        args['referenceStrategy'] = {'explicit': False, 'implicit': True, 'combined': False}
         app = create_app(args).test_client()
         update = """
         PREFIX :  <http://recipehub.nl/recipes#>
@@ -265,7 +266,7 @@ class UpdateQueryTest(unittest.TestCase):
           :RecipeRicottaDoughnuts rdfs:label "Ricotta doughnuts"@en-gb .
         }
         """
-        response = app.post('/update', data=dict(update=update, author='Tom de Vries',
+        response = app.post('/update', data=dict(update=update, author='Tom de Vries', test='yes',
                                                  startDate="2021-06-20T00:00:00+00:00",
                                                  endDate="2021-08-25T00:00:00+00:00",
                                                  description='Add recipe of ricotta doughnuts.'))
@@ -273,7 +274,7 @@ class UpdateQueryTest(unittest.TestCase):
 
     def test_delete_multiple_quads_implicit(self):
         args = get_default_configuration()
-        args['referenceStrategy'] = {'explicit': False, 'implicit': True}
+        args['referenceStrategy'] = {'explicit': False, 'implicit': True, 'combined': False}
         app = create_app(args).test_client()
         update = """
         PREFIX :  <http://recipehub.nl/recipes#>
@@ -290,7 +291,7 @@ class UpdateQueryTest(unittest.TestCase):
           :RecipeChocolateFudgeBrownies rdfs:label "Chocolate fudge brownies"@en-gb .
         }
         """
-        response = app.post('/update', data=dict(update=update, author='Peter Schouten',
+        response = app.post('/update', data=dict(update=update, author='Peter Schouten', test='yes',
                                                  startDate="2021-06-24T00:00:00+00:00",
                                                  endDate="2021-07-06T00:00:00+00:00",
                                                  description='Delete recipe of chocolate fudge brownies.'))
@@ -307,7 +308,64 @@ class UpdateQueryTest(unittest.TestCase):
 
     def test_insert_and_delete_triples_to_branch_implicit(self):
         args = get_default_configuration()
-        args['referenceStrategy'] = {'explicit': True, 'implicit': False}
+        args['referenceStrategy'] = {'explicit': True, 'implicit': False, 'combined': False}
+        app = create_app(args).test_client()
+        update = """
+        PREFIX :  <http://recipehub.nl/recipes#>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        DELETE DATA {
+            :Cashewnut a :Food .
+            :Cashewnut rdfs:label "Cashewnoot"@nl .
+            :Cashewnut rdfs:label "Cashewnut"@en-gb .
+        };
+        INSERT DATA {
+            :Strawberry a :Food .
+            :Strawberry rdfs:label "Aardbei"@nl .
+            :Strawberry rdfs:label "Strawberry"@en-gb .
+        }
+        """
+        response = app.post('/update', data=dict(update=update, author='Reinier van Beek', branch='SweetRecipes',
+                                                 startDate="2021-07-01T00:00:00+00:00", test='yes',
+                                                 endDate="2021-07-30T00:00:00+00:00",
+                                                 description='Add strawberry and delete cashew nut .'))
+
+    def test_insert_multiple_triples_combined(self):
+        args = get_default_configuration()
+        args['referenceStrategy'] = {'explicit': False, 'implicit': False, 'combined': True}
+        app = create_app(args).test_client()
+        update = """
+        PREFIX :  <http://recipehub.nl/recipes#>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        INSERT DATA {
+          :RecipeRicottaDoughnuts a :Recipe .
+          :RecipeRicottaDoughnuts :cuisine :EnglishCuisine .
+          :RecipeRicottaDoughnuts :ingredients :Flour .
+          :RecipeRicottaDoughnuts :ingredients :CasterSugar .
+          :RicottaCheese a :Food .
+          :RicottaCheese rdfs:label "Ricotta cheese"@en-gb .
+          :RicottaCheese rdfs:label "Ricotta"@nl .
+          :RecipeRicottaDoughnuts :ingredients :RicottaCheese .
+          :RecipeRicottaDoughnuts :ingredients :Egg .
+          :RecipeRicottaDoughnuts :meal :Snack .
+          :RecipeRicottaDoughnuts :produces :RicottaDoughnut .
+          :RicottaDoughnut a :Food .
+          :RicottaDoughnut rdfs:label "Ricotta doughnut"@en-gb .
+          :RicottaDoughnut rdfs:label "Ricotta doughnut"@nl .
+          :RecipeRicottaDoughnuts rdfs:comment "Zeppole are irresistible light ricotta doughnuts that are a snip to make at home."@en-gb .
+          :RecipeRicottaDoughnuts rdfs:label "Ricotta doughnuts"@en-gb .
+        }
+        """
+        response = app.post('/update', data=dict(update=update, author='Tom de Vries', test='shouldBeTested',
+                                                 startDate="2021-06-20T00:00:00+00:00",
+                                                 endDate="2021-08-25T00:00:00+00:00",
+                                                 description='Add recipe of ricotta doughnuts.'))
+        self.assertEqual(response.status_code, 200)
+        obj = json.loads(response.data.decode("utf-8"))
+        print("obj ", obj)
+
+    def test_insert_and_delete_triples_to_branch_combined(self):
+        args = get_default_configuration()
+        args['referenceStrategy'] = {'explicit': False, 'implicit': False, 'combined': True}
         app = create_app(args).test_client()
         update = """
         PREFIX :  <http://recipehub.nl/recipes#>
@@ -325,5 +383,7 @@ class UpdateQueryTest(unittest.TestCase):
         """
         response = app.post('/update', data=dict(update=update, author='Reinier van Beek', branch='SweetRecipes',
                                                  startDate="2021-07-01T00:00:00+00:00",
-                                                 endDate="2021-07-30T00:00:00+00:00",
+                                                 endDate="2021-07-30T00:00:00+00:00", test='',
                                                  description='Add strawberry and delete cashew nut .'))
+        obj = json.loads(response.data.decode("utf-8"))
+        print("obj ", obj)

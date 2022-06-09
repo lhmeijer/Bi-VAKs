@@ -1,7 +1,6 @@
 from .Query import Query
-from rdflib.term import URIRef, Literal
+from rdflib.term import Literal
 from src.main.bitr4qs.core.Version import Version
-from rdflib.namespace import XSD
 import json
 
 

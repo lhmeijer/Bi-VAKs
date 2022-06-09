@@ -163,9 +163,39 @@ class ChangeComputer(object):
                         tripleResult = triple.result_based_on_query_type(self._config.QUERY_TYPE)
                         file.write('[DEL in jump {0}]{1}\n'.format(i, tripleResult))
 
+    def compute_version_results(self):
+
+        sink = TripleSink()
+        NTriplesParser = W3CNTriplesParser(sink=sink)
+
+        for i in range(0, self._config.NUMBER_OF_VERSIONS):
+            fileNameB = "{:06d}".format(i+1)
+            print("fileNameB ", fileNameB)
+
+            result = {}
+            for j in range(1, len(self._queries) + 1):
+                result[j] = []
+
+            with gzip.open('{0}{1}.nt.gz'.format(self._inputFolder, fileNameB), 'rt') as file:
+                for line in file:
+                    NTriplesParser.parsestring(line.strip())
+                    triple = Triple((sink.subject, sink.predicate, sink.object))
+                    # print("triple ", triple)
+                    queryNumber = self._contains_query(triple)
+                    if queryNumber is not None:
+                        result[queryNumber].append(triple)
+
+            for number, setOfTriples in result.items():
+                print("queryNumber ", number)
+
+                with open('{0}-{1}.txt'.format(self._config.bear_results_dir, number), 'a') as file:
+                    for triple in setOfTriples:
+                        tripleResult = triple.result_based_on_query_type(self._config.QUERY_TYPE)
+                        file.write('[Solution in {0}]{1}\n'.format(i, tripleResult))
+
 
 if __name__ == "__main__":
     config = BearBConfiguration()
     changeComputer = ChangeComputer(config, inputFolder=config.raw_version_data_dir,
                                     exportFolder=config.raw_change_data_dir)
-    changeComputer.compute_change_results()
+    changeComputer.compute_version_results()

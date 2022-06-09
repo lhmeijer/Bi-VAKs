@@ -8,15 +8,14 @@ from src.evaluation.Evaluator import Evaluator
 import itertools
 from src.evaluation.preprocess_BEAR_B import ChangeComputer
 
-
 if __name__ == "__main__":
 
-    computeChanges = False
+    computeChangeDataset = False
     generateUpdates = False
     createStore = True
     evaluateQueries = False
 
-    if computeChanges:
+    if computeChangeDataset:
         config = BearBConfiguration()
         changeComputer = ChangeComputer(config, inputFolder=config.raw_version_data_dir,
                                         exportFolder=config.raw_change_data_dir)
@@ -24,12 +23,12 @@ if __name__ == "__main__":
 
     if generateUpdates:
 
-        possibleIndices = [[0], [10], [1000000, 10000000], [432000, 4320000]]
+        possibleIndices = [[0], [50, 100], [(1000000, 4320000), (5000000, 432000)]]  # ->  2 x 2 = 4
         permutationsIndices = list(itertools.product(*possibleIndices))
 
         for indices in permutationsIndices:
             print("indices ", indices)
-            config = BearBConfiguration(seed=indices[0], closeness=indices[2], width=indices[3],
+            config = BearBConfiguration(seed=indices[0], closeness=indices[2][0], width=indices[2][1],
                                         triplesPerUpdate=indices[1])
             if not os.path.isfile(config.updates_file_name):
                 updateGenerator = UpdateGenerator(config=config, inputFolder=config.raw_change_data_dir,
@@ -39,87 +38,113 @@ if __name__ == "__main__":
 
     if createStore:
         # seed, numberUpdates, indexCloseness, indexWidth, snapshots, branches, modifiedUpdates, reference, content
-        snapshotIndices = [[0], [50, 100], [1000000, 10000000], [432000, 4320000], [(None, None), ('F', 30), ('N', 30)],
-                           [None], [(None, None)], ['implicit'], ['repeated']]       # -> 48
-        permutationsSnapshotIndices = list(itertools.product(*snapshotIndices))
-        branchIndices = [[0], [50, 100], [1000000], [4320000], [(None, None)], [3], [(None, None)],
-                         ['implicit'], ['repeated']]     # -> 4
+        generalIndices = [[0], [50, 100], [(1000000, 4320000), (5000000, 432000)], [(None, None)], [None],
+                          [(None, None)], ['combined'], ['repeated']]   # -> 2 x 2 x 3 = 12
+        permutationsGeneralIndices = list(itertools.product(*generalIndices))
+        # snapshotModifiedIndices = [[0], [50], [(1000000, 4320000)], [(None, None), ('N', 45)], [None], [(None, 5)],
+        #                    ['explicit'], ['repeated']]  # -> 2 x 3 x 2 = 12
+        snapshotModifiedIndices = [[0], [50], [(1000000, 4320000)], [(None, None)], [None], [(None, 5)],
+                           ['combined'], ['related']]  # -> 2 x 3 x 2 = 12
+        permutationsSnapshotModifiedIndices = list(itertools.product(*snapshotModifiedIndices))
+        branchIndices = [[0], [50], [(1000000, 4320000)], [(None, None)], [3], [(None, None)],
+                         ['combined'], ['repeated']]  # -> 3
         permutationsBranchIndices = list(itertools.product(*branchIndices))
-        modifiedIndices = [[0], [50, 100], [1000000], [4320000], [(None, None)], [None], [(None, 5), (5, 5)],
-                           ['implicit'], ['repeated', 'related']]     # -> 16
-        permutationsModifiedIndices = list(itertools.product(*modifiedIndices))
 
-        # permutationsIndices = permutationsSnapshotIndices + permutationsBranchIndices + permutationsModifiedIndices
+        permutationsIndices = permutationsSnapshotModifiedIndices
 
-        permutationsIndices = [(0, 10, 1000000, 4320000, (None, None), None, (None, 5), 'explicit', 'repeated')]
+        # permutationsIndices = [(0, 10, 1000000, 4320000, (None, None), None, (None, 5), 'explicit', 'repeated')]
+        # TODO shutdown server such that we can run explicit and implicit at the same time.
         for indices in permutationsIndices:
             print("indices ", indices)
-            config = BearBConfiguration(seed=indices[0], closeness=indices[2], width=indices[3], snapshot=indices[4],
-                                        triplesPerUpdate=indices[1], branch=indices[5], modifiedUpdate=indices[6],
-                                        reference=indices[7], content=indices[8])
-            print("config.REFERENCE_EXPLICIT ", config.REFERENCE_EXPLICIT)
-            print("config.REFERENCE_IMPLICIT ", config.REFERENCE_IMPLICIT)
+            config = BearBConfiguration(seed=indices[0], closeness=indices[2][0], width=indices[2][1], snapshot=indices[3],
+                                        triplesPerUpdate=indices[1], branch=indices[4], modifiedUpdate=indices[5],
+                                        reference=indices[6], content=indices[7])
 
-            if not os.path.isfile(config.revision_store_file_name):
-                args = get_default_configuration()
-                args['referenceStrategy'] = {'explicit': config.REFERENCE_EXPLICIT,
-                                             'implicit': config.REFERENCE_IMPLICIT}
-                args['updateContentStrategy'] = {'repeated': config.CONTENT_REPEATED, 'related': config.CONTENT_RELATED}
+            createFile = not os.path.isfile(config.revision_store_file_name)
+            args = get_default_configuration()
+            args['referenceStrategy'] = {'explicit': config.REFERENCE_EXPLICIT,
+                                         'implicit': config.REFERENCE_IMPLICIT,
+                                         'combined': config.REFERENCE_COMBINED}
+            args['updateContentStrategy'] = {'repeated': config.CONTENT_REPEATED, 'related': config.CONTENT_RELATED}
 
-                with create_app(args).test_client() as application:
-
-                    store = StoreCreator(application=application, config=config,
-                                         modificationsFolder=config.raw_change_data_dir,
-                                         updateDataFile=config.updates_file_name,
-                                         revisionStoreFileName=config.revision_store_file_name,
-                                         ingestionResultsFileName=config.ingestion_results_file_name)
-                    store.set_up_revision_store()
-                    store.reset_revision_store()
+            with create_app(args).test_client() as application:
+                store = StoreCreator(application=application, config=config, createRevisionStoreFile=createFile,
+                                     modificationsFolder=config.raw_change_data_dir,
+                                     updateDataFile=config.updates_file_name,
+                                     revisionStoreFileName=config.revision_store_file_name,
+                                     ingestionResultsFileName=config.ingestion_results_file_name)
+                store.set_up_revision_store()
+                store.reset_revision_store()
 
     if evaluateQueries:
         # seed, numberUpdates, indexCloseness, indexWidth, snapshots, branches, modifiedUpdates, reference, content
-        snapshotIndices = [[0], [10, 100], [1000000, 10000000], [432000, 4320000], [(None, None), ('F', 30), ('N', 30)],
-                           [None], [(None, None)], ['explicit', 'implicit'], ['repeated'], ['all', 'specific']]  # -> 96
-        permutationsSnapshotIndices = list(itertools.product(*snapshotIndices))
-        branchIndices = [[0], [10, 100], [1000000], [4320000], [(None, None)], [3], [(None, None)],
-                         ['explicit', 'implicit'], ['repeated'], ['specific']]     # -> 4
-        permutationsBranchIndices = list(itertools.product(*branchIndices))
-        modifiedIndices = [[0], [10, 100], [1000000], [4320000], [(None, None)], [None], [(None, 5), (5, 5)],
-                           ['explicit', 'implicit'], ['repeated', 'related'], ['all', 'specific']]     # -> 32
-        permutationsModifiedIndices = list(itertools.product(*modifiedIndices))
+        generalIndicesVM = [[0], [50, 100], [(1000000, 4320000), (5000000, 432000)], [(None, None)], [None],
+                           [(None, None)], ['explicit'], ['repeated'], [('all', 5)], ['aggregated']]
+        permutationsGeneralIndicesVM = list(itertools.product(*generalIndicesVM))
+        snapshotModifiedIndicesVM = [[0], [50], [(1000000, 4320000)], [(None, None), ('N', 45)], [None], [(None, 5)],
+                             ['explicit'], ['repeated'], [('specific', 20)], ['aggregated']]  # -> 3 x 2 x 2 = 12
+        permutationsSnapshotModifiedIndicesVM = list(itertools.product(*snapshotModifiedIndicesVM))
+        branchIndicesVM = [[0], [50], [(1000000, 4320000)], [(None, None)], [3], [(None, None)], ['explicit'],
+                           ['repeated'], [('specific', 20)], ['aggregated']]    # -> 3
+        permutationsBranchIndicesVM = list(itertools.product(*branchIndicesVM))
+        permutationsIndicesVM = permutationsGeneralIndicesVM + permutationsSnapshotModifiedIndicesVM + \
+                                permutationsBranchIndicesVM
 
-        # permutationsIndices = permutationsSnapshotIndices + permutationsBranchIndices + permutationsModifiedIndices
-        permutationsIndices = [(0, 100, 1000000, 4320000, (None, None), None, (None, None), 'implicit', 'repeated',
-                                'all')]
-        for indices in permutationsIndices:
+        # -> 2 x 2 x 3 x 2 = 24
+        generalIndicesDM = [[0], [50, 100], [(1000000, 4320000), (5000000, 432000)], [(None, None)], [None],
+                           [(None, None)], ['explicit'], ['repeated'], [('specific', 20)], ['aggregated']]
+        permutationsGeneralIndicesDM = list(itertools.product(*generalIndicesDM))
+        modifiedIndicesDM = [[0], [50], [(1000000, 4320000)], [(None, None)], [None], [(None, 5)],
+                             ['explicit'], ['repeated'], [('specific', 20)], ['aggregated']]  # -> 3 x 2 = 6
+        permutationsModifiedIndicesDM = list(itertools.product(*modifiedIndicesDM))
+        branchIndicesDM = [[0], [50], [(1000000, 4320000)], [(None, None)], [3], [(None, None)], ['explicit'],
+                           ['repeated'], [('specific', 20)], ['aggregated']]    # -> 3
+        permutationsBranchIndicesDM = list(itertools.product(*branchIndicesDM))
+        permutationsIndicesDM = permutationsGeneralIndicesDM + permutationsModifiedIndicesDM + \
+                                permutationsBranchIndicesDM
+
+        # -> 2 x 2 x 3 x 2 x 2 = 48
+        generalIndicesVQ = [[0], [50, 100], [(1000000, 4320000), (5000000, 432000)], [(None, None)], [None],
+                           [(None, None)], ['explicit'], ['repeated'], [('all', 5)], ['aggregated']]
+        permutationsGeneralIndicesVQ = list(itertools.product(*generalIndicesVQ))
+        modifiedIndicesVQ = [[0], [50], [(1000000, 4320000)], [(None, None)], [None], [(None, 5)],
+                             ['explicit'], ['repeated'], [('specific', 20)], ['aggregated']]  # -> 3 x 2 = 6
+        permutationsModifiedIndicesVQ = list(itertools.product(*modifiedIndicesVQ))
+        branchIndicesVQ = [[0], [50], [(1000000, 4320000)], [(None, None)], [3], [(None, None)], ['explicit'],
+                           ['repeated'], [('specific', 20)], ['aggregated']]    # -> 3
+        permutationsBranchIndicesVQ = list(itertools.product(*branchIndicesVQ))
+        permutationsIndicesVQ = permutationsGeneralIndicesVQ + permutationsModifiedIndicesVQ + \
+                                permutationsBranchIndicesVQ
+        # permutationsIndices = [(0, 50, 1000000, 4320000, ('N', 30), None, (None, None), 'explicit', 'repeated',
+        #                         'specific')]
+        for indices in permutationsIndicesVQ:
             print("indices ", indices)
 
-            if indices[9] == 'all':
-                nOfQueries = 5
-            else:
-                nOfQueries = None
+            config = BearBConfiguration(seed=indices[0], closeness=indices[2][0], width=indices[2][1], snapshot=indices[3],
+                                        triplesPerUpdate=indices[1], branch=indices[4], modifiedUpdate=indices[5],
+                                        reference=indices[6], fetching=indices[8][0], content=indices[7],
+                                        numberOfQueries=indices[8][1], modifications=indices[9])
 
-            config = BearBConfiguration(seed=indices[0], closeness=indices[2], width=indices[3], snapshot=indices[4],
-                                        triplesPerUpdate=indices[1], branch=indices[5], modifiedUpdate=indices[6],
-                                        reference=indices[7], fetching=indices[9], content=indices[8],
-                                        numberOfQueries=nOfQueries)
-
-            print("config.REFERENCE_EXPLICIT ", config.REFERENCE_EXPLICIT)
-            print("config.REFERENCE_IMPLICIT ", config.REFERENCE_IMPLICIT)
-
-            if os.path.isfile(config.revision_store_file_name):
+            print("config.query_results_file_name ", config.query_results_file_name)
+            if os.path.isfile(config.revision_store_file_name) and not os.path.isfile(config.query_results_file_name):
                 args = get_default_configuration()
                 args['referenceStrategy'] = {'explicit': config.REFERENCE_EXPLICIT,
-                                             'implicit': config.REFERENCE_IMPLICIT}
+                                             'implicit': config.REFERENCE_IMPLICIT,
+                                             'combined': config.REFERENCE_COMBINED}
                 args['fetchingStrategy'] = {'queryAllUpdates': config.FETCHING_ALL,
                                             'querySpecificUpdates': config.FETCHING_SPECIFIC}
-                args['updateContentStrategy'] = {'repeated': config.CONTENT_REPEATED, 'related': config.CONTENT_RELATED}
+                args['updateContentStrategy'] = {'repeated': config.CONTENT_REPEATED,
+                                                 'related': config.CONTENT_RELATED}
+                args['modificationsStrategy'] = {'aggregated': config.MODIFICATIONS_AGGREGATED,
+                                                 'sorted': config.MODIFICATIONS_SORTED}
 
                 application = create_app(args).test_client()
 
-                evaluator = Evaluator(config=config, application=application,
-                                      revisionStoreFileName=config.revision_store_file_name,
-                                      queryResultsFileName=config.query_results_file_name)
-                evaluator.set_up_revision_store()
-                evaluator.evaluate()
-                evaluator.reset_revision_store()
+                for i in range(5):
+
+                    evaluator = Evaluator(config=config, application=application,
+                                          revisionStoreFileName=config.revision_store_file_name,
+                                          queryResultsFileName=config.query_results_file_name)
+                    evaluator.set_up_revision_store()
+                    evaluator.evaluate()
+                    evaluator.reset_revision_store()

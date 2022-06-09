@@ -210,8 +210,9 @@ class BiTR4Qs(object):
         try:
             self._revisionStore.revision_store.upload_to_dataset(data, returnFormat=returnFormat, encoded=True)
             snapshots = self._revisionStore.all_revisions('snapshot', isValidRevision=True)
-            for _, snapshot in snapshots.items():
-                snapshot.create_dataset(self._revisionStore)
+            if len(snapshots) > 0:
+                for _, snapshot in snapshots.items():
+                    snapshot.create_dataset(self._revisionStore)
         except Exception as e:
             print("e ", e)
             raise e

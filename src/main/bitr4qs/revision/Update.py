@@ -125,11 +125,11 @@ class Update(ValidRevision):
         if relatedContent:
             self._modifications = revisionStore.preceding_modifications(self._identifier)
 
-        transactionRevision = revisionStore.transaction_from_valid_and_valid_from_transaction(
-            revisionID=self._identifier, transactionFromValid=True, revisionType='update')
-
         newModifications = []
         if otherModifications:
+
+            transactionRevision = revisionStore.transaction_from_valid_and_valid_from_transaction(
+                revisionID=self._identifier, transactionFromValid=True, revisionType='update')
 
             # Check whether the existing modifications can be changed
             for otherModification in otherModifications:

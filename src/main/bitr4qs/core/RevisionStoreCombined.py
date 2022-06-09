@@ -206,6 +206,11 @@ class RevisionStoreCombined(RevisionStore):
         tags = parser.TagParser.parse_sorted_combined(tags, tagRevisions)
         return tags
 
+    def _sorted_snapshots(self, stringOfSnapshots, revisionA, revisionB=None, forward=True):
+        snapshotRevisions = self._transaction_revisions_in_revision_graph(revisionA, ['snapshot'], revisionB)
+        snapshots = parser.SnapshotParser.parse_sorted_combined(stringOfSnapshots, snapshotRevisions, forward=forward)
+        return snapshots
+
     def _get_sorted_updates(self, updateParser, stringOfUpdates, revisionA: URIRef, revisionB: URIRef = None,
                             forward=True):
         """

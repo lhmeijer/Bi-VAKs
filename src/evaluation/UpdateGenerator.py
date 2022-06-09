@@ -19,7 +19,9 @@ class UpdateGenerator(object):
         self._distribution = np.zeros(self._config.MAX_SECONDS)
         self._queries = get_queries_from_nt_file(self._config.bear_queries_file_name)
         self._startDateOfYear = datetime.strptime(self._config.START_EFFECTIVE_DATE, "%Y-%m-%dT%H:%M:%S+00:00")
-        self._queryTime = datetime.strptime(self._config.QUERY_TIME, "%Y-%m-%dT%H:%M:%S+00:00")
+        queryTime = datetime.strptime(self._config.QUERY_TIME, "%Y-%m-%dT%H:%M:%S+00:00")
+        self._startTimeQueryTime = queryTime - timedelta(days=3)
+        self._endTimeQueryTime = queryTime + timedelta(days=3)
 
     def _generate_start_and_end_date(self, containQuery=False):
         """
@@ -41,6 +43,8 @@ class UpdateGenerator(object):
                 np.random.normal(loc=self._config.MEAN_closeness, scale=self._config.STANDARD_DEVIATION_closeness))
             widthOfInterval = int(
                 np.random.normal(loc=self._config.MEAN_width, scale=self._config.STANDARD_DEVIATION_width))
+            if widthOfInterval < 0:
+                continue
 
             leftBoundInSeconds = middleOfInterval - widthOfInterval
             rightBoundInSeconds = middleOfInterval + widthOfInterval
@@ -56,7 +60,7 @@ class UpdateGenerator(object):
                 endDateIsKnown = False
                 rightBoundInSeconds = self._config.MAX_SECONDS
 
-            if containQuery and (leftBound > self._queryTime or rightBound < self._queryTime):
+            if containQuery and (leftBound > self._startTimeQueryTime or rightBound < self._endTimeQueryTime):
                 continue
             else:
                 startDate = leftBound.strftime("%Y-%m-%dT%H:%M:%S+00:00") if startDateIsKnown else 'unknown'

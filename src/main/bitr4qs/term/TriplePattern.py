@@ -40,11 +40,11 @@ class TriplePattern(object):
     def variables(self):
         variables = []
         if isinstance(self._subject, Variable):
-            variables.append((self._subject.n3(), 0))
+            variables.append((self._subject, 0))
         if isinstance(self._predicate, Variable):
-            variables.append((self._predicate.n3(), 1))
+            variables.append((self._predicate, 1))
         if isinstance(self._object, Variable):
-            variables.append((self._object.n3(), 2))
+            variables.append((self._object, 2))
         return variables
 
     def triple(self):
@@ -67,7 +67,7 @@ class TriplePattern(object):
 
     def select_query(self):
         SPARQLQuery = """SELECT {0}
-        WHERE {{ {1} }}""".format(' '.join(variable[0] for variable in self.variables()), self.sparql())
+        WHERE {{ {1} }}""".format(' '.join(variable[0].n3() for variable in self.variables()), self.sparql())
         return SPARQLQuery
 
     def matches(self, triple):

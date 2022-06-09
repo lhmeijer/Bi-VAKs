@@ -75,10 +75,11 @@ class UpdateParser(Parser):
 
             splitQuad = re.findall(r'<(.*?)>', NQuad)
             updateID = splitQuad[0]
-            index += 1
 
             if identifier != updateID:
                 return revision, index
+
+            index += 1
 
             if splitQuad[1] == str(BITR4QS.inserts):
                 _ = cls.parse_inserts_or_deletes(sink=revision, NQuad=NQuad)
@@ -214,7 +215,9 @@ class UpdateParser(Parser):
         :return:
         """
         updatesRevisions = self.parse_revisions(stringOfTransactionRevisions, 'transaction')
+        # print("stringOfValidRevisions ", stringOfValidRevisions)
         updates = self.parse_revisions(stringOfValidRevisions, 'valid')
+        # print([update.identifier for _, update in updates.items()])
 
         orderedUpdates = {}
         nOfRevisions = len(updates)
@@ -236,8 +239,8 @@ class UpdateParser(Parser):
                                 orderedUpdates[i] = update
 
                             i += 1
-
         for i in range(len(orderedUpdates)):
+            # print("orderedUpdates[i] ", orderedUpdates[i].identifier)
             for modification in orderedUpdates[i].modifications:
                 if not forward:
                     modification.invert()

@@ -42,28 +42,56 @@ class TripleSink(object):
 class Parser(object):
 
     @classmethod
-    def parse_sorted_implicit(cls, stringOfValidRevisions, forwards=True):
+    def parse_sorted_combined(cls, stringOfValidRevisions, stringOfTransactionRevisions, forward=True):
         """
 
         :param stringOfValidRevisions:
-        :param forwards:
+        :param stringOfTransactionRevisions:
+        :param forward:
+        :return:
+        """
+        transactionRevisions = cls.parse_revisions(stringOfTransactionRevisions, 'transaction')
+        validRevisions = cls.parse_revisions(stringOfValidRevisions, 'valid')
+
+        listOfTransactionRevisions = list(transactionRevisions.values())
+        listOfTransactionRevisions.sort(key=lambda x: x.revision_number, reverse=not forward)
+
+        orderedValidRevisions = {}
+        i = 0
+
+        for transactionRevision in listOfTransactionRevisions:
+            validRevisionIDs = transactionRevision.valid_revisions
+            if validRevisionIDs:
+                for _, validRevisionID in validRevisionIDs:
+                    if str(validRevisionID) in validRevisions:
+                        validRevision = validRevisions[str(validRevisionID)]
+                        orderedValidRevisions[i] = validRevision
+                        i += 1
+        return orderedValidRevisions
+
+    @classmethod
+    def parse_sorted_implicit(cls, stringOfValidRevisions, forward=True):
+        """
+
+        :param stringOfValidRevisions:
+        :param forward:
         :return:
         """
         validRevisions = cls.parse_revisions(stringOfValidRevisions, 'valid')
         listOfValidRevisions = list(validRevisions.values())
-        listOfValidRevisions.sort(key=lambda x: x.revision_number, reverse=not forwards)
+        listOfValidRevisions.sort(key=lambda x: x.revision_number, reverse=not forward)
         orderedValidRevisions = dict(zip(list(range(len(listOfValidRevisions))), listOfValidRevisions))
         return orderedValidRevisions
 
     @classmethod
     def parse_sorted_explicit(cls, stringOfValidRevisions, stringOfTransactionRevisions, endRevision: URIRef,
-                              forwards=True):
+                              forward=True):
         """
 
         :param stringOfValidRevisions:
         :param stringOfTransactionRevisions:
         :param endRevision:
-        :param forwards:
+        :param forward:
         :return:
         """
         transactionRevisions = cls.parse_revisions(stringOfTransactionRevisions, 'transaction')
@@ -82,7 +110,7 @@ class Parser(object):
                         if str(validRevisionID) in validRevisions:
                             validRevision = validRevisions[str(validRevisionID)]
 
-                            if forwards:
+                            if forward:
                                 j = nOfRevisions - i - 1
                                 orderedValidRevisions[j] = validRevision
                             else:

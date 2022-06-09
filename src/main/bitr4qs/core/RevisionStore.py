@@ -133,8 +133,10 @@ class RevisionStore(object):
             }}
             ?revision ?p ?o .
         }}""".format(nameOfType, revisionType.title())
+        # print("SPARQLQuery ", SPARQLQuery)
         stringOfRevisions = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
+        # print("stringOfRevisions ", stringOfRevisions)
         func = getattr(self, '_' + revisionType)
         revisions = func(stringOfRevisions, isValidRevision=isValidRevision)
         return revisions
@@ -855,6 +857,9 @@ class RevisionStore(object):
         """
         return ""
 
+    def _sorted_snapshots(self, stringOfSnapshots, revisionA, revisionB=None, forward=True):
+        return {}
+
     def closest_snapshot(self, validTime: Literal, headRevision: URIRef):
         """
         Function to return the closest Snapshot from the HEAD revision in the revision graph based on the valid time.
@@ -864,10 +869,11 @@ class RevisionStore(object):
         """
         stringOfSnapshots = self._valid_revisions_in_graph(revisionA=headRevision, queryType='DescribeQuery',
                                                            revisionType='snapshot')
+        if len(stringOfSnapshots) == 0:
+            return None
+
         snapshots = parser.SnapshotParser.parse_revisions(stringOfSnapshots, 'valid')
 
-        if len(snapshots) == 0:
-            return None
         referenceTime = datetime.strptime(str(validTime), "%Y-%m-%dT%H:%M:%S+00:00")
 
         minimumDifference = None
@@ -877,9 +883,7 @@ class RevisionStore(object):
             time = datetime.strptime(str(snapshot.effective_date), "%Y-%m-%dT%H:%M:%S+00:00")
             difference = referenceTime - time if referenceTime > time else time - referenceTime
 
-            if minimumDifference is None:
-                minimumDifference = difference
-            elif difference < minimumDifference:
+            if minimumDifference is None or difference < minimumDifference:
                 minimumDifference = difference
                 minimumSnapshot = snapshot
 

@@ -39,35 +39,37 @@ class Evaluator(object):
         triplesPerQuery = []
 
         for i in range(1, self._nOfQueries + 1):
-        # for i in range(26, self._nOfQueries + 1):
+        # for i in range(18, self._nOfQueries + 1):
             func = getattr(self, '_evaluate_{0}_query'.format(self._config.QUERY_ATOM.lower()))
             # time, triples = func(queryIndex, query)
             time, triples = func(i, self._queries[i])
             timePerQuery.append(time)
             triplesPerQuery.append(triples)
 
+            time = str(datetime.now().strftime("%d-%m-%Y"))
             with open(self._config.query_results_file_name, 'a') as file:
-                file.write('query-{0}-time,{1}\n'.format(i, ','.join(str(t) for t in time)))
-                file.write('query-{0}-triples,{1}\n'.format(i, ','.join(str(t) for t in triples)))
-        print("timePerQuery ", timePerQuery)
-        print("timePerQuery n ", len(timePerQuery))
-        print("timePerQuery m ", len(timePerQuery[0]))
-        numpyTimePerQuery = np.array(timePerQuery)
-        numpyTriplesPerQuery = np.array(triplesPerQuery)
-
-        meanTimePerVersion = np.mean(numpyTimePerQuery, axis=0)
-        standardDeviationTimePerVersion = np.std(numpyTimePerQuery, axis=0)
-
-        meanTriplesPerQuery = np.mean(numpyTriplesPerQuery, axis=0)
-        standardDeviationTriplesPerQuery = np.std(numpyTriplesPerQuery, axis=0)
-
-        with open(self._queryResultsFileName, 'a') as file:
-            file.write('MEAN_TimePerVersion,{0}\n'.format(','.join(str(m) for m in meanTimePerVersion)))
-            file.write('STANDARD_DEVIATION_TimePerVersion,{0}\n'.format(
-                ','.join(str(s) for s in standardDeviationTimePerVersion)))
-            file.write('MEAN_TriplesPerVersion,{0}\n'.format(','.join(str(m) for m in meanTriplesPerQuery)))
-            file.write('STANDARD_DEVIATION_TriplesPerVersion,{0}\n'.format(
-                ','.join(str(s) for s in standardDeviationTriplesPerQuery)))
+                file.write('{2},query-{0}-time,{1}\n'.format(i, ','.join(str(t) for t in time), time))
+                file.write('{2},query-{0}-triples,{1}\n'.format(i, ','.join(str(t) for t in triples), time))
+        # print("timePerQuery ", timePerQuery)
+        # print("triplesPerQuery ", triplesPerQuery)
+        # print("timePerQuery n ", len(timePerQuery))
+        # print("timePerQuery m ", len(timePerQuery[0]))
+        # numpyTimePerQuery = np.array(timePerQuery)
+        # numpyTriplesPerQuery = np.array(triplesPerQuery)
+        #
+        # meanTimePerVersion = np.mean(numpyTimePerQuery, axis=0)
+        # standardDeviationTimePerVersion = np.std(numpyTimePerQuery, axis=0)
+        #
+        # meanTriplesPerQuery = np.mean(numpyTriplesPerQuery, axis=0)
+        # standardDeviationTriplesPerQuery = np.std(numpyTriplesPerQuery, axis=0)
+        #
+        # with open(self._queryResultsFileName, 'a') as file:
+        #     file.write('MEAN_TimePerVersion,{0}\n'.format(','.join(str(m) for m in meanTimePerVersion)))
+        #     file.write('STANDARD_DEVIATION_TimePerVersion,{0}\n'.format(
+        #         ','.join(str(s) for s in standardDeviationTimePerVersion)))
+        #     file.write('MEAN_TriplesPerVersion,{0}\n'.format(','.join(str(m) for m in meanTriplesPerQuery)))
+        #     file.write('STANDARD_DEVIATION_TriplesPerVersion,{0}\n'.format(
+        #         ','.join(str(s) for s in standardDeviationTriplesPerQuery)))
 
     def _evaluate_vm_query(self, queryIndex, query):
         trueResults = self._extract_vm_results_from_file('{0}-{1}.txt'.format(self._config.bear_results_dir, queryIndex))
@@ -140,7 +142,6 @@ class Evaluator(object):
     def _evaluate_vq_query(self, queryIndex, query):
         realResults = self._extract_vq_results_from_file('{0}-{1}.txt'.format(self._config.bear_results_dir, queryIndex))
         nOfVersionsInRealResults = np.count_nonzero(realResults == 1)
-        print("nOfVersionsInRealResults ", nOfVersionsInRealResults)
 
         if self._config.VERSIONS_TO_BRANCH:
             branch = self._config.BRANCH
@@ -170,9 +171,9 @@ class Evaluator(object):
                 nOfVersions += 1
             else:
                 raise Exception("Version {0} should not contain any response.".format(versionNumber))
-        print("nOfVersions ", nOfVersions)
+
         if nOfVersionsInRealResults != nOfVersions:
-            raise Exception
+            raise Exception("Number of versions does not correspond.")
 
         return time, totalNumberOfTriples
 
@@ -183,7 +184,7 @@ class Evaluator(object):
         for jsonResult in jsonResults:
             result = [None, None, None]
             for variableName, variableResult in jsonResult.items():
-                index = 0 if variableName == '?s' else (1 if variableName == '?p' else 2)
+                index = 0 if variableName == 's' else (1 if variableName == 'p' else 2)
 
                 if variableResult['type'] == 'uri':
                     result[index] = URIRef(variableResult['value']).n3()
@@ -199,7 +200,7 @@ class Evaluator(object):
                         Literal(variableResult['value'], lang=lang, datatype=datatype))
             result = list(filter(None, result))
             # s = ' '.join(result).encode('utf-8').decode('us-ascii', errors='ignore').replace('?', '')
-            s = ' '.join(result)
+            s = ' '.join(result).replace("       ", '\t')
             results.add(s)
 
         differenceResults = results - trueResults
@@ -207,7 +208,7 @@ class Evaluator(object):
         if len(differenceResults) > 0:
             print('differenceResults', differenceResults)
             print("List is not empty ", len(differenceResults))
-            # raise Exception
+            raise Exception
 
     def _extract_vm_results_from_file(self, fileName):
         results = {}
@@ -220,8 +221,7 @@ class Evaluator(object):
                 line = '[Solution' + line
                 stringWithinBrackets = re.search(r"\[Solution.*?]", line).group(0)
                 versionNumber = int(re.findall(r'\d+', stringWithinBrackets)[0])
-                resultString = line.strip().replace(stringWithinBrackets, '').encode('utf-8')\
-                    .decode('us-ascii', errors='ignore').replace('?', '')
+                resultString = line.strip().replace(stringWithinBrackets, '')
 
                 results[versionNumber].add(resultString)
         return results
@@ -255,7 +255,7 @@ class Evaluator(object):
                 versionNumber = int(re.findall(r'\d+', stringWithinBrackets)[0])
                 if versionNumber < self._config.NUMBER_OF_VERSIONS:
                     results[versionNumber] = 1
-        print("results ", results)
+
         return results
 
 
