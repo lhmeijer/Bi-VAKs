@@ -35,41 +35,15 @@ class Evaluator(object):
 
         :return:
         """
-        timePerQuery = []
-        triplesPerQuery = []
 
         for i in range(1, self._nOfQueries + 1):
-        # for i in range(18, self._nOfQueries + 1):
+        # for i in range(6, self._nOfQueries + 1):
             func = getattr(self, '_evaluate_{0}_query'.format(self._config.QUERY_ATOM.lower()))
-            # time, triples = func(queryIndex, query)
             time, triples = func(i, self._queries[i])
-            timePerQuery.append(time)
-            triplesPerQuery.append(triples)
-
-            time = str(datetime.now().strftime("%d-%m-%Y"))
+            currentTime = str(datetime.now().strftime("%d-%m-%Y"))
             with open(self._config.query_results_file_name, 'a') as file:
-                file.write('{2},query-{0}-time,{1}\n'.format(i, ','.join(str(t) for t in time), time))
-                file.write('{2},query-{0}-triples,{1}\n'.format(i, ','.join(str(t) for t in triples), time))
-        # print("timePerQuery ", timePerQuery)
-        # print("triplesPerQuery ", triplesPerQuery)
-        # print("timePerQuery n ", len(timePerQuery))
-        # print("timePerQuery m ", len(timePerQuery[0]))
-        # numpyTimePerQuery = np.array(timePerQuery)
-        # numpyTriplesPerQuery = np.array(triplesPerQuery)
-        #
-        # meanTimePerVersion = np.mean(numpyTimePerQuery, axis=0)
-        # standardDeviationTimePerVersion = np.std(numpyTimePerQuery, axis=0)
-        #
-        # meanTriplesPerQuery = np.mean(numpyTriplesPerQuery, axis=0)
-        # standardDeviationTriplesPerQuery = np.std(numpyTriplesPerQuery, axis=0)
-        #
-        # with open(self._queryResultsFileName, 'a') as file:
-        #     file.write('MEAN_TimePerVersion,{0}\n'.format(','.join(str(m) for m in meanTimePerVersion)))
-        #     file.write('STANDARD_DEVIATION_TimePerVersion,{0}\n'.format(
-        #         ','.join(str(s) for s in standardDeviationTimePerVersion)))
-        #     file.write('MEAN_TriplesPerVersion,{0}\n'.format(','.join(str(m) for m in meanTriplesPerQuery)))
-        #     file.write('STANDARD_DEVIATION_TriplesPerVersion,{0}\n'.format(
-        #         ','.join(str(s) for s in standardDeviationTriplesPerQuery)))
+                file.write('{2},query-{0}-time,{1}\n'.format(i, ','.join(str(t) for t in time), currentTime))
+                file.write('{2},query-{0}-triples,{1}\n'.format(i, ','.join(str(t) for t in triples), currentTime))
 
     def _evaluate_vm_query(self, queryIndex, query):
         trueResults = self._extract_vm_results_from_file('{0}-{1}.txt'.format(self._config.bear_results_dir, queryIndex))
@@ -79,7 +53,8 @@ class Evaluator(object):
 
         print("Query\n", query.select_query())
         for i in range(self._config.NUMBER_OF_VERSIONS):
-            print("We query now version ", i+1)
+            if i % 20 == 0:
+                print("We query now version ", i+1)
 
             start = timer()
             results = self._application.get('/query', query_string=dict(
@@ -89,12 +64,11 @@ class Evaluator(object):
             time.append(float(timedelta(seconds=end - start).total_seconds()))
             # Obtain the number of triples it needed to construct the given version.
             numberOfTriples = results.headers['N-ProcessedQuads']
-            print("numberOfTriples ", numberOfTriples)
             totalNumberOfTriples.append(int(numberOfTriples))
 
             jsonResults = json.loads(results.data.decode("utf-8"))
-            print("jsonResults ", jsonResults)
-            print("trueResults[i] ", trueResults[i])
+            # print("jsonResults ", jsonResults)
+            # print("trueResults[i] ", trueResults[i])
             # for jsonResult in jsonResults['results']['bindings']:
             try:
                 self._compare_results(jsonResults['results']['bindings'], trueResults[i])
@@ -107,10 +81,11 @@ class Evaluator(object):
 
         trueResults = self._extract_dm_results_from_file('{0}-{1}.txt'.format(self._config.bear_results_dir, queryIndex))
         jumps = list(range(0, self._config.NUMBER_OF_VERSIONS, 5)) + [self._config.NUMBER_OF_VERSIONS]
-        print("jumps ", jumps)
+
         time = []
         totalNumberOfTriples = []
 
+        print("Query\n", query.select_query())
         for i in jumps[1:]:
             print("We query now version 1 and version ", i)
             start = timer()
@@ -125,8 +100,7 @@ class Evaluator(object):
             totalNumberOfTriples.append(int(numberOfTriples))
 
             jsonResults = json.loads(results.data.decode("utf-8"))
-            print("jsonResults ", jsonResults)
-            print("trueResults[i] ", trueResults[i])
+
             try:
                 self._compare_results(jsonResults['results']['insertions'], trueResults[i]['insertions'])
             except Exception:
@@ -151,6 +125,8 @@ class Evaluator(object):
         time = []
         totalNumberOfTriples = []
 
+        print("Query\n", query.select_query())
+
         start = timer()
         results = self._application.get('/query', query_string=dict(
             query=query.select_query(), queryAtomType='VQ', branch=branch),
@@ -170,7 +146,7 @@ class Evaluator(object):
             if realResults[versionNumber] == 1:
                 nOfVersions += 1
             else:
-                raise Exception("Version {0} should not contain any response.".format(versionNumber))
+                raise Exception("Version {0} should contain any response.".format(versionNumber))
 
         if nOfVersionsInRealResults != nOfVersions:
             raise Exception("Number of versions does not correspond.")
@@ -204,7 +180,7 @@ class Evaluator(object):
             results.add(s)
 
         differenceResults = results - trueResults
-        print("results ", results)
+        # print("results ", results)
         if len(differenceResults) > 0:
             print('differenceResults', differenceResults)
             print("List is not empty ", len(differenceResults))

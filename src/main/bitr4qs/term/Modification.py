@@ -14,6 +14,10 @@ class Modification(object):
     def deletion(self):
         return self._deletion
 
+    @deletion.setter
+    def deletion(self, deletion):
+        self._deletion = deletion
+
     @property
     def insertion(self):
         return not self._deletion

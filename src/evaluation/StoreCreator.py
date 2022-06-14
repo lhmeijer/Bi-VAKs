@@ -206,7 +206,7 @@ class StoreCreator(object):
             updateResponse = self._application.post('/update', data=dict(
                 update=SPARQLUpdateQuery, author='Tom de Vries', startDate=updateData[self._updateIndex][4],
                 branch=self._branch, description='Add update {0}.'.format(str(self._updateIndex+1)),
-                endDate=updateData[self._updateIndex][5], test=''))
+                endDate=updateData[self._updateIndex][5], test='no'))
             end = timer()
             seconds = timedelta(seconds=end - start).total_seconds()
             self._runtimeUpdates.append(seconds)
@@ -244,7 +244,7 @@ class StoreCreator(object):
                 start = timer()
                 updateResponse = self._application.post('/update/{0}'.format(updateID), data=dict(
                     author='Tom de Vries', description='Modify update {0}.'.format(updateID), branch=self._branch,
-                    startDate=startDate, endDate=endDate, test=''))
+                    startDate=startDate, endDate=endDate, test='no'))
                 end = timer()
                 seconds = timedelta(seconds=end - start).total_seconds()
                 self._runtimeModifiedUpdates.append(seconds)

@@ -4,6 +4,8 @@ from rdflib.plugins.parsers.ntriples import W3CNTriplesParser
 from .Parser import Parser, TripleSink
 from src.main.bitr4qs.term.Modification import Modification
 from rdflib.term import URIRef
+from rdflib.namespace import RDFS
+from src.main.bitr4qs.tools.parser.UpdateNQuadParser import UpdateNQuadParser
 
 
 class UpdateParser(Parser):
@@ -35,6 +37,21 @@ class UpdateParser(Parser):
             return graph
         return None
 
+    def n_quads_to_modifications(self, NQuads, deletion=False):
+        sink = TripleSink()
+        nQuadParser = UpdateNQuadParser(sink)
+
+        for NQuad in NQuads:
+            nQuadParser.parsestring(NQuad)
+            self._numberOfProcessedQuads += 1
+
+            hashOfModification = sink.modification.value.__hash__()
+            if hashOfModification in self._modifications:
+                self._modifications[hashOfModification]['counter'] += -1 if deletion else 1
+            else:
+                self._modifications[hashOfModification] = {'counter': -1, 'modification': sink.modification.value} \
+                    if deletion else {'counter': 1, 'modification': sink.modification.value}
+
     @staticmethod
     def parse_inserts_or_deletes(sink, NQuad, deletion=False, forward=True):
 
@@ -55,8 +72,34 @@ class UpdateParser(Parser):
 
         return modification
 
-    @classmethod
-    def parse_valid_revision(cls, identifier, NQuads, index, revision=None):
+    def parse_revisions(self, stringOfRevisions, revisionName):
+        """
+
+        :param stringOfRevisions:
+        :param revisionName:
+        :return:
+        """
+        revisions = {}
+
+        functionName = "parse_" + revisionName + '_revision'
+        func = getattr(self, functionName)
+
+        NQuads = stringOfRevisions.split('\n')[:-1]
+        index = 0
+
+        while index != len(NQuads):
+            revisionID = re.findall(r'<(.*?)>', NQuads[index])[0]
+
+            if revisionID in revisions:
+                revision, index = func(revisionID, NQuads[index:], index, revisions[revisionID])
+            else:
+                revision, index = func(revisionID, NQuads[index:], index)
+
+            revisions[str(revision.identifier)] = revision
+        # print("revisions ", revisions)
+        return revisions
+
+    def parse_valid_revision(self, identifier, NQuads, index, revision=None):
         """
 
         :param identifier:
@@ -74,6 +117,7 @@ class UpdateParser(Parser):
         for NQuad in NQuads:
 
             splitQuad = re.findall(r'<(.*?)>', NQuad)
+            self._numberOfProcessedQuads += 1
             updateID = splitQuad[0]
 
             if identifier != updateID:
@@ -82,10 +126,10 @@ class UpdateParser(Parser):
             index += 1
 
             if splitQuad[1] == str(BITR4QS.inserts):
-                _ = cls.parse_inserts_or_deletes(sink=revision, NQuad=NQuad)
+                _ = self.parse_inserts_or_deletes(sink=revision, NQuad=NQuad)
 
             elif splitQuad[1] == str(BITR4QS.deletes):
-                _ = cls.parse_inserts_or_deletes(sink=revision, NQuad=NQuad, deletion=True)
+                _ = self.parse_inserts_or_deletes(sink=revision, NQuad=NQuad, deletion=True)
 
             elif splitQuad[1] == str(BITR4QS.precedingUpdate):
                 NTriplesParser.parsestring(NQuad)
@@ -113,16 +157,55 @@ class UpdateParser(Parser):
 
         return revision, index
 
-    @staticmethod
-    def _get_transaction_revision(identifier):
-        from src.main.bitr4qs.revision.Update import UpdateRevision
-        return UpdateRevision(URIRef(identifier))
+    def parse_transaction_revision(self, identifier, NTriples, index, revision=None):
+        """
+        Function that parses a general transaction revision
+        :param identifier: The identifier of the transaction revision
+        :param NTriples:
+        :param index:
+        :param revision:
+        :return:
+        """
+        if revision is None:
+            from src.main.bitr4qs.revision.Update import UpdateRevision
+            revision = UpdateRevision(URIRef(identifier))
 
-    @staticmethod
-    def _parse_transaction_revision(revision, p, o):
+        sink = TripleSink()
+        NTriplesParser = W3CNTriplesParser(sink=sink)
 
-        if str(p) == str(BITR4QS.update):
-            revision.add_valid_revision(o)
+        for NTriple in NTriples:
+
+            NTriplesParser.parsestring(NTriple)
+            if identifier != str(sink.subject):
+                return revision, index
+
+            index += 1
+
+            if str(sink.predicate) == str(BITR4QS.hash):
+                revision.hexadecimal_of_hash = sink.object
+
+            elif str(sink.predicate) == str(BITR4QS.precedingRevision):
+                revision.preceding_revision = sink.object
+
+            elif str(sink.predicate) == str(BITR4QS.revisionNumber):
+                revision.revision_number = sink.object
+
+            elif str(sink.predicate) == str(BITR4QS.branch):
+                revision.branch = sink.object
+
+            elif str(sink.predicate) == str(BITR4QS.createdAt):
+                revision.creation_date = sink.object
+
+            elif str(sink.predicate) == str(BITR4QS.author):
+                revision.author = sink.object
+
+            elif str(sink.predicate) == str(RDFS.comment):
+                revision.description = sink.object
+
+            if str(sink.predicate) == str(BITR4QS.update):
+                revision.add_valid_revision(sink.object)
+
+        return revision, index
 
     def parse_aggregate(self, stringOfRevisions, forward=True):
         """
@@ -255,9 +338,6 @@ class UpdateParser(Parser):
                 modificationsInList.append(Modification(value['modification'], deletion=True))
 
         return modificationsInList
-
-    def n_quads_to_modifications(self, stringOfNQuads):
-        pass
 
     def modifications_to_n_quads(self):
         n_quads = ''.join(v['modification'].n_quad() if v['counter'] > 0 else "" for _, v in self._modifications.items())

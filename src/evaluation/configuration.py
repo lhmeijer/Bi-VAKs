@@ -21,7 +21,7 @@ class BearBConfiguration(object):
     _snapshot_effective_dates = {'F': '2015-03-01T00:00:00+00:00', 'N': '2015-07-01T00:00:00+00:00'}
 
     QUERY_TYPE = 'p'    # po or p
-    QUERY_ATOM = 'VM'   # VM, DM, VQ
+    QUERY_ATOM = 'VQ'   # VM, DM, VQ
     NUMBER_OF_VERSIONS = 89
 
     _bear_b_results = {'VM': 'mat-{0}-queries'.format(QUERY_TYPE), 'DM': 'diff-{0}-queries'.format(QUERY_TYPE),
@@ -37,7 +37,7 @@ class BearBConfiguration(object):
 
     def __init__(self, seed=0, closeness=1000000, width=4320000, triplesPerUpdate=10, snapshot=(None, None),
                  branch=None, modifiedUpdate=(None, None), reference='explicit', fetching='specific',
-                 content='repeated', modifications="aggregated", numberOfQueries=None):
+                 content='repeated', modifications="aggregated", numberOfQueries=None, retrieve='between'):
 
         # [1000000, 5000000]
         self.STANDARD_DEVIATION_closeness = closeness
@@ -89,11 +89,16 @@ class BearBConfiguration(object):
         self.CONTENT_REPEATED = True if content == 'repeated' else False
         _repeated = 'CL' if self.CONTENT_RELATED else 'CP'
 
+        # Retrieving of versions between updates or from initial update
+        self.RETRIEVING_BETWEEN = True if retrieve == 'between' else False
+        self.RETRIEVING_INITIAL = True if retrieve == 'initial' else False
+        _retrieve = 'IN' if self.RETRIEVING_INITIAL else ''
+
         _ingestion_results = '_'.join((str(self.SEED), str(self.TRIPLES_PER_UPDATE), _closeness, _width,
                                        _reference, _repeated, _snapshots, _branches, _modified_updates))
 
         self.ingestion_results_file_name = os.path.join(
-            os.path.dirname(__file__), '..', '..', 'results', 'BEAR-B', 'ingestion-2', reference,
+            os.path.dirname(__file__), '..', '..', 'results', 'BEAR-B', 'ingestion', reference,
             '{0}.json'.format(_ingestion_results))
 
         self.revision_store_file_name = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'BEAR-B-revisions',
@@ -103,8 +108,14 @@ class BearBConfiguration(object):
 
         _query_results = '_'.join((str(self.SEED), str(self.TRIPLES_PER_UPDATE), _closeness, _width, _reference,
                                    _fetching, _repeated, _snapshots, _branches, _modified_updates, _modifications,
-                                   self.QUERY_ATOM, self.QUERY_TYPE))
+                                   _retrieve, self.QUERY_ATOM, self.QUERY_TYPE))
         self.query_results_file_name = os.path.join(os.path.dirname(__file__), '..', '..', 'results', 'BEAR-B', 'query',
                                                     self.QUERY_ATOM, reference, _query_results + '.txt')
+
+        _figure_results = '_'.join((str(self.SEED), str(self.TRIPLES_PER_UPDATE), _closeness, _width, _fetching,
+                                    _repeated, _snapshots, _branches, _modified_updates, _modifications,
+                                    _retrieve, self.QUERY_ATOM, self.QUERY_TYPE))
+        self.figures_query_results = os.path.join(os.path.dirname(__file__), '..', '..', 'figures', 'BEAR-B', 'query',
+                                                  self.QUERY_ATOM, _figure_results + '.png')
 
 

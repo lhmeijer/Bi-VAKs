@@ -49,18 +49,23 @@ class VQuery(Query):
         # Initialise the version
         version = Version(validTime=None, transactionTime=None, revisionStore=revisionStore,
                           quadPattern=self._quadPattern)
-        print("self._quadPattern ", self._quadPattern.__str__())
+
         previousTransactionTime = None
         previousValidTime = None
         for i in range(len(self._tags)):
-            print(self._tags[i].tag_name)
+
             version.transaction_time = self._tags[i].transaction_revision
             version.valid_time = self._tags[i].effective_date
 
-            version.retrieve_version(previousTransactionTime=previousTransactionTime,
-                                     previousValidTime=previousValidTime,
-                                     headRevision=self._headRevision.preceding_revision)
-            response = version.query_version(self._query, self._returnFormat)
+            if revisionStore.config.retrieve_between_updates():
+                version.retrieve_version(previousTransactionTime=previousTransactionTime,
+                                         previousValidTime=previousValidTime,
+                                         headRevision=self._headRevision.preceding_revision)
+                response = version.query_version(self._query, self._returnFormat)
+            else:
+                version.retrieve_version_2()
+                response = version.query_version(self._query, self._returnFormat)
+                version.clear_version()
 
             if self._does_version_return_any_response(response):
                 result = {"tagName": {"type": "literal", "value": str(self._tags[i].tag_name)},
@@ -80,7 +85,6 @@ class VQuery(Query):
         if self._queryType == 'SelectQuery':
             if self._returnFormat == 'application/sparql-results+json':
                 jsonResponse = json.loads(response)
-                # print("jsonResponse ", jsonResponse)
                 if len(jsonResponse['results']['bindings']) == 0:
                     return False
                 else:

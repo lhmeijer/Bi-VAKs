@@ -70,6 +70,43 @@ class Version(object):
                 leftOfInterval=validB, rightOfInterval=validA, endTimeInBetween=True, quadPattern=self._quadPattern,
                 updateParser=self._updateParser, revisionA=transactionTime)
 
+    def modifications_between_two_states_2(self, transactionA, validA, transactionB, validB):
+
+        self._revisionStore.get_updates_in_revision_graph(
+            revisionA=transactionA, date=validA, quadPattern=self._quadPattern, updateParser=self._updateParser)
+        modificationsInNQuadA = set(self._updateParser.modifications_to_n_quads().split('\n'))
+        self._updateParser.reset_modifications()
+
+        self._revisionStore.get_updates_in_revision_graph(
+            revisionA=transactionB, date=validB, quadPattern=self._quadPattern, updateParser=self._updateParser)
+        modificationsInNQuadB = set(self._updateParser.modifications_to_n_quads().split('\n'))
+        self._updateParser.reset_modifications()
+
+        overlapTriples = modificationsInNQuadA.intersection(modificationsInNQuadB)
+
+        addedTriples = modificationsInNQuadB - overlapTriples
+        self._updateParser.n_quads_to_modifications(addedTriples, deletion=False)
+
+        deletedTriples = modificationsInNQuadA - overlapTriples
+        self._updateParser.n_quads_to_modifications(deletedTriples, deletion=True)
+
+    def retrieve_version_2(self):
+        """
+
+        :return:
+        """
+        if self._temporalStore is None:
+            self._temporalStore = HttpTemporalStoreSingleton.get(self._revisionStore.config)
+
+        self._updateParser.reset_modifications()
+
+        # get all updates from initial revision to given revision A
+        self._revisionStore.get_updates_in_revision_graph(
+            date=self._validTime, updateParser=self._updateParser, quadPattern=self._quadPattern,
+            revisionA=self._transactionTime)
+        modifications_in_n_quad = self._updateParser.modifications_to_n_quads()
+        self._temporalStore.upload_to_dataset(modifications_in_n_quad, 'application/n-quads')
+
     def modifications_between_two_states(self, transactionA, transactionB, validA, validB):
         """
         Function to obtain the updates to bring state A into state B.
@@ -79,17 +116,16 @@ class Version(object):
         :param validB:
         :return:
         """
-        print('transactionA ', transactionA)
-        print('transactionB ', transactionB)
-        print("validA ", validA)
-        print("validB ", validB)
+        # print('transactionA ', transactionA)
+        # print('transactionB ', transactionB)
+        # print("validA ", validA)
+        # print("validB ", validB)
 
         if transactionA == transactionB:
             self.modifications_between_valid_states(validA=validA, validB=validB, transactionTime=transactionA)
 
         elif self._revisionStore.is_transaction_time_a_earlier(revisionA=transactionA, revisionB=transactionB):  # t(a) < t(b)
             # [a] <- [] <- [] <- [] <- [b]
-            print('[a] <- [] <- [] <- [] <- [b]')
             # First bring state A into a new state with valid time B
             self.modifications_between_valid_states(validA=validA, validB=validB, transactionTime=transactionA)
 
@@ -105,7 +141,6 @@ class Version(object):
 
         elif self._revisionStore.is_transaction_time_a_earlier(revisionA=transactionB, revisionB=transactionA):  # t(a) > t(b)
             # [b] <- [] <- [] <- [] <- [a]
-            print('[b] <- [] <- [] <- [] <- [a]')
             # Rewind the updates within the transaction revisions
             self._revisionStore.get_updates_in_revision_graph(
                 date=validA, forward=False, quadPattern=self._quadPattern, updateParser=self._updateParser,
@@ -139,7 +174,6 @@ class Version(object):
         snapshot = None
         if previousTransactionTime is None or previousValidTime is None:
             snapshot = self._revisionStore.closest_snapshot(validTime=self._validTime, headRevision=headRevision)
-            print("snapshot ", snapshot)
         if previousTransactionTime and previousValidTime:
             self.modifications_between_two_states(transactionA=previousTransactionTime, validA=previousValidTime,
                                                   transactionB=self._transactionTime, validB=self._validTime)
@@ -152,11 +186,10 @@ class Version(object):
                 revisionA=self._transactionTime, date=self._validTime, revisionB=previousTransactionTime,
                 quadPattern=self._quadPattern, updateParser=self._updateParser)
             modifications_in_n_quad = self._updateParser.modifications_to_n_quads()
-            # print("modifications_in_n_quad ", modifications_in_n_quad)
             self._temporalStore.upload_to_dataset(modifications_in_n_quad, 'application/n-quads')
         else:
             # query the snapshot using the quad pattern return a dictionary of modifications
-            SPARQLConstructQuery = "CONSTRUCT WHERE {{ {0} }}".format(self._quadPattern.sparql())
+            SPARQLConstructQuery = "CONSTRUCT {{ {0} }}\nWHERE {{ {0} }}".format(self._quadPattern.sparql())
             stringOfNQuads = snapshot.query_dataset(SPARQLConstructQuery, 'ConstructQuery', 'nquads')
             # Add the n quads to temporal store
             response = self._temporalStore.upload_to_dataset(stringOfNQuads, 'application/n-quads')

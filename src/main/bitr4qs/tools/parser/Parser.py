@@ -15,11 +15,14 @@ class TripleSink(object):
         self._predicate = None
         self._object = None
 
+        self._modification = None
+
     def add_modification(self, graph=None, deletion=False):
         if graph is None:
-            return Modification(Triple((self._subject, self._predicate, self._object)), deletion)
+            self._modification = Modification(Triple((self._subject, self._predicate, self._object)), deletion)
         else:
-            return Modification(Quad((self._subject, self._predicate, self._object), graph), deletion)
+            self._modification = Modification(Quad((self._subject, self._predicate, self._object), graph), deletion)
+        return self._modification
 
     def triple(self, s, p, o):
         self._subject = s
@@ -37,6 +40,10 @@ class TripleSink(object):
     @property
     def object(self):
         return self._object
+
+    @property
+    def modification(self):
+        return self._modification
 
 
 class Parser(object):

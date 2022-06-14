@@ -10,6 +10,7 @@ import numpy as np
 
 class RevisionStore(object):
 
+    typeStore = 'general'
     prefixBiTR4Qs = 'PREFIX : <{0}>'.format(str(BITR4QS))
     prefixRDF = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>'
 
@@ -308,9 +309,9 @@ class RevisionStore(object):
     @staticmethod
     def _update(stringOfRevision: str, isValidRevision: bool):
         if isValidRevision:
-            update = parser.UpdateParser.parse_revisions(stringOfRevision, revisionName='valid')
+            update = parser.UpdateParser().parse_revisions(stringOfRevision, revisionName='valid')
         else:
-            update = parser.UpdateParser.parse_revisions(stringOfRevision, revisionName='transaction')
+            update = parser.UpdateParser().parse_revisions(stringOfRevision, revisionName='transaction')
         return update
 
     def branch_from_name(self, branchName: Literal):
@@ -781,14 +782,14 @@ class RevisionStore(object):
                 }}""".format(leftOfInterval.n3(), rightOfInterval.n3(), variableName)
         return timeConstrains
 
-    def _construct_where_for_update(self, quadPattern):
+    def _construct_where_for_update(self, quadPattern, subjectName='?revision'):
         construct = where = ""
         if self.config.query_all_updates() or not quadPattern:
-            construct = "GRAPH ?g { ?revision ?p1 ?o1 }\n?revision ?p2 ?o2 ."
-            where = "{ GRAPH ?g { ?revision ?p1 ?o1 } } UNION { ?revision ?p2 ?o2 }"
+            construct = "GRAPH ?g {{ {0} ?p1 ?o1 }}\n{0} ?p2 ?o2 .".format(subjectName)
+            where = "{{ GRAPH ?g {{ {0} ?p1 ?o1 }} }} UNION {{ {0} ?p2 ?o2 }}".format(subjectName)
         elif self.config.query_specific_updates():
-            construct = quadPattern.query_via_unknown_update(construct=True)
-            where = quadPattern.query_via_unknown_update(construct=False)
+            construct = quadPattern.query_via_unknown_update(construct=True, subjectName=subjectName)
+            where = quadPattern.query_via_unknown_update(construct=False, subjectName=subjectName)
         else:
             # Raise an exception that one of the two update fetching strategies should be True
             pass
@@ -817,19 +818,29 @@ class RevisionStore(object):
 
         updateWhere = self._valid_revisions_in_graph(revisionA=revisionA, revisionB=revisionB, queryType='SelectQuery',
                                                      revisionType='update', prefix=False, timeConstrain=timeConstrain)
-        construct, where = self._construct_where_for_update(quadPattern=quadPattern)
-
-        content = ""
         if self._config.related_update_content():
-            content = "\n?revision :precedingUpdate* ?revision ."
+            content = "\nOPTIONAL { ?revision :precedingUpdate* ?allRevisions }\n"
+            construct, where = self._construct_where_for_update(quadPattern=quadPattern, subjectName='?allRevisions')
+        else:
+            content = ""
+            construct, where = self._construct_where_for_update(quadPattern=quadPattern)
 
-        SPARQLQuery = """CONSTRUCT {{ {0} }}
+        revisionNumbersConstruct, revisionNumbersWhere = "", ""
+        if self.typeStore == 'implicit' and self._config.sorted_modifications():
+            if self._config.related_update_content():
+                revisionNumbersConstruct = "\n?allRevisions :revisionNumber ?revisionNumber ."
+                revisionNumbersWhere = "\nOPTIONAL { ?allRevisions :revisionNumber ?revisionNumber }"
+            else:
+                revisionNumbersConstruct = "\n?revision :revisionNumber ?revisionNumber ."
+                revisionNumbersWhere = "\nOPTIONAL { ?revision :revisionNumber ?revisionNumber }"
+
+        SPARQLQuery = """CONSTRUCT {{ {0}{4} }}
         WHERE {{ 
             {{ 
                 {1} 
             }}
-            {2}{3}
-        }}""".format(construct, updateWhere, where, content)
+            {3}{2}{5}
+        }}""".format(construct, updateWhere, where, content, revisionNumbersConstruct, revisionNumbersWhere)
         # print("SPARQLQuery ", SPARQLQuery)
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')

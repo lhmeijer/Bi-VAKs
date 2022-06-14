@@ -7,6 +7,8 @@ from rdflib.namespace import XSD
 
 class RevisionStoreCombined(RevisionStore):
 
+    typeStore = 'combined'
+
     @staticmethod
     def new_revision_number(revisionNumber=None):
         """

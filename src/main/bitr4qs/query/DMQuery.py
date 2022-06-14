@@ -75,14 +75,18 @@ class DMQuery(Query):
         """
         version = Version(validTime=None, transactionTime=None, revisionStore=revisionStore,
                           quadPattern=self._quadPattern)
-        version.modifications_between_two_states(transactionA=self._transactionTimeA, validA=self._validTimeA,
-                                                 transactionB=self._transactionTimeB, validB=self._validTimeB)
+
+        if revisionStore.config.retrieve_between_updates():
+            version.modifications_between_two_states(transactionA=self._transactionTimeA, validA=self._validTimeA,
+                                                     transactionB=self._transactionTimeB, validB=self._validTimeB)
+        else:
+            version.modifications_between_two_states_2(transactionA=self._transactionTimeA, validA=self._validTimeA,
+                                                       transactionB=self._transactionTimeB, validB=self._validTimeB)
 
         # Set the number of processed quads to construct the version
         self._numberOfProcessedQuads = version.number_of_processed_quads()
 
         modifications = version.update_parser.get_list_of_modifications()
-        print("modifications ", modifications)
 
         # TODO check which queryType -> return a result for each queryType
         if self._queryType == 'SelectQuery':
@@ -104,7 +108,6 @@ class DMQuery(Query):
         """
         # Check the variables in the SPARQL query, and returns these and separate them based on insertions and deletions
         variables = self._quadPattern.variables()
-        print("variables ", variables)
         results = {'head': {'vars': [str(var) for var, _ in variables]}, 'results': {'insertions': [], 'deletions': []}}
         # print("results ", results)
         for modification in modifications:

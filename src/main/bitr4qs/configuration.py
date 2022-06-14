@@ -10,6 +10,7 @@ def get_default_configuration():
         'fetchingStrategy': {'queryAllUpdates': True, 'querySpecificUpdates': False},
         'updateContentStrategy': {'repeated': True, 'related': False},
         'modificationsStrategy': {'aggregated': True, 'sorted': False},
+        'retrievingStrategy': {'betweenUpdates': True, 'fromInitialUpdate': False},
         'revisionStore': {'name': 'revision-store', 'url': 'http://localhost:3030'},
         'temporalStore': {'name': 'temporal-store', 'url': 'http://localhost:3030'}
     }
@@ -29,13 +30,14 @@ def initialise(args):
 class BiTR4QsConfiguration:
 
     def __init__(self, port, host, referenceStrategy, fetchingStrategy, updateContentStrategy, modificationsStrategy,
-                 revisionStore, temporalStore):
+                 retrievingStrategy, revisionStore, temporalStore):
         self._port = port
         self._host = host
         self._referenceStrategy = referenceStrategy
         self._fetchingStrategy = fetchingStrategy
         self._updateContentStrategy = updateContentStrategy
         self._modificationsStrategy = modificationsStrategy
+        self._retrievingStrategy = retrievingStrategy
         self._revisionStore = revisionStore
         self._temporalStore = temporalStore
 
@@ -65,6 +67,12 @@ class BiTR4QsConfiguration:
 
     def sorted_modifications(self):
         return self._modificationsStrategy['sorted']
+
+    def retrieve_between_updates(self):
+        return self._retrievingStrategy['betweenUpdates']
+
+    def retrieve_from_initial_update(self):
+        return self._retrievingStrategy['fromInitialUpdate']
 
     @property
     def revision_store(self):

@@ -6,6 +6,8 @@ from src.main.bitr4qs.namespace import BITR4QS
 
 class RevisionStoreExplicit(RevisionStore):
 
+    typeStore = 'explicit'
+
     def get_modifications_of_updates_between_revisions(self, revisionA, revisionB, date, updateParser, quadPattern,
                                                        forward=True):
         updateSucceedingTimeString = self._update_time_string(date=date, variableName='?succeedingUpdate')

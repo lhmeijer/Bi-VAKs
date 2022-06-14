@@ -7,6 +7,8 @@ from rdflib.namespace import XSD
 
 class RevisionStoreImplicit(RevisionStore):
 
+    typeStore = 'implicit'
+
     @staticmethod
     def main_branch_index():
         return Literal(0, datatype=XSD.nonNegativeInteger)
@@ -258,11 +260,17 @@ class RevisionStoreImplicit(RevisionStore):
         construct, where = self._construct_where_for_update(quadPattern=quadPattern)
         updateTimeString = self._update_time_string(date=date)
 
+        revisionNumbersConstruct, revisionNumbersWhere = "", ""
+
         if self.config.related_update_content():
             otherFilter = " || ".join(self._select_valid_revision(
                 pair, branchIndex='?precedingBranchIndex', revisionNumber='?precedingRevisionNumber') for pair in otherPairs)
             updatePrecedingTimeString = self._update_time_string(date=date, variableName='?precedingUpdate')
-            SPARQLQuery = """CONSTRUCT {{ {0} }}
+
+            if self._config.sorted_modifications():
+                revisionNumbersConstruct = "\n?precedingUpdate :revisionNumber ?revisionNumber ."
+                revisionNumbersWhere = "\nOPTIONAL { ?precedingUpdate :revisionNumber ?revisionNumber }"
+            SPARQLQuery = """CONSTRUCT {{ {0}{6} }}
             WHERE {{
                     {{
                     SELECT ?precedingUpdate
@@ -275,28 +283,34 @@ class RevisionStoreImplicit(RevisionStore):
                     }}
                 ?precedingUpdate :revisionNumber ?precedingRevisionNumber .
                 ?precedingUpdate :branchIndex ?precedingBranchIndex .
-                FILTER ( {3} ){4}
+                FILTER ( {3} ){4}{7}
                 ?precedingUpdate :precedingUpdate* ?revision .    
-                {5} 
-                }}""".format(construct, revisionFilter, updateTimeString, otherFilter, updatePrecedingTimeString, where)
+                {5}
+                }}""".format(construct, revisionFilter, updateTimeString, otherFilter, updatePrecedingTimeString, where,
+                             revisionNumbersConstruct, revisionNumbersWhere)
         else:
-            otherFilter = " || ".join(self._select_valid_revision(pair) for pair in otherPairs)
-            SPARQLQuery = """CONSTRUCT {{ {0} }}
+            otherFilter = " || ".join(self._select_valid_revision(
+                pair, branchIndex='?otherBranchIndex', revisionNumber='?otherRevisionNumber') for pair in otherPairs)
+            updateSucceedingTimeString = self._update_time_string(date=date, variableName='?succeedingRevision')
+            if self._config.sorted_modifications():
+                revisionNumbersConstruct = "\n?revision :revisionNumber ?revisionNumber ."
+
+            SPARQLQuery = """CONSTRUCT {{ {0}{6} }}
             WHERE {{
-                    {{
-                    SELECT ?precedingUpdate
+                {{
+                    SELECT ?revision 
                     WHERE {{
-                         ?revision :revisionNumber ?revisionNumber .
-                         ?revision :branchIndex ?branchIndex .
-                         FILTER ( {1} ){2}
-                         ?revision :precedingUpdate ?precedingUpdate .
-                        }}
+                        ?succeedingRevision :precedingUpdate ?revision .
+                        ?succeedingRevision :revisionNumber ?revisionNumber .
+                        ?succeedingRevision :branchIndex ?branchIndex .
+                        FILTER ( {1} ){2}
                     }}
-                BIND ( ?precedingUpdate AS ?revision )
-                ?revision :revisionNumber ?revisionNumber .
-                ?revision :branchIndex ?branchIndex .
-                FILTER ( {3} ){2}
-                {4} }}""".format(construct, revisionFilter, updateTimeString, otherFilter, where)
+                }}
+                ?revision :revisionNumber ?otherRevisionNumber .
+                ?revision :branchIndex ?otherBranchIndex .
+                FILTER ( {3} ){4}    
+                {5} }}""".format(construct, revisionFilter, updateSucceedingTimeString, otherFilter, updateTimeString,
+                                    where, revisionNumbersConstruct)
         # print('SPARQLQuery ', SPARQLQuery)
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')

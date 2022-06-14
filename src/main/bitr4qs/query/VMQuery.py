@@ -97,7 +97,10 @@ class VMQuery(Query):
                           quadPattern=self._quadPattern, revisionStore=revisionStore)
 
         # Construct the version or state of the RDF dataset
-        version.retrieve_version(headRevision=self._headRevision.preceding_revision)
+        if revisionStore.config.retrieve_between_updates():
+            version.retrieve_version(headRevision=self._headRevision.preceding_revision)
+        else:
+            version.retrieve_version_2()
 
         # Set the number of processed quads to construct the version
         self._numberOfProcessedQuads = version.number_of_processed_quads()
