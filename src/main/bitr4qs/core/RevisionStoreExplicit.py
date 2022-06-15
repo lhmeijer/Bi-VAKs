@@ -28,7 +28,7 @@ class RevisionStoreExplicit(RevisionStore):
                     }}
                 {3} :precedingRevision* ?revision .
                 ?revision :update ?precedingUpdate .{5}
-                ?precedingUpdate :precedingUpdate* ?revision .
+                OPTIONAL {{ ?precedingUpdate :precedingUpdate* ?revision }}
                 {6} }}""".format(str(BITR4QS), construct, revisionA.n3(), revisionB.n3(), updateSucceedingTimeString,
                                  updatePrecedingTimeString, where)
         else:
@@ -59,7 +59,7 @@ class RevisionStoreExplicit(RevisionStore):
             self._get_sorted_updates(updateParser, stringOfUpdates, revisionA, revisionB, forward)
 
     def _get_sorted_updates(self, updateParser, stringOfUpdates, revisionA: URIRef, revisionB: URIRef = None,
-                            forward=True):
+                            forward=True, quadPattern=None):
         stringOfUpdateRevisions = self._transaction_revisions_in_revision_graph(revisionA, ['update'], revisionB)
         updateParser.parse_sorted_explicit(stringOfUpdates, stringOfUpdateRevisions, endRevision=revisionA,
                                            forward=forward)

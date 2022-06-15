@@ -21,7 +21,7 @@ class BearBConfiguration(object):
     _snapshot_effective_dates = {'F': '2015-03-01T00:00:00+00:00', 'N': '2015-07-01T00:00:00+00:00'}
 
     QUERY_TYPE = 'p'    # po or p
-    QUERY_ATOM = 'VQ'   # VM, DM, VQ
+    QUERY_ATOM = 'VM'   # VM, DM, VQ
     NUMBER_OF_VERSIONS = 89
 
     _bear_b_results = {'VM': 'mat-{0}-queries'.format(QUERY_TYPE), 'DM': 'diff-{0}-queries'.format(QUERY_TYPE),

@@ -72,17 +72,15 @@ class UpdateParser(Parser):
 
         return modification
 
-    def parse_revisions(self, stringOfRevisions, revisionName):
+    def parse_revisions(self, stringOfRevisions, revisionName=None):
         """
 
         :param stringOfRevisions:
         :param revisionName:
         :return:
         """
-        revisions = {}
-
-        functionName = "parse_" + revisionName + '_revision'
-        func = getattr(self, functionName)
+        validRevisions = {}
+        transactionRevisions = {}
 
         NQuads = stringOfRevisions.split('\n')[:-1]
         index = 0
@@ -90,14 +88,32 @@ class UpdateParser(Parser):
         while index != len(NQuads):
             revisionID = re.findall(r'<(.*?)>', NQuads[index])[0]
 
-            if revisionID in revisions:
-                revision, index = func(revisionID, NQuads[index:], index, revisions[revisionID])
+            if revisionName is None:
+                if 'Revision' in revisionID:
+                    finalRevisionName = 'transaction'
+                else:
+                    finalRevisionName = 'valid'
             else:
-                revision, index = func(revisionID, NQuads[index:], index)
+                finalRevisionName = revisionName
 
-            revisions[str(revision.identifier)] = revision
+            if finalRevisionName == 'valid':
+                func = getattr(self, 'parse_valid_revision')
+                if revisionID in validRevisions:
+                    revision, index = func(revisionID, NQuads[index:], index, validRevisions[revisionID])
+                else:
+                    revision, index = func(revisionID, NQuads[index:], index)
+
+                validRevisions[str(revision.identifier)] = revision
+            elif finalRevisionName == 'transaction':
+                func = getattr(self, 'parse_transaction_revision')
+                if revisionID in transactionRevisions:
+                    revision, index = func(revisionID, NQuads[index:], index, transactionRevisions[revisionID])
+                else:
+                    revision, index = func(revisionID, NQuads[index:], index)
+
+                transactionRevisions[str(revision.identifier)] = revision
         # print("revisions ", revisions)
-        return revisions
+        return validRevisions, transactionRevisions
 
     def parse_valid_revision(self, identifier, NQuads, index, revision=None):
         """
@@ -117,13 +133,13 @@ class UpdateParser(Parser):
         for NQuad in NQuads:
 
             splitQuad = re.findall(r'<(.*?)>', NQuad)
-            self._numberOfProcessedQuads += 1
             updateID = splitQuad[0]
 
             if identifier != updateID:
                 return revision, index
 
             index += 1
+            self._numberOfProcessedQuads += 1
 
             if splitQuad[1] == str(BITR4QS.inserts):
                 _ = self.parse_inserts_or_deletes(sink=revision, NQuad=NQuad)
@@ -175,11 +191,15 @@ class UpdateParser(Parser):
 
         for NTriple in NTriples:
 
-            NTriplesParser.parsestring(NTriple)
-            if identifier != str(sink.subject):
+            splitQuad = re.findall(r'<(.*?)>', NTriple)
+            updateRevisionID = splitQuad[0]
+
+            if identifier != updateRevisionID:
                 return revision, index
 
+            NTriplesParser.parsestring(NTriple)
             index += 1
+            self._numberOfProcessedQuads += 1
 
             if str(sink.predicate) == str(BITR4QS.hash):
                 revision.hexadecimal_of_hash = sink.object
@@ -245,17 +265,14 @@ class UpdateParser(Parser):
             self._modifications[hashOfModification] = {'counter': -1, 'modification': modification.value} \
                 if modification.deletion else {'counter': 1, 'modification': modification.value}
 
-    def parse_sorted_combined(self, stringOfValidRevisions, stringOfTransactionRevisions, forward=True):
+    def parse_sorted_combined(self, stringOfRevisions, StringOfTransactionRevisions=None, forward=True):
         """
 
-        :param stringOfValidRevisions:
-        :param stringOfTransactionRevisions:
+        :param stringOfRevisions:
         :param forward:
         :return:
         """
-        updatesRevisions = self.parse_revisions(stringOfTransactionRevisions, 'transaction')
-        updates = self.parse_revisions(stringOfValidRevisions, 'valid')
-
+        updates, updatesRevisions = self.parse_revisions(stringOfRevisions)
         listOfUpdateRevisions = list(updatesRevisions.values())
         listOfUpdateRevisions.sort(key=lambda x: x.revision_number, reverse=not forward)
 
@@ -277,7 +294,7 @@ class UpdateParser(Parser):
         :param forward:
         :return:
         """
-        updates = self.parse_revisions(stringOfValidRevisions, 'valid')
+        updates, _ = self.parse_revisions(stringOfValidRevisions, 'valid')
         listOfUpdates = list(updates.values())
         listOfUpdates.sort(key=lambda x: x.revision_number, reverse=not forward)
 
@@ -297,10 +314,8 @@ class UpdateParser(Parser):
         :param forward:
         :return:
         """
-        updatesRevisions = self.parse_revisions(stringOfTransactionRevisions, 'transaction')
-        # print("stringOfValidRevisions ", stringOfValidRevisions)
-        updates = self.parse_revisions(stringOfValidRevisions, 'valid')
-        # print([update.identifier for _, update in updates.items()])
+        _, updatesRevisions = self.parse_revisions(stringOfTransactionRevisions, 'transaction')
+        updates, _ = self.parse_revisions(stringOfValidRevisions, 'valid')
 
         orderedUpdates = {}
         nOfRevisions = len(updates)

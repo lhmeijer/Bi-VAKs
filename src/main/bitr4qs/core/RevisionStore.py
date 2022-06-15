@@ -841,17 +841,18 @@ class RevisionStore(object):
             }}
             {3}{2}{5}
         }}""".format(construct, updateWhere, where, content, revisionNumbersConstruct, revisionNumbersWhere)
-        # print("SPARQLQuery ", SPARQLQuery)
+
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
         # print("stringOfUpdates ", stringOfUpdates)
         if self._config.aggregated_modifications():
             updateParser.parse_aggregate(stringOfUpdates, forward)
         else:
-            self._get_sorted_updates(updateParser, stringOfUpdates, revisionA, revisionB, forward)
+            self._get_sorted_updates(updateParser, stringOfUpdates, revisionA, revisionB, forward,
+                                     quadPattern=quadPattern)
 
     def _get_sorted_updates(self, updateParser, stringOfUpdates, revisionA: URIRef, revisionB: URIRef = None,
-                            forward=True):
+                            forward=True, quadPattern=None):
         pass
 
     def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str,

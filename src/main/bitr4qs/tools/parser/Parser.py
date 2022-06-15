@@ -128,7 +128,7 @@ class Parser(object):
         return orderedValidRevisions
 
     @classmethod
-    def parse_revisions(cls, stringOfRevisions, revisionName):
+    def parse_revisions(cls, stringOfRevisions, revisionName=None):
         """
 
         :param stringOfRevisions:
@@ -137,7 +137,7 @@ class Parser(object):
         """
         revisions = {}
 
-        functionName = "parse_" + revisionName + '_revision'
+        functionName = 'parse_' + revisionName + '_revision'
         func = getattr(cls, functionName)
 
         NQuads = stringOfRevisions.split('\n')[:-1]

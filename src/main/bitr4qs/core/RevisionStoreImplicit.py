@@ -228,7 +228,7 @@ class RevisionStoreImplicit(RevisionStore):
         return snapshots
 
     def _get_sorted_updates(self, updateParser, stringOfUpdates, revisionA: URIRef, revisionB: URIRef = None,
-                            forward=True):
+                            forward=True, quadPattern=None):
         """
 
         :param updateParser:
@@ -268,8 +268,9 @@ class RevisionStoreImplicit(RevisionStore):
             updatePrecedingTimeString = self._update_time_string(date=date, variableName='?precedingUpdate')
 
             if self._config.sorted_modifications():
-                revisionNumbersConstruct = "\n?precedingUpdate :revisionNumber ?revisionNumber ."
-                revisionNumbersWhere = "\nOPTIONAL { ?precedingUpdate :revisionNumber ?revisionNumber }"
+                revisionNumbersConstruct = "\n?revision :revisionNumber ?revisionNumber ."
+                revisionNumbersWhere = "\nOPTIONAL { ?revision :revisionNumber ?revisionNumber }"
+
             SPARQLQuery = """CONSTRUCT {{ {0}{6} }}
             WHERE {{
                     {{
@@ -283,15 +284,16 @@ class RevisionStoreImplicit(RevisionStore):
                     }}
                 ?precedingUpdate :revisionNumber ?precedingRevisionNumber .
                 ?precedingUpdate :branchIndex ?precedingBranchIndex .
-                FILTER ( {3} ){4}{7}
-                ?precedingUpdate :precedingUpdate* ?revision .    
-                {5}
+                FILTER ( {3} ){4}
+                OPTIONAL {{ ?precedingUpdate :precedingUpdate* ?revision }}
+                {5}{7}
                 }}""".format(construct, revisionFilter, updateTimeString, otherFilter, updatePrecedingTimeString, where,
                              revisionNumbersConstruct, revisionNumbersWhere)
         else:
             otherFilter = " || ".join(self._select_valid_revision(
                 pair, branchIndex='?otherBranchIndex', revisionNumber='?otherRevisionNumber') for pair in otherPairs)
             updateSucceedingTimeString = self._update_time_string(date=date, variableName='?succeedingRevision')
+
             if self._config.sorted_modifications():
                 revisionNumbersConstruct = "\n?revision :revisionNumber ?revisionNumber ."
 
@@ -310,7 +312,7 @@ class RevisionStoreImplicit(RevisionStore):
                 ?revision :branchIndex ?otherBranchIndex .
                 FILTER ( {3} ){4}    
                 {5} }}""".format(construct, revisionFilter, updateSucceedingTimeString, otherFilter, updateTimeString,
-                                    where, revisionNumbersConstruct)
+                                 where, revisionNumbersConstruct)
         # print('SPARQLQuery ', SPARQLQuery)
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')

@@ -1,6 +1,5 @@
 from .RevisionStore import RevisionStore
 from rdflib.term import URIRef, Literal
-from src.main.bitr4qs.namespace import BITR4QS
 import src.main.bitr4qs.tools.parser as parser
 from rdflib.namespace import XSD
 
@@ -59,7 +58,7 @@ class RevisionStoreCombined(RevisionStore):
                     {0} :revisionNumber ?revisionNumberA .
                     OPTIONAL {{ 
                         {0} :branch ?branchA .
-                        ?branch :branchedOffAt ?revision . 
+                        ?branchA :branchedOffAt ?revision . 
                     }}
                 }}""".format(revisionA.n3())
                 # Execute the SELECT query on the revision store
@@ -113,7 +112,7 @@ class RevisionStoreCombined(RevisionStore):
         ?revision ?p ?o . }}""".format(revisionFilter, transactionRevision.n3())
         return '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery))
 
-    def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str,
+    def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str = None,
                                   revisionB: URIRef = None, prefix=True, timeConstrain=""):
         """
 
@@ -128,25 +127,29 @@ class RevisionStoreCombined(RevisionStore):
         otherFilter = " || ".join(self._select_transaction_revision(pair, revisionNumber='?otherRevisionNumber',
                                                                     branch='?otherBranch') for pair in pairs)
 
-        queryString = "DESCRIBE" if queryType == 'DescribeQuery' else 'SELECT'
+        subString = """
+        ?transactionRevision :revisionNumber ?revisionNumber .
+        OPTIONAL {{ ?transactionRevision :branch ?branch . }}
+        FILTER ( {1} )
+        ?transactionRevision :{0} ?revision.{2}
+        MINUS {{
+            ?otherTransactionRevision :revisionNumber ?otherRevisionNumber .
+            OPTIONAL {{ ?otherTransactionRevision :branch ?otherBranch . }}
+            FILTER ( {3} )
+            ?otherTransactionRevision :{0} ?other.
+            ?other :preceding{4} ?revision.
+        }}""".format(revisionType, revisionFilter, timeConstrain, otherFilter, revisionType.title())
+
+        if queryType is None:
+            return subString
+
+        queryString = "\nDESCRIBE ?revision" if queryType == 'DescribeQuery' else '\nSELECT ?revision'
         prefixString = '\n'.join((self.prefixRDF, self.prefixBiTR4Qs)) if prefix else ""
 
-        SPARQLQuery = """{0}
-        {1} ?revision
+        SPARQLQuery = """{0}{1}
         WHERE {{ 
-            ?transactionRevision :revisionNumber ?revisionNumber .
-            OPTIONAL {{ ?transactionRevision :branch ?branch . }}
-            FILTER ( {3} )
-            ?transactionRevision :{2} ?revision.{4}
-            MINUS {{
-                ?otherTransactionRevision :revisionNumber ?otherRevisionNumber .
-                OPTIONAL {{ ?otherTransactionRevision :branch ?otherBranch . }}
-                FILTER ( {5} )
-                ?otherTransactionRevision :{2} ?other.
-                ?other :preceding{6} ?revision.
-            }}
-        }}""".format(prefixString, queryString, revisionType, revisionFilter, timeConstrain, otherFilter,
-                     revisionType.title())
+            {2}
+        }}""".format(prefixString, queryString, subString)
         # print("SPARQLQuery ", SPARQLQuery)
         if prefix and queryType == 'DescribeQuery':
             stringOfValidRevisions = self._revisionStore.execute_describe_query(SPARQLQuery, 'nquads')
@@ -183,16 +186,22 @@ class RevisionStoreCombined(RevisionStore):
         revisionFilter = " || ".join(self._select_transaction_revision(pair) for pair in pairs)
 
         construct = '\n'.join("?revision :{0} ?{0} .".format(revisionType) for revisionType in validRevisionTypes)
-        where = '\n'.join(
-            "OPTIONAL {{ ?revision :{0} ?{0} }}".format(revisionType) for revisionType in validRevisionTypes)
+        if len(validRevisionTypes) == 1:
+            where = "?revision :{0} ?{0} .".format(validRevisionTypes[0])
+        else:
+            where = ' UNION '.join(
+                "{{ ?revision :{0} ?{0} }}\n".format(revisionType) for revisionType in validRevisionTypes)
 
         SPARQLQuery = """CONSTRUCT {{ ?revision :revisionNumber ?revisionNumber .\n{0} }}
-        WHERE {{ ?revision :revisionNumber ?revisionNumber .
-        OPTIONAL {{ ?revision :branch ?branch . }}
-        FILTER ( {1} )
-        {2} }}""".format(construct, revisionFilter, where)
+        WHERE {{
+            ?revision :revisionNumber ?revisionNumber .
+            OPTIONAL {{ ?revision :branch ?branch }}
+            FILTER ( {1} )
+            {2}
+        }}""".format(construct, revisionFilter, where)
         stringOfRevisions = self._revisionStore.execute_construct_query(
-            '\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
+                '\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
+
         return stringOfRevisions
 
     def tags_in_revision_graph(self, revisionA: URIRef, revisionB: URIRef = None):
@@ -214,7 +223,7 @@ class RevisionStoreCombined(RevisionStore):
         return snapshots
 
     def _get_sorted_updates(self, updateParser, stringOfUpdates, revisionA: URIRef, revisionB: URIRef = None,
-                            forward=True):
+                            forward=True, quadPattern=None):
         """
 
         :param updateParser:
@@ -224,8 +233,7 @@ class RevisionStoreCombined(RevisionStore):
         :param forward:
         :return:
         """
-        stringOfUpdateRevisions = self._transaction_revisions_in_revision_graph(revisionA, ['update'], revisionB)
-        updateParser.parse_sorted_combined(stringOfUpdates, stringOfUpdateRevisions, forward=forward)
+        updateParser.parse_sorted_combined(stringOfUpdates, None, forward=forward)
 
     def get_modifications_of_updates_between_revisions(self, revisionA, revisionB, date, updateParser, quadPattern,
                                                        forward=True):
@@ -252,6 +260,7 @@ class RevisionStoreCombined(RevisionStore):
 
         if self.config.related_update_content():
             updatePrecedingTimeString = self._update_time_string(date=date, variableName='?precedingUpdate')
+
             SPARQLQuery = """CONSTRUCT {{ {0} }}
             WHERE {{
                     {{
@@ -268,11 +277,12 @@ class RevisionStoreCombined(RevisionStore):
                 OPTIONAL {{ ?otherTransactionRevision :branch ?otherBranch . }}
                 FILTER ( {3} )
                 ?otherTransactionRevision :update ?precedingUpdate .{4}
-                ?precedingUpdate :precedingUpdate* ?revision .    
+                OPTIONAL {{ ?precedingUpdate :precedingUpdate* ?revision }}  
                 {5} 
                 }}""".format(construct, revisionFilter, updateTimeString, otherFilter, updatePrecedingTimeString, where)
         else:
             validRevisionTimeString = self._update_time_string(date=date, variableName='?validRevision')
+
             SPARQLQuery = """CONSTRUCT {{ {0} }}
             WHERE {{
                     {{
@@ -295,10 +305,7 @@ class RevisionStoreCombined(RevisionStore):
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
         # print("stringOfUpdates ", stringOfUpdates)
-        if self._config.aggregated_modifications():
-            updateParser.parse_aggregate(stringOfUpdates, forward)
-        else:
-            self._get_sorted_updates(updateParser, stringOfUpdates, revisionA, revisionB, forward)
+        updateParser.parse_aggregate(stringOfUpdates, forward)
 
     def _transaction_revision_from_valid_revision(self, validRevisionID, revisionType):
         """
@@ -353,3 +360,54 @@ class RevisionStoreCombined(RevisionStore):
         WHERE {{ {1} }}""".format(construct, where)
 
         return '\n'.join((self.prefixBiTR4Qs, SPARQLQuery))
+
+    def get_updates_in_revision_graph(self, revisionA: URIRef, updateParser, quadPattern=None, revisionB: URIRef = None,
+                                      forward=True, date: Literal = None, leftOfInterval: Literal = None,
+                                      rightOfInterval: Literal = None, startTimeInBetween=False,
+                                      endTimeInBetween=False):
+        """
+
+        :param revisionA:
+        :param quadPattern:
+        :param updateParser:
+        :param revisionB:
+        :param forward:
+        :param date:
+        :param leftOfInterval:
+        :param rightOfInterval:
+        :param startTimeInBetween:
+        :param endTimeInBetween:
+        :return:
+        """
+        timeConstrain = self._update_time_string(date, leftOfInterval, rightOfInterval, startTimeInBetween,
+                                                 endTimeInBetween)
+
+        updateWhere = self._valid_revisions_in_graph(revisionA=revisionA, revisionB=revisionB, queryType=None,
+                                                     revisionType='update', prefix=False, timeConstrain=timeConstrain)
+        if self._config.related_update_content():
+            content = "\nOPTIONAL { ?revision :precedingUpdate* ?allRevisions }\n"
+            construct, where = self._construct_where_for_update(quadPattern=quadPattern, subjectName='?allRevisions')
+        else:
+            content = ""
+            construct, where = self._construct_where_for_update(quadPattern=quadPattern)
+
+        constructRevisions = ""
+        if self._config.sorted_modifications():
+            constructRevisions = """\n?transactionRevision :revisionNumber ?revisionNumber .
+            ?transactionRevision :update ?revision .
+            """
+
+        SPARQLQuery = """CONSTRUCT {{ {0}{4} }}
+        WHERE {{ 
+            {1} 
+            {3}{2}
+        }}""".format(construct, updateWhere, where, content, constructRevisions)
+
+        stringOfUpdates = self._revisionStore.execute_construct_query(
+            '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
+
+        if self._config.aggregated_modifications():
+            updateParser.parse_aggregate(stringOfUpdates, forward)
+        else:
+            self._get_sorted_updates(updateParser, stringOfUpdates, revisionA, revisionB, forward,
+                                     quadPattern=quadPattern)
