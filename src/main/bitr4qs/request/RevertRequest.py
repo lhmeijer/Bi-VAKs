@@ -21,14 +21,14 @@ class RevertRequest(Request):
     def transaction_revision_from_request(self):
         revision = RevertRevision.revision_from_data(
             precedingRevision=self._precedingTransactionRevision, creationDate=self._creationDate, author=self._author,
-            description=self._description, branch=self._branch, revisionNumber=self._revisionNumber)
+            description=self._description, branchIndex=self._branchIndex, revisionNumber=self._revisionNumber)
         self._currentTransactionRevision = revision.identifier
         return revision
 
     def valid_revisions_from_request(self):
         revision = Revert.revision_from_data(
             transactionRevision=self._transactionRevision, revisionNumber=self._revisionNumberValidRevision,
-            branchIndex=self._branchIndex)
+            branchIndex=self._branchIndexValidRevision)
         return [revision]
 
     def modifications_from_request(self, revision, revisionStore):
@@ -37,6 +37,6 @@ class RevertRequest(Request):
         # AssertionError
 
         modifiedRevision = revision.modify(
-            otherTransactionRevision=self._transactionRevision, branchIndex=self._branchIndex,
+            otherTransactionRevision=self._transactionRevision, branchIndex=self._branchIndexValidRevision,
             revisionNumber=self._revisionNumberValidRevision, revisionStore=revisionStore)
         return [modifiedRevision]

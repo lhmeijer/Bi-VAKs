@@ -8,6 +8,26 @@ class RevisionStoreExplicit(RevisionStore):
 
     typeStore = 'explicit'
 
+    def head_revision(self, branch: URIRef = None):
+        """
+        Function that returns the HEAD of the transaction revisions based on the given branch.
+        :param branch: the given branch for which one would like to have the HEAD Revision.
+        :return: an HEAD revision object containing all data of the HEAD Revision.
+        """
+        branchString = "?revision :branch {0} .".format(branch.n3()) if branch else \
+            "FILTER NOT EXISTS { ?revision :branch ?branch . }"
+
+        SPARQLQuery = """DESCRIBE ?revision
+        WHERE {{ 
+            ?revision rdf:type :HeadRevision . 
+            {1} 
+        }}""".format(str(BITR4QS), branchString)
+
+        result = self._revisionStore.execute_describe_query(
+            '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
+        headRevisions = parser.HeadParser.parse_revisions(result, 'transaction')
+        return self._fetch_revision(headRevisions)
+
     def get_modifications_of_updates_between_revisions(self, revisionA, revisionB, date, updateParser, quadPattern,
                                                        forward=True):
         updateSucceedingTimeString = self._update_time_string(date=date, variableName='?succeedingUpdate')
@@ -22,14 +42,21 @@ class RevisionStoreExplicit(RevisionStore):
                     WHERE {{
                          {2} :precedingRevision* ?transactionRevision .
                          ?transactionRevision :precedingRevision+ {3} .
-                         ?transactionRevision :update ?succeedingUpdate .{4}
-                         ?succeedingUpdate :precedingUpdate ?precedingUpdate .
+                         ?transactionRevision :update ?succeedingUpdate .
+                         ?succeedingUpdate :precedingUpdate ?precedingUpdate .{4}
                         }}
                     }}
-                {3} :precedingRevision* ?revision .
-                ?revision :update ?precedingUpdate .{5}
-                OPTIONAL {{ ?precedingUpdate :precedingUpdate* ?revision }}
-                {6} }}""".format(str(BITR4QS), construct, revisionA.n3(), revisionB.n3(), updateSucceedingTimeString,
+                    {{ 
+                    SELECT ?revision
+                    WHERE {{
+                            {3} :precedingRevision* ?transactionRevision .
+                            ?transactionRevision :update ?precedingUpdate .{5}
+                            OPTIONAL {{ ?precedingUpdate :precedingUpdate* ?revision }}
+                        }}
+                    }}
+                {6} 
+                FILTER (?revision = ?precedingUpdate)
+                }}""".format(str(BITR4QS), construct, revisionA.n3(), revisionB.n3(), updateSucceedingTimeString,
                                  updatePrecedingTimeString, where)
         else:
             updateTimeString = self._update_time_string(date=date, variableName='?revision')
@@ -41,8 +68,8 @@ class RevisionStoreExplicit(RevisionStore):
                     WHERE {{
                          {2} :precedingRevision* ?transactionRevision .
                          ?transactionRevision :precedingRevision+ {3} .
-                         ?transactionRevision :update ?succeedingUpdate .{4}
-                         ?succeedingUpdate :precedingUpdate ?other .
+                         ?transactionRevision :update ?succeedingUpdate .
+                         ?succeedingUpdate :precedingUpdate ?other .{4}
                         }}
                     }}
                     {{

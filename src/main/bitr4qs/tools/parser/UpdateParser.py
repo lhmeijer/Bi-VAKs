@@ -235,8 +235,8 @@ class UpdateParser(Parser):
             elif str(sink.predicate) == str(BITR4QS.revisionNumber):
                 revision.revision_number = sink.object
 
-            elif str(sink.predicate) == str(BITR4QS.branch):
-                revision.branch = sink.object
+            elif str(sink.predicate) == str(BITR4QS.branchIndex):
+                revision.branch_index = sink.object
 
             elif str(sink.predicate) == str(BITR4QS.createdAt):
                 revision.creation_date = sink.object

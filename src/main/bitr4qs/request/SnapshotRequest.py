@@ -56,7 +56,7 @@ class SnapshotRequest(Request):
     def transaction_revision_from_request(self):
         revision = SnapshotRevision.revision_from_data(
             precedingRevision=self._precedingTransactionRevision, creationDate=self._creationDate, author=self._author,
-            description=self._description, branch=self._branch, revisionNumber=self._revisionNumber)
+            description=self._description, branchIndex=self._branchIndex, revisionNumber=self._revisionNumber)
 
         self._currentTransactionRevision = revision.identifier
 
@@ -68,8 +68,9 @@ class SnapshotRequest(Request):
             self._transactionRevision = self._currentTransactionRevision
 
         revision = Snapshot.revision_from_data(
-            nameDataset=self._nameDataset, revisionNumber=self._revisionNumberValidRevision, effectiveDate=self._effectiveDate,
-            transactionRevision=self._transactionRevision, branchIndex=self._branchIndex, urlDataset=self._urlDataset)
+            nameDataset=self._nameDataset, revisionNumber=self._revisionNumberValidRevision,
+            effectiveDate=self._effectiveDate, transactionRevision=self._transactionRevision,
+            branchIndex=self._branchIndexValidRevision, urlDataset=self._urlDataset)
         return [revision]
 
     def modifications_from_request(self, revision, revisionStore):
@@ -78,7 +79,7 @@ class SnapshotRequest(Request):
         # AssertionError
 
         modifiedRevision = revision.modify(
-            otherNameDataset=self._nameDataset, otherUrlDataset=self._urlDataset, branchIndex=self._branchIndex,
-            otherEffectiveDate=self._effectiveDate, otherTransactionRevision=self._transactionRevision,
-            revisionNumber=self._revisionNumberValidRevision, revisionStore=revisionStore)
+            otherNameDataset=self._nameDataset, otherUrlDataset=self._urlDataset, revisionStore=revisionStore,
+            branchIndex=self._branchIndexValidRevision, otherEffectiveDate=self._effectiveDate,
+            otherTransactionRevision=self._transactionRevision, revisionNumber=self._revisionNumberValidRevision)
         return [modifiedRevision]

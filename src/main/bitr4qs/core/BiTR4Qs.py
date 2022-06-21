@@ -50,7 +50,7 @@ class BiTR4Qs(object):
             except Exception as e:
                 raise e
 
-    def _head_revision(self, precedingHeadRevision, revision):
+    def _head_revision(self, revision, precedingHeadRevision=None, branch=None):
         """
 
         :param precedingHeadRevision:
@@ -66,8 +66,9 @@ class BiTR4Qs(object):
 
         # Create new head revision and add it to the revision store.
         try:
-            headRevision = HeadRevision.revision_from_data(
-                branch=revision.branch, precedingRevision=revision.identifier, revisionNumber=revision.revision_number)
+            headRevision = HeadRevision.revision_from_data(branchIndex=revision.branch_index,
+                                                           precedingRevision=revision.identifier,
+                                                           revisionNumber=revision.revision_number)
             headRevision.add_to_revision_store(self._revisionStore)
         except Exception as e:
             raise e
@@ -99,7 +100,8 @@ class BiTR4Qs(object):
             self._to_revision_store([transactionRevision] + modifiedRevisions)
 
             # Delete the old HEAD revision and add a new HEAD revision.
-            self._head_revision(request.head_revision, transactionRevision)
+            self._head_revision(precedingHeadRevision=request.head_revision, revision=transactionRevision,
+                                branch=request.branch)
         except Exception as e:
             print("exception ", e)
             raise e
@@ -133,7 +135,8 @@ class BiTR4Qs(object):
 
         self._valid_revisions_to_transaction_revision(transactionRevision, validRevisions)
         self._to_revision_store([transactionRevision] + validRevisions)
-        self._head_revision(request.head_revision, transactionRevision)
+        self._head_revision(precedingHeadRevision=request.head_revision, revision=transactionRevision,
+                            branch=request.branch)
 
         # Return the valid revisions.
         return [validRevision.__dict__() for validRevision in validRevisions]
@@ -167,7 +170,8 @@ class BiTR4Qs(object):
             self._to_revision_store([transactionRevision] + validRevisions)
 
             # Delete the old HEAD revision and add a new HEAD revision.
-            self._head_revision(request.head_revision, transactionRevision)
+            self._head_revision(precedingHeadRevision=request.head_revision, revision=transactionRevision,
+                                branch=request.branch)
         except Exception as e:
             print("exception ", e)
             raise e
@@ -237,6 +241,27 @@ class BiTR4QsExplicit(BiTR4Qs):
 
     def revision_store(self):
         return RevisionStoreExplicit(self._config)
+
+    def _head_revision(self, revision, precedingHeadRevision=None, branch=None):
+        """
+
+        :param precedingHeadRevision:
+        :param revision:
+        :return:
+        """
+        # Check whether there exists a head revision. If yes -> remove entirely from the revision store.
+        if precedingHeadRevision:
+            try:
+                precedingHeadRevision.delete_to_revision_store(self._revisionStore)
+            except Exception as e:
+                raise e
+
+        # Create new head revision and add it to the revision store.
+        try:
+            headRevision = HeadRevision.revision_from_data(precedingRevision=revision.identifier, branch=branch)
+            headRevision.add_to_revision_store(self._revisionStore)
+        except Exception as e:
+            raise e
 
     @staticmethod
     def _valid_revisions_to_transaction_revision(transactionRevision, validRevisions):

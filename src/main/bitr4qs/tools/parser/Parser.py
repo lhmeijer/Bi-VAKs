@@ -247,8 +247,8 @@ class Parser(object):
             elif str(sink.predicate) == str(BITR4QS.revisionNumber):
                 revision.revision_number = sink.object
 
-            elif str(sink.predicate) == str(BITR4QS.branch):
-                revision.branch = sink.object
+            elif str(sink.predicate) == str(BITR4QS.branchIndex):
+                revision.branch_index = sink.object
 
             elif str(sink.predicate) == str(BITR4QS.createdAt):
                 revision.creation_date = sink.object
@@ -273,4 +273,6 @@ class HeadParser(Parser):
 
     @staticmethod
     def _parse_transaction_revision(revision, p, o):
-        pass
+
+        if str(p) == str(BITR4QS.branch):
+            revision.branch = o

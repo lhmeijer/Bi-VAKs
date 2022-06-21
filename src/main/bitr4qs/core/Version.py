@@ -3,6 +3,7 @@ from src.main.bitr4qs.tools.parser.UpdateParser import UpdateParser
 from datetime import datetime, timedelta
 from timeit import default_timer as timer
 
+
 class Version(object):
 
     def __init__(self, validTime, transactionTime, revisionStore, quadPattern):

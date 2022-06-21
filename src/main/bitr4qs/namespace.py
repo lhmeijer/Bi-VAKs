@@ -36,7 +36,6 @@ class BITR4QS(DefinedNamespace):
     tagName: URIRef
     branchName: URIRef
     branchedOffAt: URIRef
-    branchIndexedAt: URIRef
 
     # http://www.w3.org/2000/01/rdf-schema#Class
     UpdateRevision: URIRef

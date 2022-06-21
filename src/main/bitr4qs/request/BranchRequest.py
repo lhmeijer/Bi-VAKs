@@ -20,9 +20,8 @@ class BranchRequest(Request):
         if self._branchedOffRevision is None:
             self._branchedOffRevision = self._precedingTransactionRevision
 
-        self._branchIndex = revisionStore.new_branch_index()
+        self._branchIndex, self._branchIndexValidRevision = revisionStore.new_branch_index()
         self._headRevision = None
-        self._branch = None
 
         # TODO throw error if not all variables have a value
 
@@ -44,10 +43,12 @@ class BranchRequest(Request):
             self._revisionNumber, self._revisionNumberValidRevision = revisionStore.new_revision_number(
                 revision.revision_number)
 
+        self._branch = None
+
     def transaction_revision_from_request(self):
         revision = BranchRevision.revision_from_data(
             precedingRevision=self._precedingTransactionRevision, creationDate=self._creationDate, author=self._author,
-            description=self._description, branch=self._branch, revisionNumber=self._revisionNumber)
+            description=self._description, branchIndex=self._branchIndex, revisionNumber=self._revisionNumber)
         self._currentTransactionRevision = revision.identifier
         return revision
 
@@ -56,6 +57,7 @@ class BranchRequest(Request):
         revision = Branch.revision_from_data(
             branchName=self._branchName, revisionNumber=self._revisionNumberValidRevision,
             branchedOffRevision=self._branchedOffRevision, branchIndex=self._branchIndex)
+        self._branch = revision.identifier
 
         return [revision]
 
@@ -67,4 +69,6 @@ class BranchRequest(Request):
         modifiedRevisions = revision.modify(
             otherBranchName=self._branchName, otherBranchedOffRevision=self._branchedOffRevision,
             branchIndex=self._branchIndex, revisionNumber=self._revisionNumberValidRevision, revisionStore=revisionStore)
+
+        self._branch = modifiedRevisions.identifier
         return modifiedRevisions

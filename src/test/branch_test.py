@@ -73,3 +73,41 @@ class BranchTest(unittest.TestCase):
         self.assertEqual(obj['branchName'], "ChocolateRecipes")
         self.assertEqual(obj['branchedOffRevision'], "http://bi-tr4qs.org/vocab/Revision_49bvls3")
         self.assertEqual(obj['revisionNumber'], response.headers['X-CurrentRevisionNumber'])
+
+    def test_branch_from_main_branch_combined(self):
+        args = get_default_configuration()
+        args['referenceStrategy'] = {'explicit': False, 'implicit': False, 'combined': True}
+        app = create_app(args).test_client()
+        response = app.post('/branch', data=dict(name='ChocolateRecipes', author='Yvette Post',
+                                                 description='Add a new branch called ChocolateRecipes.'))
+        self.assertEqual(response.status_code, 200)
+        obj = json.loads(response.data.decode("utf-8"))
+        self.assertEqual(obj['branchName'], "ChocolateRecipes")
+        self.assertEqual(obj['revisionNumber'], response.headers['X-CurrentRevisionNumber'])
+
+
+    def test_branch_from_another_branch_combined(self):
+        args = get_default_configuration()
+        args['referenceStrategy'] = {'explicit': False, 'implicit': False, 'combined': True}
+        app = create_app(args).test_client()
+        response = app.post('/branch', data=dict(name='ChocolateRecipes', author='Veerle Groot',
+                                                 branch='SweetRecipes',
+                                                 description='Add a new branch called ChocolateRecipes.'))
+        self.assertEqual(response.status_code, 200)
+        obj = json.loads(response.data.decode("utf-8"))
+        self.assertEqual(obj['branchName'], "ChocolateRecipes")
+        self.assertEqual(obj['revisionNumber'], response.headers['X-CurrentRevisionNumber'])
+
+
+    def test_branch_from_specific_revision_combined(self):
+        args = get_default_configuration()
+        args['referenceStrategy'] = {'explicit': False, 'implicit': False, 'combined': True}
+        app = create_app(args).test_client()
+        response = app.post('/branch', data=dict(name='ChocolateRecipes', author='Marijn Bosch',
+                                                 revision='http://bi-tr4qs.org/vocab/Revision_49bvls3',
+                                                 description='Add a new branch called ChocolateRecipes.'))
+        self.assertEqual(response.status_code, 200)
+        obj = json.loads(response.data.decode("utf-8"))
+        self.assertEqual(obj['branchName'], "ChocolateRecipes")
+        self.assertEqual(obj['branchedOffRevision'], "http://bi-tr4qs.org/vocab/Revision_49bvls3")
+        self.assertEqual(obj['revisionNumber'], response.headers['X-CurrentRevisionNumber'])

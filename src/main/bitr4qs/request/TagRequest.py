@@ -50,7 +50,7 @@ class TagRequest(Request):
     def transaction_revision_from_request(self):
         revision = TagRevision.revision_from_data(
             precedingRevision=self._precedingTransactionRevision, creationDate=self._creationDate, author=self._author,
-            description=self._description, branch=self._branch, revisionNumber=self._revisionNumber)
+            description=self._description, branchIndex=self._branchIndex, revisionNumber=self._revisionNumber)
 
         self._currentTransactionRevision = revision.identifier
         return revision
@@ -62,7 +62,7 @@ class TagRequest(Request):
 
         revision = Tag.revision_from_data(
             tagName=self._tagName, revisionNumber=self._revisionNumberValidRevision, effectiveDate=self._effectiveDate,
-            transactionRevision=self._transactionRevision, branchIndex=self._branchIndex)
+            transactionRevision=self._transactionRevision, branchIndex=self._branchIndexValidRevision)
 
         return [revision]
 

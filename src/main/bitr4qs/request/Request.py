@@ -21,6 +21,7 @@ class Request(object):
         self._revisionNumber = None
         self._revisionNumberValidRevision = None
         self._branchIndex = None
+        self._branchIndexValidRevision = None
 
         self._headRevision = None
 
@@ -61,11 +62,9 @@ class Request(object):
             try:
                 branch = revisionStore.branch_from_name(Literal(branchName))
                 self._branch = branch.identifier
-                self._branchIndex = branch.branch_index
+                self._branchIndex, self._branchIndexValidRevision = revisionStore.new_branch_index(branch)
             except Exception as e:
                 raise e
-        else:
-            self._branchIndex = revisionStore.main_branch_index()
 
         # Obtain the head of the transaction revisions and its revision number
         try:
@@ -86,7 +85,7 @@ class Request(object):
     def transaction_revision_from_request(self):
         revision = TransactionRevision.revision_from_data(
             precedingRevision=self._precedingTransactionRevision, creationDate=self._creationDate, author=self._author,
-            description=self._description, branch=self._branch, revisionNumber=self._revisionNumber)
+            description=self._description, branchIndex=self._branchIndex, revisionNumber=self._revisionNumber)
         self._currentTransactionRevision = revision.identifier
         return revision
 

@@ -72,7 +72,6 @@ class InitialRequest(Request):
                 self._endDate = Literal(str(endDate), datatype=XSD.dateTimeStamp)
 
         self._revisionNumber, self._revisionNumberValidRevision = revisionStore.new_revision_number()
-        self._branchIndex = revisionStore.main_branch_index()
 
     def transaction_revision_from_request(self):
         revision = InitialRevision.revision_from_data(creationDate=self._creationDate, description=self._description,
@@ -88,7 +87,7 @@ class InitialRequest(Request):
 
             # Parse the N-Quads to a list of triples or quads
             update = Update(identifier=None, startDate=self._startDate, endDate=self._endDate,
-                            branchIndex=self._branchIndex, revisionNumber=self._revisionNumberValidRevision)
+                            revisionNumber=self._revisionNumberValidRevision)
             updateParser = UpdateNQuadParser(sink=update)
             for nquad in response:
                 updateParser.parsestring(nquad)

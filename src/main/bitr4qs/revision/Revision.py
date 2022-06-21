@@ -14,7 +14,8 @@ class Revision(object):
     def __init__(self, identifier=None,
                  precedingRevision=None,
                  hexadecimalOfHash=None,
-                 revisionNumber=None):
+                 revisionNumber=None,
+                 branchIndex=None):
 
         self.identifier = identifier
         self._RDFPatterns = [Triple((self._identifier, RDF.type, self.typeOfRevision))]
@@ -22,6 +23,7 @@ class Revision(object):
         self.preceding_revision = precedingRevision
         self._hexadecimalOfHash = hexadecimalOfHash
         self.revision_number = revisionNumber
+        self.branch_index = branchIndex
 
     @property
     def identifier(self):
@@ -64,6 +66,16 @@ class Revision(object):
         if revisionNumber is not None:
             self._RDFPatterns.append(Triple((self._identifier, BITR4QS.revisionNumber, revisionNumber)))
         self._revisionNumber = revisionNumber
+
+    @property
+    def branch_index(self):
+        return self._branchIndex
+
+    @branch_index.setter
+    def branch_index(self, branchIndex):
+        if branchIndex is not None:
+            self._RDFPatterns.append(Triple((self._identifier, BITR4QS.branchIndex, branchIndex)))
+        self._branchIndex = branchIndex
 
     def _compute_hash_of_revision(self):
         if self._hexadecimalOfHash is None:
@@ -127,5 +139,7 @@ class Revision(object):
             result['precedingRevision'] = str(self._precedingRevision)
         if self._revisionNumber is not None:
             result['revisionNumber'] = str(self._revisionNumber)
+        if self._branchIndex is not None:
+            result['branchIndex'] = str(self._branchIndex)
         return result
 

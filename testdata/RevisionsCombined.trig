@@ -174,6 +174,7 @@
   :author "Marjolein de Jong" ;
   :createdAt "2021-06-21T09:00:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_ksjd3lq ;
+  :branchIndex "1"^^xsd:nonNegativeInteger ;
   :hash "kd2ng30" ;
   :precedingRevision :Revision_kd204df ;
   :revisionNumber "10"^^xsd:nonNegativeInteger ;
@@ -183,7 +184,7 @@
   rdfs:comment "Added a recipe for orange crush cookies to the dataset."@en-gb ;
   :author "Max van Dijk" ;
   :createdAt "2021-06-24T16:19:00+00:00"^^xsd:dateTimeStamp ;
-  :branch :Branch_ksjd3lq ;
+  :branchIndex "1"^^xsd:nonNegativeInteger ;
   :update :Update_7yv3wq ;
   :hash "93lgkac" ;
   :precedingRevision :Revision_kd2ng30 ;
@@ -195,6 +196,7 @@
   :author "Stefan van den Berg" ;
   :createdAt "2021-06-30T10:15:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_k301fkl ;
+  :branchIndex "1"^^xsd:nonNegativeInteger ;
   :hash "kd13bln" ;
   :precedingRevision :Revision_93lgkac ;
   :revisionNumber "12"^^xsd:nonNegativeInteger ;
@@ -204,7 +206,7 @@
   rdfs:comment "Added a recipe for hazelnut macaroons to the dataset."@en-gb ;
   :author "Cato Vos" ;
   :createdAt "2021-07-08T13:35:00+00:00"^^xsd:dateTimeStamp ;
-  :branch :Branch_k301fkl ;
+  :branchIndex "1"^^xsd:nonNegativeInteger ;
   :update :Update_do8t42 ;
   :hash "20vqzxp" ;
   :precedingRevision :Revision_kd13bln ;
@@ -215,7 +217,7 @@
   rdfs:comment "Modify the start date and modifications in Update_dio23e."@en-gb ;
   :author "Sammy Vonk" ;
   :createdAt "2021-07-10T19:25:00+00:00"^^xsd:dateTimeStamp ;
-  :branch :Branch_k301fkl ;
+  :branchIndex "1"^^xsd:nonNegativeInteger ;
   :update :Update_45hgxa ;
   :hash "bcp5c9z" ;
   :precedingRevision :Revision_20vqzxp ;
@@ -226,7 +228,7 @@
   rdfs:comment "Modify the end date and modifications in Update_mv83lv."@en-gb ;
   :author "Cora Koopman" ;
   :createdAt "2021-07-13T11:59:00+00:00"^^xsd:dateTimeStamp ;
-  :branch :Branch_k301fkl ;
+  :branchIndex "1"^^xsd:nonNegativeInteger ;
   :update :Update_6gclpo ;
   :hash "2xm1g03" ;
   :precedingRevision :Revision_bcp5c9z ;
@@ -241,6 +243,7 @@
   :author "Max van Dijk" ;
   :createdAt "2021-06-24T08:00:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_38ld2gh ;
+  :branchIndex "2"^^xsd:nonNegativeInteger ;
   :hash "3lkg1bv" ;
   :precedingRevision :Revision_ipm42rv ;
   :revisionNumber "12"^^xsd:nonNegativeInteger ;
@@ -250,7 +253,7 @@
   rdfs:comment "Added recipes for Penang fish curry, and ladies' kisses to the dataset."@en-gb ;
   :author "Cato Vos" ;
   :createdAt "2021-06-26T11:49:00+00:00"^^xsd:dateTimeStamp ;
-  :branch :Branch_38ld2gh ;
+  :branchIndex "2"^^xsd:nonNegativeInteger ;
   :update :Update_r52c7p ;
   :hash "lav972q" ;
   :precedingRevision :Revision_3lkg1bv ;
@@ -261,7 +264,7 @@
   rdfs:comment "Added a recipe for sea bass fishcakes to the dataset."@en-gb ;
   :author "Thomas Janssen" ;
   :createdAt "2021-06-26T17:31:00+00:00"^^xsd:dateTimeStamp ;
-  :branch :Branch_38ld2gh ;
+  :branchIndex "2"^^xsd:nonNegativeInteger ;
   :update :Update_4ey1fj ;
   :hash "30fhp34" ;
   :precedingRevision :Revision_lav972q ;
@@ -272,7 +275,7 @@
   rdfs:comment "Added a recipe for green chicken curry  to the dataset."@en-gb ;
   :author "Lisa Meijer" ;
   :createdAt "2021-06-26T13:13:00+00:00"^^xsd:dateTimeStamp ;
-  :branch :Branch_38ld2gh ;
+  :branchIndex "2"^^xsd:nonNegativeInteger ;
   :update :Update_5l7ru1 ;
   :hash "3ignb40" ;
   :precedingRevision :Revision_30fhp34 ;
@@ -283,7 +286,7 @@
   rdfs:comment "Create a snapshot of the dataset in this branch."@en-gb ;
   :author "Floris Steenhuis" ;
   :createdAt "2021-06-30T15:11:00+00:00"^^xsd:dateTimeStamp ;
-  :branch :Branch_38ld2gh ;
+  :branchIndex "2"^^xsd:nonNegativeInteger ;
   :snapshot :Snapshot_93gqyi5 ;
   :hash "dk1lbv3" ;
   :precedingRevision :Revision_3ignb40 ;
@@ -297,6 +300,7 @@
   :author "Dirk Blommers" ;
   :createdAt "2021-07-08T09:16:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_92pivn0 ;
+  :branchIndex "3"^^xsd:nonNegativeInteger ;
   :hash "93dkj7y" ;
   :precedingRevision :Revision_93lgkac ;
   :revisionNumber "12"^^xsd:nonNegativeInteger ;
@@ -306,7 +310,7 @@
   rdfs:comment "Added a recipe Coq au Riesling to the dataset."@en-gb ;
   :author "Cato Vos" ;
   :createdAt "2021-07-09T13:55:00+00:00"^^xsd:dateTimeStamp ;
-  :branch :Branch_92pivn0 ;
+  :branchIndex "3"^^xsd:nonNegativeInteger ;
   :update :Update_94wqpl ;
   :hash "ieh32pv" ;
   :precedingRevision :Revision_93dkj7y ;
@@ -317,7 +321,7 @@
   rdfs:comment "Modify the list of ingredients in update ."@en-gb ;
   :author "Barbara Koning" ;
   :createdAt "2021-07-11T16:14:00+00:00"^^xsd:dateTimeStamp ;
-  :branch :Branch_92pivn0 ;
+  :branchIndex "3"^^xsd:nonNegativeInteger ;
   :update :Update_9wr9po ;
   :hash "pic83mn" ;
   :precedingRevision :Revision_ieh32pv ;
@@ -328,7 +332,7 @@
   rdfs:comment "Modify the start date of Update."@en-gb ;
   :author "Jan Knip" ;
   :createdAt "2021-07-11T18:40:00+00:00"^^xsd:dateTimeStamp ;
-  :branch :Branch_92pivn0 ;
+  :branchIndex "3"^^xsd:nonNegativeInteger ;
   :update :Update_yt2l81 ;
   :hash "ifds84" ;
   :precedingRevision :Revision_pic83mn ;
@@ -339,7 +343,7 @@
   rdfs:comment "Modify the end date of Update_7yv3wq."@en-gb ;
   :author "Sander Dekker" ;
   :createdAt "2021-07-16T12:11:00+00:00"^^xsd:dateTimeStamp ;
-  :branch :Branch_92pivn0 ;
+  :branchIndex "3"^^xsd:nonNegativeInteger ;
   :update :Update_hg01vc ;
   :hash "pqb91e3" ;
   :precedingRevision :Revision_ifds84 ;
@@ -353,6 +357,7 @@
   :author "Pepijn Winter" ;
   :createdAt "2021-07-15T10:46:00+00:00"^^xsd:dateTimeStamp ;
   :branch :Branch_jhf06eg ;
+  :branchIndex "4"^^xsd:nonNegativeInteger ;
   :hash "0nvwq08" ;
   :precedingRevision :Revision_d92ghv9 ;
   :revisionNumber "6"^^xsd:nonNegativeInteger ;
@@ -362,7 +367,7 @@
   rdfs:comment "Add a recipe Shukshuka to the dataset."@en-gb ;
   :author "Tom Scholten" ;
   :createdAt "2021-07-15T14:31:00+00:00"^^xsd:dateTimeStamp ;
-  :branch :Branch_jhf06eg ;
+  :branchIndex "4"^^xsd:nonNegativeInteger ;
   :update :Update_bce34v ;
   :hash "sl2vb01" ;
   :precedingRevision :Revision_0nvwq08 ;
@@ -373,7 +378,7 @@
   rdfs:comment "Delete the recipe Shukshuka from the dataset."@en-gb ;
   :author "Marin Gerritsen" ;
   :createdAt "2021-07-18T17:19:00+00:00"^^xsd:dateTimeStamp ;
-  :branch :Branch_jhf06eg ;
+  :branchIndex "4"^^xsd:nonNegativeInteger ;
   :update :Update_trio32 ;
   :hash "1qplv90" ;
   :precedingRevision :Revision_sl2vb01 ;
@@ -384,7 +389,7 @@
   rdfs:comment "Add the recipe Shukshuka to the dataset again."@en-gb ;
   :author "Jara Kroon" ;
   :createdAt "2021-07-19T08:02:00+00:00"^^xsd:dateTimeStamp ;
-  :branch :Branch_jhf06eg ;
+  :branchIndex "4"^^xsd:nonNegativeInteger ;
   :update :Update_iuvm67 ;
   :hash "iusa876" ;
   :precedingRevision :Revision_1qplv90 ;
@@ -395,7 +400,7 @@
   rdfs:comment "Delete the recipe Shukshuka from the dataset again."@en-gb ;
   :author "Sander Dekker" ;
   :createdAt "2021-07-19T15:43:00+00:00"^^xsd:dateTimeStamp ;
-  :branch :Branch_jhf06eg ;
+  :branchIndex "4"^^xsd:nonNegativeInteger ;
   :update :Update_53hlf1 ;
   :hash "axz0pb4" ;
   :precedingRevision :Revision_iusa876 ;
@@ -1404,6 +1409,7 @@ recipes:ChickenAndEgg {
   :branchedOffAt :Revision_kd204df ;
   :branchName "SugaryRecipes"@en-gb ;
   :hash "ksjd3lq" ;
+  :branchIndex "1"^^xsd:nonNegativeInteger ;
 .
 :Branch_k301fkl
   a :Branch ;
@@ -1411,6 +1417,7 @@ recipes:ChickenAndEgg {
   :branchName "SweetRecipes" ;
   :hash "k301fkl" ;
   :precedingBranch :Branch_ksjd3lq ;
+  :branchIndex "1"^^xsd:nonNegativeInteger ;
 .
 
 ### Second Branch ####
@@ -1419,6 +1426,7 @@ recipes:ChickenAndEgg {
   :branchedOffAt :Revision_ipm42rv ;
   :branchName "FishRecipes" ;
   :hash "38ld2gh" ;
+  :branchIndex "2"^^xsd:nonNegativeInteger ;
 .
 
 ### Third Branch ####
@@ -1426,6 +1434,7 @@ recipes:ChickenAndEgg {
   a :Branch ;
   :branchedOffAt :Revision_93lgkac ;
   :branchName "ChickenRecipes" ;
+  :branchIndex "3"^^xsd:nonNegativeInteger ;
   :hash "92pivn0" ;
 .
 
@@ -1434,6 +1443,7 @@ recipes:ChickenAndEgg {
   a :Branch ;
   :branchedOffAt :Revision_d92ghv9 ;
   :branchName "EggRecipes" ;
+  :branchIndex "4"^^xsd:nonNegativeInteger ;
   :hash "jhf06eg" ;
 .
 
@@ -1521,24 +1531,24 @@ recipes:ChickenAndEgg {
 :HeadRevision_1
   a :HeadRevision ;
   :precedingRevision :Revision_2xm1g03 ;
-  :branch :Branch_k301fkl ;
+  :branchIndex "1"^^xsd:nonNegativeInteger ;
   :revisionNumber "15"^^xsd:nonNegativeInteger ;
 .
 :HeadRevision_2
   a :HeadRevision ;
   :precedingRevision :Revision_dk1lbv3 ;
-  :branch :Branch_38ld2gh ;
+  :branchIndex "2"^^xsd:nonNegativeInteger ;
   :revisionNumber "16"^^xsd:nonNegativeInteger ;
 .
 :HeadRevision_3
   a :HeadRevision ;
   :precedingRevision :Revision_pqb91e3 ;
-  :branch :Branch_92pivn0 ;
+  :branchIndex "3"^^xsd:nonNegativeInteger ;
   :revisionNumber "16"^^xsd:nonNegativeInteger ;
 .
 :HeadRevision_4
   a :HeadRevision ;
   :precedingRevision :Revision_axz0pb4 ;
-  :branch :Branch_jhf06eg ;
+  :branchIndex "4"^^xsd:nonNegativeInteger ;
   :revisionNumber "10"^^xsd:nonNegativeInteger ;
 .

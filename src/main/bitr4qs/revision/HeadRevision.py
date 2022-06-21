@@ -10,8 +10,8 @@ class HeadRevision(Revision):
     nameOfRevision = 'HeadRevision'
 
     def __init__(self, identifier=None, precedingRevision=None, hexadecimalOfHash=None, revisionNumber=None,
-                 branch=None):
-        super().__init__(identifier, precedingRevision, hexadecimalOfHash, revisionNumber)
+                 branch=None, branchIndex=None):
+        super().__init__(identifier, precedingRevision, hexadecimalOfHash, revisionNumber, branchIndex)
         self.branch = branch
 
     @property
@@ -30,6 +30,7 @@ class HeadRevision(Revision):
         assert 'revisionNumber' in data, "revisionNumber should be in the data of the revision"
         assert 'precedingRevision' in data, "precedingRevision should be in the data of the revision"
         assert 'branch' in data, "branch should be in the data of the revision"
+        assert 'branchIndex' in data, "branchIndex should be in the data of the revision"
 
         return cls(**data)
 

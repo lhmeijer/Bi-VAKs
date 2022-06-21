@@ -67,7 +67,7 @@ class UpdateRequest(Request):
         """
         revision = UpdateRevision.revision_from_data(
             precedingRevision=self._precedingTransactionRevision, creationDate=self._creationDate, author=self._author,
-            description=self._description, branch=self._branch, revisionNumber=self._revisionNumber)
+            description=self._description, branchIndex=self._branchIndex, revisionNumber=self._revisionNumber)
         self._currentTransactionRevision = revision.identifier
         return revision
 
@@ -78,7 +78,7 @@ class UpdateRequest(Request):
         """
         revision = Update.revision_from_data(
             startDate=self._startDate, revisionNumber=self._revisionNumberValidRevision, endDate=self._endDate,
-            modifications=self._modifications, branchIndex=self._branchIndex)
+            modifications=self._modifications, branchIndex=self._branchIndexValidRevision)
         return [revision]
 
 
@@ -169,7 +169,7 @@ class ModifiedRepeatedUpdateRequest(UpdateRequest):
         # AssertionError
 
         modifiedRevision = revision.modify(
-            otherStartDate=self._startDate, otherEndDate=self._endDate, branchIndex=self._branchIndex,
+            otherStartDate=self._startDate, otherEndDate=self._endDate, branchIndex=self._branchIndexValidRevision,
             otherModifications=self._modifications, revisionNumber=self._revisionNumberValidRevision,
             relatedContent=False, headRevision=self._headRevision.preceding_revision, revisionStore=revisionStore,
             shouldBeTested=self._shouldBeTested)
@@ -180,8 +180,8 @@ class ModifiedRepeatedUpdateRequest(UpdateRequest):
         assert isinstance(revision, Update), "Valid Revision should be a Update"
 
         revertedRevision = revision.revert(
-            revisionStore=revisionStore, revisionNumber=self._revisionNumberValidRevision,
-            branchIndex=self._branchIndex, relatedContent=False, headRevision=self._headRevision.preceding_revision)
+            revisionStore=revisionStore, revisionNumber=self._revisionNumberValidRevision, relatedContent=False,
+            branchIndex=self._branchIndexValidRevision, headRevision=self._headRevision.preceding_revision)
         return revertedRevision
 
 
@@ -193,7 +193,7 @@ class ModifiedRelatedUpdateRequest(UpdateRequest):
         # AssertionError
 
         modifiedRevision = revision.modify(
-            otherStartDate=self._startDate, otherEndDate=self._endDate, branchIndex=self._branchIndex,
+            otherStartDate=self._startDate, otherEndDate=self._endDate, branchIndex=self._branchIndexValidRevision,
             otherModifications=self._modifications, revisionNumber=self._revisionNumberValidRevision,
             relatedContent=True, headRevision=self._headRevision.preceding_revision, revisionStore=revisionStore,
             shouldBeTested=self._shouldBeTested)
@@ -204,7 +204,7 @@ class ModifiedRelatedUpdateRequest(UpdateRequest):
         assert isinstance(revision, Update), "Valid Revision should be a Update"
 
         revertedRevision = revision.revert(
-            revisionStore=revisionStore, revisionNumber=self._revisionNumberValidRevision,
-            branchIndex=self._branchIndex, relatedContent=True, headRevision=self._headRevision.preceding_revision)
+            revisionStore=revisionStore, revisionNumber=self._revisionNumberValidRevision, relatedContent=True,
+            branchIndex=self._branchIndexValidRevision, headRevision=self._headRevision.preceding_revision)
         return revertedRevision
 

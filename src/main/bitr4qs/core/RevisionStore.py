@@ -88,14 +88,14 @@ class RevisionStore(object):
             return Exception
         return revisionType
 
-    def head_revision(self, branch: URIRef = None):
+    def head_revision(self, branchIndex: Literal = None):
         """
         Function that returns the HEAD of the transaction revisions based on the given branch.
-        :param branch: the given branch for which one would like to have the HEAD Revision.
+        :param branchIndex: the given branch for which one would like to have the HEAD Revision.
         :return: an HEAD revision object containing all data of the HEAD Revision.
         """
-        branchString = "?revision :branch {0} .".format(branch.n3()) if branch else \
-            "FILTER NOT EXISTS { ?revision :branch ?branch . }"
+        branchString = "?revision :branchIndex {0} .".format(branchIndex.n3()) if branchIndex is not None else \
+            "FILTER NOT EXISTS { ?revision :branchIndex ?branchIndex . }"
 
         SPARQLQuery = """DESCRIBE ?revision
         WHERE {{ 
@@ -108,16 +108,12 @@ class RevisionStore(object):
         headRevisions = parser.HeadParser.parse_revisions(result, 'transaction')
         return self._fetch_revision(headRevisions)
 
-    def new_branch_index(self):
-        return None
+    def new_branch_index(self, branch=None):
+        return None, None
 
     @staticmethod
     def new_revision_number(revisionNumber=None):
         return None, None
-
-    @staticmethod
-    def main_branch_index():
-        return None
 
     def all_revisions(self, revisionType, isValidRevision=True):
         if not isValidRevision:
