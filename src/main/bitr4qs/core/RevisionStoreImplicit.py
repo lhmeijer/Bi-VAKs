@@ -228,7 +228,7 @@ class RevisionStoreImplicit(RevisionStore):
         return snapshots
 
     def _get_sorted_updates(self, updateParser, stringOfUpdates, revisionA: URIRef, revisionB: URIRef = None,
-                            forward=True, quadPattern=None):
+                            forward=True):
         """
 
         :param updateParser:
@@ -317,10 +317,7 @@ class RevisionStoreImplicit(RevisionStore):
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
         # print("stringOfUpdates ", stringOfUpdates)
-        if self._config.aggregated_modifications():
-            updateParser.parse_aggregate(stringOfUpdates, forward)
-        else:
-            self._get_sorted_updates(updateParser, stringOfUpdates, revisionA, revisionB, forward)
+        updateParser.parse_aggregate(stringOfUpdates, forward)
 
     def _transaction_revision_from_valid_revision(self, validRevisionID, revisionType):
         """

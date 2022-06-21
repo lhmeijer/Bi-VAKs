@@ -6,6 +6,7 @@ from src.main.bitr4qs.namespace import BITR4QS
 from rdflib.plugins.parsers.ntriples import W3CNTriplesParser
 from rdflib.term import URIRef
 from rdflib.namespace import RDF, RDFS
+import numpy as np
 
 
 class TripleSink(object):
@@ -74,6 +75,7 @@ class Parser(object):
                         validRevision = validRevisions[str(validRevisionID)]
                         orderedValidRevisions[i] = validRevision
                         i += 1
+
         return orderedValidRevisions
 
     @classmethod
@@ -106,6 +108,7 @@ class Parser(object):
 
         orderedValidRevisions = {}
         nOfRevisions = len(validRevisions)
+
         i = 0
         while i < nOfRevisions:
             if str(endRevision) in transactionRevisions:
@@ -116,7 +119,6 @@ class Parser(object):
                     for _, validRevisionID in validRevisionIDs:
                         if str(validRevisionID) in validRevisions:
                             validRevision = validRevisions[str(validRevisionID)]
-
                             if forward:
                                 j = nOfRevisions - i - 1
                                 orderedValidRevisions[j] = validRevision
@@ -124,7 +126,6 @@ class Parser(object):
                                 orderedValidRevisions[i] = validRevision
 
                             i += 1
-        print("orderedValidRevisions ", orderedValidRevisions)
         return orderedValidRevisions
 
     @classmethod

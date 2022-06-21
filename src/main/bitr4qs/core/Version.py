@@ -1,7 +1,7 @@
 from src.main.bitr4qs.store.QuadStoreSingleton import HttpTemporalStoreSingleton
-from datetime import datetime
 from src.main.bitr4qs.tools.parser.UpdateParser import UpdateParser
-
+from datetime import datetime, timedelta
+from timeit import default_timer as timer
 
 class Version(object):
 
@@ -127,32 +127,50 @@ class Version(object):
         elif self._revisionStore.is_transaction_time_a_earlier(revisionA=transactionA, revisionB=transactionB):  # t(a) < t(b)
             # [a] <- [] <- [] <- [] <- [b]
             # First bring state A into a new state with valid time B
+            # start = timer()
             self.modifications_between_valid_states(validA=validA, validB=validB, transactionTime=transactionA)
+            # end = timer()
+            # print("a into a new state with valid time b ", timedelta(seconds=end - start).total_seconds())
 
             # Rewind all the updates which are modifications of the updates within the transaction revisions
             # Otherwise some updates will be taken into account twice.
+            # start = timer()
             self._revisionStore.get_modifications_of_updates_between_revisions(
                 revisionA=transactionB, revisionB=transactionA, date=validB, updateParser=self._updateParser,
                 quadPattern=self._quadPattern, forward=False)
+            # end = timer()
+            # print("modifications of updates ", timedelta(seconds=end - start).total_seconds())
             # Fastforward the updates within the transaction revisions
+            # start = timer()
             self._revisionStore.get_updates_in_revision_graph(
                 date=validB, forward=True, quadPattern=self._quadPattern, updateParser=self._updateParser,
                 revisionA=transactionB, revisionB=transactionA)
+            # end = timer()
+            # print("updates within transaction revisions ", timedelta(seconds=end - start).total_seconds())
 
         elif self._revisionStore.is_transaction_time_a_earlier(revisionA=transactionB, revisionB=transactionA):  # t(a) > t(b)
             # [b] <- [] <- [] <- [] <- [a]
             # Rewind the updates within the transaction revisions
+            # start = timer()
             self._revisionStore.get_updates_in_revision_graph(
                 date=validA, forward=False, quadPattern=self._quadPattern, updateParser=self._updateParser,
                 revisionA=transactionA, revisionB=transactionB)
+            # end = timer()
+            # print("rewind updates within transaction revisions ", timedelta(seconds=end - start).total_seconds())
 
             # Fastforward all the updates which are modifications of the updates within the transaction revisions
+            # start = timer()
             self._revisionStore.get_modifications_of_updates_between_revisions(
                 revisionA=transactionA, revisionB=transactionB, date=validA, updateParser=self._updateParser,
                 quadPattern=self._quadPattern, forward=True)
+            # end = timer()
+            # print("modifications of updates ", timedelta(seconds=end - start).total_seconds())
 
             # Bring state A into a new state with valid time B
+            # start = timer()
             self.modifications_between_valid_states(validA=validA, validB=validB, transactionTime=transactionB)
+            # end = timer()
+            # print("a into a new state with valid time b ", timedelta(seconds=end - start).total_seconds())
 
         else:
             raise Exception
@@ -190,13 +208,23 @@ class Version(object):
         else:
             # query the snapshot using the quad pattern return a dictionary of modifications
             SPARQLConstructQuery = "CONSTRUCT {{ {0} }}\nWHERE {{ {0} }}".format(self._quadPattern.sparql())
+            # start = timer()
             stringOfNQuads = snapshot.query_dataset(SPARQLConstructQuery, 'ConstructQuery', 'nquads')
+            # end = timer()
+            # print("query snapshot ", timedelta(seconds=end - start).total_seconds())
             # Add the n quads to temporal store
+            # start = timer()
+            # self._updateParser.n_quads_to_modifications(stringOfNQuads)
+            # end = timer()
+            # print("modifications of snapshots ", timedelta(seconds=end - start).total_seconds())
             response = self._temporalStore.upload_to_dataset(stringOfNQuads, 'application/n-quads')
 
             self.modifications_between_two_states(transactionA=snapshot.transaction_revision, validB=self._validTime,
                                                   transactionB=self._transactionTime, validA=snapshot.effective_date)
+            # start = timer()
             SPARQLUpdateQuery = self._updateParser.modifications_to_sparql_update_query()
+            # end = timer()
+            # print("to modifications ", timedelta(seconds=end - start).total_seconds())
             # print('SPARQLUpdateQuery ', SPARQLUpdateQuery)
             self._temporalStore.execute_update_query(SPARQLUpdateQuery)
 

@@ -37,29 +37,33 @@ class RevisionStoreExplicit(RevisionStore):
             CONSTRUCT {{ {1} }}
             WHERE {{
                     {{
-                    SELECT ?revision
+                    SELECT ?other
                     WHERE {{
                          {2} :precedingRevision* ?transactionRevision .
                          ?transactionRevision :precedingRevision+ {3} .
                          ?transactionRevision :update ?succeedingUpdate .{4}
-                         ?succeedingUpdate :precedingUpdate ?revision .
+                         ?succeedingUpdate :precedingUpdate ?other .
                         }}
                     }}
-                {3} :precedingRevision* ?otherTransactionRevision .
-                ?otherTransactionRevision :update ?revision .{5}
-                {6} }}""".format(str(BITR4QS), construct, revisionA.n3(), revisionB.n3(), updateSucceedingTimeString,
-                                 updateTimeString, where)
+                    {{
+                    SELECT ?revision
+                    WHERE {{
+                        {3} :precedingRevision* ?otherTransactionRevision .
+                        ?otherTransactionRevision :update ?revision .{5}
+                        }}
+                    }}
+                {6}
+                FILTER ( ?revision = ?other ) }}
+                """.format(str(BITR4QS), construct, revisionA.n3(), revisionB.n3(), updateSucceedingTimeString,
+                           updateTimeString, where)
 
         # print('SPARQLQuery ', SPARQLQuery)
         stringOfUpdates = self._revisionStore.execute_construct_query(SPARQLQuery, 'nquads')
         # print("stringOfUpdates ", stringOfUpdates)
-        if self._config.aggregated_modifications():
-            updateParser.parse_aggregate(stringOfUpdates, forward)
-        else:
-            self._get_sorted_updates(updateParser, stringOfUpdates, revisionA, revisionB, forward)
+        updateParser.parse_aggregate(stringOfUpdates, forward)
 
     def _get_sorted_updates(self, updateParser, stringOfUpdates, revisionA: URIRef, revisionB: URIRef = None,
-                            forward=True, quadPattern=None):
+                            forward=True):
         stringOfUpdateRevisions = self._transaction_revisions_in_revision_graph(revisionA, ['update'], revisionB)
         updateParser.parse_sorted_explicit(stringOfUpdates, stringOfUpdateRevisions, endRevision=revisionA,
                                            forward=forward)
@@ -80,8 +84,7 @@ class RevisionStoreExplicit(RevisionStore):
         construct = '\n'.join("?revision :{0} ?{0} .".format(revisionType) for revisionType in validRevisionTypes)
         where = '\n'.join("OPTIONAL {{ ?revision :{0} ?{0} }}".format(revisionType) for revisionType in validRevisionTypes)
 
-        SPARQLQuery = """CONSTRUCT {{ ?revision :precedingRevision ?precedingRevision . 
-        {0} }}
+        SPARQLQuery = """CONSTRUCT {{ ?revision :precedingRevision ?precedingRevision .{0} }}
         WHERE {{ {1} :precedingRevision* ?revision .{2}
         OPTIONAL {{ ?revision :precedingRevision ?precedingRevision . }}
         {3} }}""".format(construct, revisionA.n3(), revisionEndConstrain, where)
@@ -134,7 +137,7 @@ class RevisionStoreExplicit(RevisionStore):
             earlyStop = "\n?revision :precedingRevision+ {0} .".format(transactionRevisionB.n3())
 
         SPARQLQuery = """CONSTRUCT {{ ?revision ?p ?o }}
-        {{ {0} :precedingRevision* ?revision .{1}
+        WHERE {{ {0} :precedingRevision* ?revision .{1}
         FILTER ( {2} = ?revision ) 
         ?revision ?p ?o . }}""".format(transactionRevisionA.n3(), earlyStop, transactionRevisionID.n3())
         return '\n'.join((self.prefixBiTR4Qs, SPARQLQuery))
@@ -163,7 +166,7 @@ class RevisionStoreExplicit(RevisionStore):
             MINUS {{
                 {2} :precedingRevision* ?otherTransactionRevision .{4}
                 ?otherTransactionRevision :{1} ?otherValidRevision .
-                ?otherValidRevision :preceding{5} ?revision . 
+                ?otherValidRevision :preceding{5} ?revision .
             }}
         }}""".format(prefixString, revisionType, revisionA.n3(), earlyStopA, earlyStopB, revisionType.title(),
                      queryString, timeConstrain)

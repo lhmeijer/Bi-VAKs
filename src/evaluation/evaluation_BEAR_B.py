@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
         permutationsIndices = permutationsSnapshotModifiedIndices
 
-        permutationsIndices = [(0, 50, (1000000, 4320000), ('N', 45), 3, (None, 5), 'implicit', 'related')]
+        permutationsIndices = [(0, 50, (1000000, 4320000), ('N', 45), 3, (None, 5), 'combined', 'related')]
         # TODO shutdown server such that we can run explicit and implicit at the same time.
         for indices in permutationsIndices:
             print("indices ", indices)
@@ -82,17 +82,17 @@ if __name__ == "__main__":
 
     if evaluateQueries:
         # seed, numberUpdates, indexCloseness, indexWidth, snapshots, branches, modifiedUpdates, reference, content
-        generalIndicesVM = [[0], [50, 100], [(1000000, 4320000), (5000000, 432000)], [(None, None)], [None],
-                           [(None, None)], ['combined'], ['repeated'], [('specific', 20)], ['aggregated'], ['between']]
-        # generalIndicesVM = [[0], [50, 100], [(1000000, 4320000)], [(None, None)], [None],
+        # generalIndicesVM = [[0], [50, 100], [(1000000, 4320000), (5000000, 432000)], [(None, None)], [None],
         #                    [(None, None)], ['combined'], ['repeated'], [('specific', 20)], ['aggregated'], ['between']]
+        generalIndicesVM = [[0], [50, 100], [(1000000, 4320000)], [(None, None)], [None],
+                           [(None, None)], ['explicit'], ['repeated'], [('specific', 20)], ['aggregated'], ['between']]
         permutationsGeneralIndicesVM = list(itertools.product(*generalIndicesVM))
         snapshotModifiedIndicesVM = [[0], [50], [(1000000, 4320000)], [('N', 45)], [None], [(None, 5)],
-                                    ['implicit'], ['repeated'], [('specific', 20)], ['aggregated'], ['between']]  # -> 3 x 2 x 2 = 12
+                                    ['combined'], ['repeated'], [('specific', 20)], ['aggregated'], ['between']]  # -> 3 x 2 x 2 = 12
         # snapshotModifiedIndicesVM = [[0], [50], [(1000000, 4320000)], [(None, None)], [None], [(None, 5)],
-        #                             ['implicit'], ['related'], [('specific', 20)], ['aggregated']]  # -> 3 x 2 x 2 = 12
+        #                             ['combined'], ['related'], [('specific', 20)], ['aggregated'], ['between']]  # -> 3 x 2 x 2 = 12
         permutationsSnapshotModifiedIndicesVM = list(itertools.product(*snapshotModifiedIndicesVM))
-        branchIndicesVM = [[0], [50], [(1000000, 4320000)], [(None, None)], [3], [(None, None)], ['implicit'],
+        branchIndicesVM = [[0], [50], [(1000000, 4320000)], [(None, None)], [3], [(None, None)], ['combined'],
                            ['repeated'], [('specific', 20)], ['aggregated'], ['between']]    # -> 3
         permutationsBranchIndicesVM = list(itertools.product(*branchIndicesVM))
         permutationsIndicesVM = permutationsGeneralIndicesVM + permutationsSnapshotModifiedIndicesVM + \
@@ -100,30 +100,30 @@ if __name__ == "__main__":
 
         # -> 2 x 2 x 3 x 2 = 24
         generalIndicesDM = [[0], [50, 100], [(1000000, 4320000), (5000000, 432000)], [(None, None)], [None],
-                           [(None, None)], ['explicit'], ['repeated'], [('specific', 20)], ['aggregated'], ['initial']]
+                           [(None, None)], ['combined'], ['repeated'], [('specific', 20)], ['sorted'], ['initial']]
         # generalIndicesDM = [[0], [50, 100], [(1000000, 4320000)], [(None, None)], [None], [(None, None)],
         #                    ['implicit'], ['repeated'], [('specific', 20)], ['sorted'], ['initial']]
         permutationsGeneralIndicesDM = list(itertools.product(*generalIndicesDM))
         modifiedIndicesDM = [[0], [50], [(1000000, 4320000)], [(None, None)], [None], [(None, 5)],
-                             ['explicit'], ['related'], [('specific', 20)], ['aggregated'], ['between']]  # -> 3 x 2 = 6
+                             ['combined'], ['related'], [('specific', 20)], ['aggregated'], ['between']]  # -> 3 x 2 = 6
         permutationsModifiedIndicesDM = list(itertools.product(*modifiedIndicesDM))
-        branchIndicesDM = [[0], [50], [(1000000, 4320000)], [(None, None)], [3], [(None, None)], ['implicit'],
-                           ['repeated'], [('specific', 20)], ['aggregated'], ['between']]    # -> 3
+        branchIndicesDM = [[0], [50], [(1000000, 4320000)], [(None, None)], [3], [(None, None)], ['combined'],
+                           ['repeated'], [('specific', 20)], ['sorted'], ['initial']]    # -> 3
         permutationsBranchIndicesDM = list(itertools.product(*branchIndicesDM))
         permutationsIndicesDM = permutationsGeneralIndicesDM + permutationsModifiedIndicesDM + \
                                 permutationsBranchIndicesDM
 
         # -> 2 x 2 x 3 x 2 x 2 = 48
-        # generalIndicesVQ = [[0], [50, 100], [(1000000, 4320000), (5000000, 432000)], [(None, None)], [None],
+        generalIndicesVQ = [[0], [50, 100], [(1000000, 4320000), (5000000, 432000)], [(None, None)], [None],
+                           [(None, None)], ['combined'], ['repeated'], [('specific', 20)], ['sorted'], ['initial']]
+        # generalIndicesVQ = [[0], [100], [(1000000, 4320000)], [(None, None)], [None],
         #                    [(None, None)], ['explicit'], ['repeated'], [('specific', 20)], ['sorted'], ['initial']]
-        generalIndicesVQ = [[0], [100], [(1000000, 4320000)], [(None, None)], [None],
-                           [(None, None)], ['explicit'], ['repeated'], [('specific', 20)], ['sorted'], ['initial']]
         permutationsGeneralIndicesVQ = list(itertools.product(*generalIndicesVQ))
         modifiedIndicesVQ = [[0], [50], [(1000000, 4320000)], [(None, None)], [None], [(None, 5)],
-                             ['explicit'], ['repeated'], [('specific', 20)], ['sorted'], ['initial']]  # -> 3 x 2 = 6
+                             ['combined'], ['related'], [('specific', 20)], ['aggregated'], ['between']]  # -> 3 x 2 = 6
         permutationsModifiedIndicesVQ = list(itertools.product(*modifiedIndicesVQ))
-        branchIndicesVQ = [[0], [50], [(1000000, 4320000)], [(None, None)], [3], [(None, None)], ['implicit'],
-                           ['repeated'], [('specific', 20)], ['sorted'], ['initial']]    # -> 3
+        branchIndicesVQ = [[0], [50], [(1000000, 4320000)], [(None, None)], [3], [(None, None)], ['combined'],
+                           ['repeated'], [('specific', 20)], ['aggregated'], ['between']]    # -> 3
         permutationsBranchIndicesVQ = list(itertools.product(*branchIndicesVQ))
         permutationsIndicesVQ = permutationsGeneralIndicesVQ + permutationsModifiedIndicesVQ + \
                                 permutationsBranchIndicesVQ

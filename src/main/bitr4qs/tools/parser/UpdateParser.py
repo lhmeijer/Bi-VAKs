@@ -6,6 +6,7 @@ from src.main.bitr4qs.term.Modification import Modification
 from rdflib.term import URIRef
 from rdflib.namespace import RDFS
 from src.main.bitr4qs.tools.parser.UpdateNQuadParser import UpdateNQuadParser
+import numpy as np
 
 
 class UpdateParser(Parser):
@@ -72,13 +73,7 @@ class UpdateParser(Parser):
 
         return modification
 
-    def parse_revisions(self, stringOfRevisions, revisionName=None):
-        """
-
-        :param stringOfRevisions:
-        :param revisionName:
-        :return:
-        """
+    def _parse_both_types_revisions(self, stringOfRevisions):
         validRevisions = {}
         transactionRevisions = {}
 
@@ -88,15 +83,12 @@ class UpdateParser(Parser):
         while index != len(NQuads):
             revisionID = re.findall(r'<(.*?)>', NQuads[index])[0]
 
-            if revisionName is None:
-                if 'Revision' in revisionID:
-                    finalRevisionName = 'transaction'
-                else:
-                    finalRevisionName = 'valid'
+            if 'Revision' in revisionID:
+                revisionName = 'transaction'
             else:
-                finalRevisionName = revisionName
+                revisionName = 'valid'
 
-            if finalRevisionName == 'valid':
+            if revisionName == 'valid':
                 func = getattr(self, 'parse_valid_revision')
                 if revisionID in validRevisions:
                     revision, index = func(revisionID, NQuads[index:], index, validRevisions[revisionID])
@@ -104,7 +96,7 @@ class UpdateParser(Parser):
                     revision, index = func(revisionID, NQuads[index:], index)
 
                 validRevisions[str(revision.identifier)] = revision
-            elif finalRevisionName == 'transaction':
+            elif revisionName == 'transaction':
                 func = getattr(self, 'parse_transaction_revision')
                 if revisionID in transactionRevisions:
                     revision, index = func(revisionID, NQuads[index:], index, transactionRevisions[revisionID])
@@ -114,6 +106,39 @@ class UpdateParser(Parser):
                 transactionRevisions[str(revision.identifier)] = revision
         # print("revisions ", revisions)
         return validRevisions, transactionRevisions
+
+
+    def parse_revisions(self, stringOfRevisions, revisionName=None):
+        """
+
+        :param stringOfRevisions:
+        :param revisionName:
+        :return:
+        """
+        if revisionName is None:
+            return self._parse_both_types_revisions(stringOfRevisions)
+
+        revisions = {}
+
+        functionName = 'parse_' + revisionName + '_revision'
+        func = getattr(self, functionName)
+
+        NQuads = stringOfRevisions.split('\n')[:-1]
+        index = 0
+
+        while index != len(NQuads):
+            revisionID = re.findall(r'<(.*?)>', NQuads[index])[0]
+
+            if revisionID in revisions:
+                revision, index = func(revisionID, NQuads[index:], index, revisions[revisionID])
+            else:
+                revision, index = func(revisionID, NQuads[index:], index)
+
+            revisions[str(revision.identifier)] = revision
+        # print("revisions ", revisions)
+        if revisionName == 'valid':
+            return revisions, None
+        return None, revisions
 
     def parse_valid_revision(self, identifier, NQuads, index, revision=None):
         """
@@ -320,6 +345,7 @@ class UpdateParser(Parser):
         orderedUpdates = {}
         nOfRevisions = len(updates)
         i = 0
+
         while i < nOfRevisions:
             if str(endRevision) in updatesRevisions:
                 updateRevision = updatesRevisions[str(endRevision)]
@@ -335,7 +361,6 @@ class UpdateParser(Parser):
                                 orderedUpdates[j] = update
                             else:
                                 orderedUpdates[i] = update
-
                             i += 1
         for i in range(len(orderedUpdates)):
             # print("orderedUpdates[i] ", orderedUpdates[i].identifier)

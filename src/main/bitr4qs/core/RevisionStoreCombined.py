@@ -2,6 +2,8 @@ from .RevisionStore import RevisionStore
 from rdflib.term import URIRef, Literal
 import src.main.bitr4qs.tools.parser as parser
 from rdflib.namespace import XSD
+from datetime import datetime, timedelta
+from timeit import default_timer as timer
 
 
 class RevisionStoreCombined(RevisionStore):
@@ -36,8 +38,8 @@ class RevisionStoreCombined(RevisionStore):
                 WHERE {{
                     {0} :revisionNumber ?revisionNumberA .
                     OPTIONAL {{ 
-                        {0} :branch ?branch .
-                        ?branch :branchedOffAt ?revision .
+                        {0} :branch ?branchA .
+                        ?branchA :branchedOffAt ?revision .
                     }}
                     {1} :revisionNumber ?revisionNumberB .
                     OPTIONAL {{ 
@@ -93,9 +95,9 @@ class RevisionStoreCombined(RevisionStore):
         else:
             if len(pair) == 3:
                 filterString = "( {3} = {2} && {4} <= {0} && {4} > {1} )".format(
-                    pair[0], pair[2], pair[1], branch, revisionNumber)
+                    pair[0], pair[2], pair[1].n3(), branch, revisionNumber)
             else:
-                filterString = "( {2} = {1} && {3} <= {0} )".format(pair[0], pair[1], branch, revisionNumber)
+                filterString = "( {2} = {1} && {3} <= {0} )".format(pair[0], pair[1].n3(), branch, revisionNumber)
         return filterString
 
     def _transaction_revision(self, transactionRevisionA, transactionRevision, transactionRevisionB=None):
@@ -223,7 +225,7 @@ class RevisionStoreCombined(RevisionStore):
         return snapshots
 
     def _get_sorted_updates(self, updateParser, stringOfUpdates, revisionA: URIRef, revisionB: URIRef = None,
-                            forward=True, quadPattern=None):
+                            forward=True):
         """
 
         :param updateParser:
@@ -282,30 +284,42 @@ class RevisionStoreCombined(RevisionStore):
                 }}""".format(construct, revisionFilter, updateTimeString, otherFilter, updatePrecedingTimeString, where)
         else:
             validRevisionTimeString = self._update_time_string(date=date, variableName='?validRevision')
-
             SPARQLQuery = """CONSTRUCT {{ {0} }}
             WHERE {{
                     {{
-                    SELECT ?revision
+                    SELECT ?other
                     WHERE {{
                          ?transactionRevision :revisionNumber ?revisionNumber .
                          OPTIONAL {{ ?transactionRevision :branch ?branch . }}
                          FILTER ( {1} )
                          ?transactionRevision :update ?validRevision.{2}
-                         ?validRevision :precedingUpdate ?revision .
+                         ?validRevision :precedingUpdate ?other .
                         }}
                     }}
-                ?otherTransactionRevision :revisionNumber ?otherRevisionNumber .
-                OPTIONAL {{ ?otherTransactionRevision :branch ?otherBranch . }}
-                FILTER ( {3} )
-                ?otherTransactionRevision :update ?revision .{4}
-                {5} }}
+                    {{
+                    SELECT ?revision
+                    WHERE {{
+                        ?otherTransactionRevision :revisionNumber ?otherRevisionNumber .
+                        OPTIONAL {{ ?otherTransactionRevision :branch ?otherBranch . }}
+                        FILTER ( {3} )
+                        ?otherTransactionRevision :update ?revision .{4}
+                        }}
+                    }}
+                {5}
+                FILTER ( ?revision = ?other )
+                }}
                 """.format(construct, revisionFilter, validRevisionTimeString, otherFilter, updateTimeString, where)
         # print('SPARQLQuery ', SPARQLQuery)
+        # start = timer()
         stringOfUpdates = self._revisionStore.execute_construct_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
+        # end = timer()
+        # print("get modified updates ", timedelta(seconds=end - start).total_seconds())
         # print("stringOfUpdates ", stringOfUpdates)
+        # start = timer()
         updateParser.parse_aggregate(stringOfUpdates, forward)
+        # end = timer()
+        # print("aggregate updates ", timedelta(seconds=end - start).total_seconds())
 
     def _transaction_revision_from_valid_revision(self, validRevisionID, revisionType):
         """
@@ -393,9 +407,12 @@ class RevisionStoreCombined(RevisionStore):
 
         constructRevisions = ""
         if self._config.sorted_modifications():
-            constructRevisions = """\n?transactionRevision :revisionNumber ?revisionNumber .
-            ?transactionRevision :update ?revision .
-            """
+            if self._config.related_update_content():
+                constructRevisions = """\n?transactionRevision :revisionNumber ?revisionNumber .
+                ?transactionRevision :update ?allRevisions ."""
+            else:
+                constructRevisions = """\n?transactionRevision :revisionNumber ?revisionNumber .
+                ?transactionRevision :update ?revision ."""
 
         SPARQLQuery = """CONSTRUCT {{ {0}{4} }}
         WHERE {{ 
@@ -409,5 +426,4 @@ class RevisionStoreCombined(RevisionStore):
         if self._config.aggregated_modifications():
             updateParser.parse_aggregate(stringOfUpdates, forward)
         else:
-            self._get_sorted_updates(updateParser, stringOfUpdates, revisionA, revisionB, forward,
-                                     quadPattern=quadPattern)
+            self._get_sorted_updates(updateParser, stringOfUpdates, revisionA, revisionB, forward)

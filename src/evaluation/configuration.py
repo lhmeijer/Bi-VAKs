@@ -21,7 +21,7 @@ class BearBConfiguration(object):
     _snapshot_effective_dates = {'F': '2015-03-01T00:00:00+00:00', 'N': '2015-07-01T00:00:00+00:00'}
 
     QUERY_TYPE = 'p'    # po or p
-    QUERY_ATOM = 'VM'   # VM, DM, VQ
+    QUERY_ATOM = 'VQ'   # VM, DM, VQ
     NUMBER_OF_VERSIONS = 89
 
     _bear_b_results = {'VM': 'mat-{0}-queries'.format(QUERY_TYPE), 'DM': 'diff-{0}-queries'.format(QUERY_TYPE),
@@ -112,10 +112,16 @@ class BearBConfiguration(object):
         self.query_results_file_name = os.path.join(os.path.dirname(__file__), '..', '..', 'results', 'BEAR-B', 'query',
                                                     self.QUERY_ATOM, reference, _query_results + '.txt')
 
-        _figure_results = '_'.join((str(self.SEED), str(self.TRIPLES_PER_UPDATE), _closeness, _width, _fetching,
+        _figure_query_results = '_'.join((str(self.SEED), str(self.TRIPLES_PER_UPDATE), _closeness, _width, _fetching,
                                     _repeated, _snapshots, _branches, _modified_updates, _modifications,
                                     _retrieve, self.QUERY_ATOM, self.QUERY_TYPE))
         self.figures_query_results = os.path.join(os.path.dirname(__file__), '..', '..', 'figures', 'BEAR-B', 'query',
-                                                  self.QUERY_ATOM, _figure_results + '.png')
+                                                  self.QUERY_ATOM, _figure_query_results + '.png')
+
+        _figure_ingestion_results = '_'.join((str(self.SEED), str(self.TRIPLES_PER_UPDATE), _closeness, _width,
+                                              _repeated, _snapshots, _branches, _modified_updates))
+
+        self.figures_ingestion_results = os.path.join(os.path.dirname(__file__), '..', '..', 'figures', 'BEAR-B',
+                                                      'ingestion', _figure_ingestion_results + '.png')
 
 

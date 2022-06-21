@@ -247,7 +247,7 @@ class RevisionStore(object):
             SPARQLQuery = self._transaction_revision(transactionRevisionA=transactionRevisionA,
                                                      transactionRevision=revisionID,
                                                      transactionRevisionB=transactionRevisionB)
-        # print("SPARQLQuery ", SPARQLQuery)
+
         stringOfRevision = self._revisionStore.execute_construct_query(SPARQLQuery, 'nquads')
         func = getattr(self, '_' + revisionType)
         revisions = func(stringOfRevision=stringOfRevision, isValidRevision=isValidRevision)
@@ -309,9 +309,9 @@ class RevisionStore(object):
     @staticmethod
     def _update(stringOfRevision: str, isValidRevision: bool):
         if isValidRevision:
-            update = parser.UpdateParser().parse_revisions(stringOfRevision, revisionName='valid')
+            update, _ = parser.UpdateParser().parse_revisions(stringOfRevision, revisionName='valid')
         else:
-            update = parser.UpdateParser().parse_revisions(stringOfRevision, revisionName='transaction')
+            _, update = parser.UpdateParser().parse_revisions(stringOfRevision, revisionName='transaction')
         return update
 
     def branch_from_name(self, branchName: Literal):
@@ -848,11 +848,10 @@ class RevisionStore(object):
         if self._config.aggregated_modifications():
             updateParser.parse_aggregate(stringOfUpdates, forward)
         else:
-            self._get_sorted_updates(updateParser, stringOfUpdates, revisionA, revisionB, forward,
-                                     quadPattern=quadPattern)
+            self._get_sorted_updates(updateParser, stringOfUpdates, revisionA, revisionB, forward)
 
     def _get_sorted_updates(self, updateParser, stringOfUpdates, revisionA: URIRef, revisionB: URIRef = None,
-                            forward=True, quadPattern=None):
+                            forward=True):
         pass
 
     def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str,

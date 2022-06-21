@@ -238,7 +238,6 @@ class StoreCreator(object):
                     endTimestamp = datetime.strptime(updateData[randomInt][5], "%Y-%m-%dT%H:%M:%S+00:00")
                     endDate = (endTimestamp + timedelta(seconds=1)).strftime("%Y-%m-%dT%H:%M:%S+00:00")
 
-
                 updateID = self._updateIDs.pop(randomInt)
                 updateID = updateID.replace(str(BITR4QS), '')
                 start = timer()
