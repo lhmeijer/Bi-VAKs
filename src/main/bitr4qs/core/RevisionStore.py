@@ -88,13 +88,13 @@ class RevisionStore(object):
             return Exception
         return revisionType
 
-    def head_revision(self, branchIndex: Literal = None):
+    def head_revision(self, branch=None):
         """
         Function that returns the HEAD of the transaction revisions based on the given branch.
         :param branchIndex: the given branch for which one would like to have the HEAD Revision.
         :return: an HEAD revision object containing all data of the HEAD Revision.
         """
-        branchString = "?revision :branchIndex {0} .".format(branchIndex.n3()) if branchIndex is not None else \
+        branchString = "?revision :branchIndex {0} .".format(branch.branch_index.n3()) if branch is not None else \
             "FILTER NOT EXISTS { ?revision :branchIndex ?branchIndex . }"
 
         SPARQLQuery = """DESCRIBE ?revision
@@ -106,6 +106,7 @@ class RevisionStore(object):
         result = self._revisionStore.execute_describe_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'nquads')
         headRevisions = parser.HeadParser.parse_revisions(result, 'transaction')
+
         return self._fetch_revision(headRevisions)
 
     def new_branch_index(self, branch=None):
@@ -241,7 +242,7 @@ class RevisionStore(object):
                                                revisionType=revisionType, transactionRevisionB=transactionRevisionB)
         else:
             SPARQLQuery = self._transaction_revision(transactionRevisionA=transactionRevisionA,
-                                                     transactionRevision=revisionID,
+                                                     transactionRevisionID=revisionID,
                                                      transactionRevisionB=transactionRevisionB)
 
         stringOfRevision = self._revisionStore.execute_construct_query(SPARQLQuery, 'nquads')
@@ -249,7 +250,7 @@ class RevisionStore(object):
         revisions = func(stringOfRevision=stringOfRevision, isValidRevision=isValidRevision)
         return self._fetch_revision(revisions)
 
-    def _transaction_revision(self, transactionRevisionA, transactionRevision, transactionRevisionB=None):
+    def _transaction_revision(self, transactionRevisionA, transactionRevisionID, transactionRevisionB=None):
         return ""
 
     def _valid_revision(self, transactionRevisionA: URIRef, validRevision: URIRef, revisionType,
@@ -268,6 +269,7 @@ class RevisionStore(object):
         WHERE {{ {{ {1} }}
         FILTER ( {2} = ?revision ) 
         {3} }}""".format(construct, subQuery, validRevision.n3(), where)
+
         return '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery))
 
     @staticmethod

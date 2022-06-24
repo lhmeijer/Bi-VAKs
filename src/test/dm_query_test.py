@@ -16,7 +16,7 @@ class DMQueryTest(unittest.TestCase):
         SELECT ?recipe
         WHERE { GRAPH recipes:ChickenAndEgg { ?recipe recipes:produces recipes:Shakshuka . } }
         """
-        response = app.get('/query', query_string=dict(
+        response = app.get('/query-2', query_string=dict(
             query=query, queryAtomType='DM', revisionA='http://bi-tr4qs.org/vocab/Revision_sl2vb01',
             revisionB='http://bi-tr4qs.org/vocab/Revision_axz0pb4', dateA="2021-07-10T00:00:00+00:00",
             dateB="2021-07-20T00:00:00+00:00"), headers=dict(accept="application/sparql-results+json"))
@@ -36,7 +36,7 @@ class DMQueryTest(unittest.TestCase):
         SELECT ?recipe ?food
         WHERE { GRAPH recipes:ChickenAndEgg { ?recipe recipes:produces ?food . } }
         """
-        response = app.get('/query', query_string=dict(
+        response = app.get('/query-2', query_string=dict(
             query=query, queryAtomType='DM', revisionA='http://bi-tr4qs.org/vocab/Revision_sl2vb01',
             revisionB='http://bi-tr4qs.org/vocab/Revision_axz0pb4', dateA="2021-07-10T00:00:00+00:00",
             dateB="2021-07-20T00:00:00+00:00"), headers=dict(accept="application/sparql-results+json"))
@@ -56,7 +56,7 @@ class DMQueryTest(unittest.TestCase):
         SELECT ?recipe
         WHERE { GRAPH recipes:ChickenAndEgg { ?recipe recipes:produces recipes:Shakshuka . } }
         """
-        response = app.get('/query', query_string=dict(
+        response = app.get('/query-2', query_string=dict(
             query=query, queryAtomType='DM', revisionA='http://bi-tr4qs.org/vocab/Revision_sl2vb01',
             revisionB='http://bi-tr4qs.org/vocab/Revision_axz0pb4', dateA="2021-07-10T00:00:00+00:00",
             dateB="2021-07-20T00:00:00+00:00"), headers=dict(accept="application/sparql-results+json"))
@@ -76,7 +76,7 @@ class DMQueryTest(unittest.TestCase):
         SELECT ?recipe ?food
         WHERE { GRAPH recipes:ChickenAndEgg { ?recipe recipes:produces ?food . } }
         """
-        response = app.get('/query', query_string=dict(
+        response = app.get('/query-2', query_string=dict(
             query=query, queryAtomType='DM', revisionA='http://bi-tr4qs.org/vocab/Revision_jd25eyq',
             revisionB='http://bi-tr4qs.org/vocab/Revision_axz0pb4', dateA="2021-07-10T00:00:00+00:00",
             dateB="2021-07-20T00:00:00+00:00"), headers=dict(accept="application/sparql-results+json"))

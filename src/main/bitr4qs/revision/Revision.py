@@ -91,11 +91,12 @@ class Revision(object):
             quad.subject = self._identifier
 
     def add_to_revision_store(self, revisionStore):
-        # SPARQLUpdateQuery = """INSERT DATA {{ {0} }}
-        # """.format('\n'.join(triple.sparql() for triple in self._RDFPatterns))
-        nquads = ''.join(triple.n_quad() for triple in self._RDFPatterns)
-        # print("nquads ", nquads)
-        revisionStore.revision_store.upload_to_dataset(nquads, 'application/n-quads')
+        SPARQLUpdateQuery = """INSERT DATA {{ {0} }}
+        """.format('\n'.join(triple.sparql() for triple in self._RDFPatterns))
+        revisionStore.revision_store.execute_update_query(SPARQLUpdateQuery)
+        # nquads = ''.join(triple.n_quad() for triple in self._RDFPatterns)
+        # # print("nquads ", nquads)
+        # revisionStore.revision_store.upload_to_dataset(nquads, 'application/n-quads')
 
     def delete_to_revision_store(self, revisionStore):
         SPARQLUpdateQuery = """DELETE DATA {{ {0} }}

@@ -7,6 +7,8 @@ from rdflib.term import Variable
 from timeit import default_timer as timer
 from src.main.bitr4qs.term.Triple import Triple
 from src.evaluation.configuration import BearBConfiguration
+from rdflib.exceptions import ParserError
+import re
 
 
 def get_queries_from_nt_file(queryFileName):
@@ -55,34 +57,95 @@ class ChangeComputer(object):
 
         self._queries = get_queries_from_nt_file(self._config.bear_queries_file_name)
 
+    def _parse_line(self, line, NTriplesParser, sink):
+        try:
+            NTriplesParser.parsestring(line)
+            triple = Triple((sink.subject, sink.predicate, sink.object))
+            return triple
+        except ParserError:
+            return None
+            # match = re.search(r'<node(.*)>', line, re.IGNORECASE)
+            # if match:
+            #     found = match.group(1)
+            #     line = line.replace('node{0}'.format(found), 'http://example.org/bnode/{0}'.format(found))
+            #     return self._parse_line(line, NTriplesParser, sink)
+
     def compute_changes(self):
 
         sink = TripleSink()
         NTriplesParser = W3CNTriplesParser(sink=sink)
 
-        triplesA = set()
+        result = {}
+        for j in range(1, len(self._queries) + 1):
+            result[j] = []
+
+        triplesA = []
+        print('{0}{1}.nt.gz'.format(self._inputFolder, "{:06d}".format(1)))
+        index = 0
         with gzip.open('{0}{1}.nt.gz'.format(self._inputFolder, "{:06d}".format(1)), 'rt') as file:
             for line in file:
-                NTriplesParser.parsestring(line.strip())
-                triple = Triple((sink.subject, sink.predicate, sink.object))
-                triplesA.add(triple.sparql())
+
+                triple = self._parse_line(line.strip(), NTriplesParser, sink)
+                if triple:
+                    triplesA.append(triple.sparql())
+                    queryNumber = self._contains_query(triple)
+                    if queryNumber is not None:
+                        result[queryNumber].append(triple)
+
+                    index += 1
+
+                    if index % 1000000 == 0:
+                        print("We have processed {0} triples.".format(index))
+
+                    if index % 10000000 == 0:
+                        break
+
+        for number, setOfTriples in result.items():
+            with open('{0}start.nt'.format(self._inputFolder), 'a') as file:
+                file.write(''.join([triple.n_quad() for triple in setOfTriples]))
+
+            with open('{0}-{1}.txt'.format(self._config.bear_results_dir, number), 'a') as file:
+                for triple in setOfTriples:
+                    tripleResult = triple.result_based_on_query_type(self._config.QUERY_TYPE)
+                    file.write('[Solution in {0}]{1}\n'.format(0, tripleResult))
+
+        print("saved results for the first version.")
+
+        setOfTriplesA = set(triplesA)
 
         for i in range(1, self._config.NUMBER_OF_VERSIONS):
             fileNameB = "{:06d}".format(i+1)
-            triplesB = set()
+            triplesB = []
 
+            result = {}
+            for j in range(1, len(self._queries) + 1):
+                result[j] = []
+
+            index = 0
             with gzip.open('{0}{1}.nt.gz'.format(self._inputFolder, fileNameB), 'rt') as file:
                 for line in file:
-                    NTriplesParser.parsestring(line.strip())
-                    triple = Triple((sink.subject, sink.predicate, sink.object))
-                    # print("triple ", triple)
-                    triplesB.add(triple.sparql())
 
-            overlapTriples = triplesA.intersection(triplesB)
+                    triple = self._parse_line(line.strip(), NTriplesParser, sink)
+                    if triple:
+                        triplesB.append(triple.sparql())
+                        queryNumber = self._contains_query(triple)
+                        if queryNumber is not None:
+                            result[queryNumber].append(triple)
+
+                        index += 1
+                        if index % 1000000 == 0:
+                            print("We have processed {0} triples.".format(index))
+
+                        if index % 10000000 == 0:
+                            break
+
+            setOfTriplesB = set(triplesB)
+
+            overlapTriples = setOfTriplesA.intersection(setOfTriplesB)
             print("number of overlapTriples ", len(overlapTriples))
-            addedTriples = triplesB - overlapTriples
+            addedTriples = setOfTriplesB - overlapTriples
             print("number of addedTriples ", len(addedTriples))
-            deletedTriples = triplesA - overlapTriples
+            deletedTriples = setOfTriplesA - overlapTriples
             print("number of deletedTriples ", len(deletedTriples))
 
             exportFileNameAdded = 'data-added_{0}-{1}.nt.gz'.format(i, i+1)
@@ -93,7 +156,13 @@ class ChangeComputer(object):
             with gzip.open('{0}{1}'.format(self._exportFolder, exportFileNameDeleted), 'wb') as file:
                 file.write('\n'.join(deletedTriples).encode('utf-8'))
 
-            triplesA = triplesB
+            setOfTriplesA = setOfTriplesB
+
+            for number, setOfTriples in result.items():
+                with open('{0}-{1}.txt'.format(self._config.bear_results_dir, number), 'a') as file:
+                    for triple in setOfTriples:
+                        tripleResult = triple.result_based_on_query_type(self._config.QUERY_TYPE)
+                        file.write('[Solution in {0}]{1}\n'.format(i, tripleResult))
 
     def _contains_query(self, triple):
         """

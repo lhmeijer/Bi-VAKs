@@ -5,63 +5,36 @@ import itertools
 import json
 
 
-def load_query_time(fileName, results, computeTimeGrowth=True):
-    resultsPerQuery = {}
-    minimumNumberOfTriples = None
+def load_query_time(fileName, results):
+
+    time = []
+    triples = []
     with open(fileName, 'r') as file:
         for line in file:
             data = line.strip().split(',')
             metaData = data[1].split('-')
-            queryNumber = metaData[1]
-
-            if queryNumber not in resultsPerQuery:
-                resultsPerQuery[queryNumber] = {'time': [], 'triples': []}
 
             if metaData[2] == 'time':
-                resultsPerQuery[queryNumber]['time'].append([float(point) for point in data[2:]])
-            elif metaData[2] == 'triples' and len(resultsPerQuery[queryNumber]['triples']) == 0:
-                resultsPerQuery[queryNumber]['triples'].extend([int(point) for point in data[2:]])
+                time.append([float(point) for point in data[2:]])
+            elif metaData[2] == 'triples':
+                triples.append([int(point) for point in data[2:]])
 
-                minimumInTriples = np.min(resultsPerQuery[queryNumber]['triples'])
-                if minimumNumberOfTriples is None or minimumInTriples < minimumNumberOfTriples:
-                    minimumNumberOfTriples = minimumInTriples
+    time = np.array(time)
+    triples = np.array(triples)
+    timeCorrected = []
 
-    timeWithMinimumTriples = []
-    timePerVersion = []
-    for queryNumber, value in resultsPerQuery.items():
-        indices = (np.argwhere(np.array(value['triples']) == minimumNumberOfTriples)).flatten()
-        lengthOfIndices = len(indices)
-        minLengthOfIndices = lengthOfIndices if lengthOfIndices < 10 else 10
-        timeWithMinimumTriples.extend(list(
-            np.take(np.array(value['time']), indices[:minLengthOfIndices], axis=1).flatten()))
-
-        timePerVersion.extend(value['time'])
-
-        results['processedTriples'] = value['triples']
-
-    print(len(timePerVersion))
-    print(len(timePerVersion[0]))
+    for i in range(time.shape[1]):
+        regression = LinearRegression(fit_intercept=True).fit(triples[:, i], time[:, i])
+        y_prediction = regression.predict(np.array([100]))
+        timeCorrected.append(y_prediction)
 
     # results['meanTime'] = np.median(np.array(timePerVersion), axis=0)
-    results['meanTime'] = np.percentile(np.array(timePerVersion), 50, axis=0)
-    results['stdTime'] = np.std(np.array(timePerVersion), axis=0)
-    results['10quantileTime'] = np.percentile(np.array(timePerVersion), 25, axis=0)
-    results['90quantileTime'] = np.percentile(np.array(timePerVersion), 75, axis=0)
+    results['meanTime'] = np.median(time, 50, axis=0)
+    results['stdTime'] = np.std(time, axis=0)
+    results['10quantileTime'] = np.percentile(time, 25, axis=0)
+    results['90quantileTime'] = np.percentile(time, 75, axis=0)
 
-    if computeTimeGrowth:
-        meanTimeWithMinimumTriples = np.mean(np.array(timeWithMinimumTriples))
-        timeGrowthPerQuery = []
-        for queryNumber, value in resultsPerQuery.items():
-            timeGrowth = np.zeros(len(value['triples']))
-            indices = np.argwhere(np.array(value['triples']) > minimumNumberOfTriples).flatten()
-            timeGrowth[indices] = ((np.mean(np.array(value['time']), axis=0)[indices] - meanTimeWithMinimumTriples) /
-                                   (np.array(value['triples'])[indices])) * 100
-            timeGrowthPerQuery.append(timeGrowth)
-
-        results['meanTimeGrowth'] = np.median(np.array(timeGrowthPerQuery), axis=0)
-        results['stdTimeGrowth'] = np.std(np.array(timeGrowthPerQuery), axis=0)
-        results['10quantileTimeGrowth'] = np.percentile(np.array(timeGrowthPerQuery), 25, axis=0)
-        results['90quantileTimeGrowth'] = np.percentile(np.array(timeGrowthPerQuery), 75, axis=0)
+    results['timeGrowth'] = np.array(timeCorrected)
 
 
 def load_ingestion_time(fileName, results):
@@ -129,19 +102,14 @@ def plot_time_growth(data, fileName):
     ax = fig.add_subplot(111)
 
     for values in data:
-        y = values['meanTimeGrowth']
-        z = values['stdTimeGrowth']
+        y = values['timeGrowth']
         x = list(range(1, len(y) + 1))
-
         ax.plot(x, y, label=values['name'], color=values['color'])
-        ax.fill_between(x, values['10quantileTimeGrowth'], values['90quantileTimeGrowth'], color=values['color'],
-                        alpha=0.1)
-        # ax.fill_between(x, y-z, y+z, color=values['color'], alpha=0.1)
 
-    ax.set_ylabel('Growth in time (per 10 triples)', fontsize=14)
+    ax.set_ylabel('Look up time (sec)', fontsize=14)
     plt.xlabel('Version', fontsize=14)
     plt.xlim([1, 89])
-    plt.legend(loc='upper left', fontsize='large', ncol=2)
+    plt.legend(loc='upper left', fontsize='large', ncol=3)
     plt.tight_layout()
     plt.savefig(fileName)
     plt.close()

@@ -58,6 +58,7 @@ class Request(object):
 
         # Obtain the branch based on the branch name
         branchName = self._request.values.get('branch', None) or None
+        branch = None
         if branchName:
             try:
                 branch = revisionStore.branch_from_name(Literal(branchName))
@@ -68,7 +69,7 @@ class Request(object):
 
         # Obtain the head of the transaction revisions and its revision number
         try:
-            self._headRevision = revisionStore.head_revision(self._branch)
+            self._headRevision = revisionStore.head_revision(branch)
             self._precedingTransactionRevision = self._headRevision.preceding_revision
             self._revisionNumber, self._revisionNumberValidRevision = revisionStore.new_revision_number(
                 self._headRevision.revision_number)

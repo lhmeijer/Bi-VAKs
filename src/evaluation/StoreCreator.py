@@ -7,6 +7,14 @@ from timeit import default_timer as timer
 import json
 from src.main.bitr4qs.namespace import BITR4QS
 import os
+import subprocess
+import sys
+from src.evaluation.configuration import BearBConfiguration
+import os
+import itertools
+from src.main.bitr4qs.webservice.app import create_app
+from src.main.bitr4qs.configuration import get_default_configuration
+from src.evaluation.BearAConfiguration import BearAConfiguration
 
 
 class StoreCreator(object):
@@ -94,16 +102,13 @@ class StoreCreator(object):
         # Initialise revision store
         print("Initialise Revision Store!")
         self._application.post('/initialise', data=dict(
-            author='Yvette Post', nameDataset='BEAR-B', urlDataset='http://localhost:3030',
+            author='Yvette Post', nameDataset='BEAR-A', urlDataset='http://localhost:3030',
             description='Initialise BiTR4Qs.', startDate='unknown', endDate='unknown'))
         print("Revision Store is initialised!")
 
         while self._versionNumber < self._config.NUMBER_OF_VERSIONS:
             print("Create a Tag with version number ", self._versionNumber)
             self._create_tag()
-
-            # Create Updates
-            self._send_updates(updateData)
 
             if self._config.VERSIONS_TO_SNAPSHOT and self._versionNumber % self._config.VERSIONS_TO_SNAPSHOT == 0:
                 print("Create a Snapshot with name snapshot-{0}".format(self._versionNumber))
@@ -112,6 +117,9 @@ class StoreCreator(object):
             if self._config.VERSIONS_TO_BRANCH and self._versionNumber % self._config.VERSIONS_TO_BRANCH == 0:
                 print("Create a Branch with name branch ", self._versionNumber)
                 self._create_branch()
+
+            # Create Updates
+            self._send_updates(updateData)
 
             self._versionNumber += 1
 
@@ -199,14 +207,14 @@ class StoreCreator(object):
 
             SPARQLUpdateQuery = self._update_sparql_from_modifications(updateInsertions + updateDeletions)
 
-            numberOfQuadsResponse = self._application.get('/quads')
-            self._numberOfProcessedQuads.append(int(numberOfQuadsResponse.data.decode("utf-8")))
+            # numberOfQuadsResponse = self._application.get('/quads')
+            # self._numberOfProcessedQuads.append(int(numberOfQuadsResponse.data.decode("utf-8")))
 
             start = timer()
             updateResponse = self._application.post('/update', data=dict(
                 update=SPARQLUpdateQuery, author='Tom de Vries', startDate=updateData[self._updateIndex][4],
                 branch=self._branch, description='Add update {0}.'.format(str(self._updateIndex+1)),
-                endDate=updateData[self._updateIndex][5], test='no'))
+                endDate=updateData[self._updateIndex][5], test=''))
             end = timer()
             seconds = timedelta(seconds=end - start).total_seconds()
             self._runtimeUpdates.append(seconds)
@@ -243,7 +251,7 @@ class StoreCreator(object):
                 start = timer()
                 updateResponse = self._application.post('/update/{0}'.format(updateID), data=dict(
                     author='Tom de Vries', description='Modify update {0}.'.format(updateID), branch=self._branch,
-                    startDate=startDate, endDate=endDate, test='no'))
+                    startDate=startDate, endDate=endDate, test=''))
                 end = timer()
                 seconds = timedelta(seconds=end - start).total_seconds()
                 self._runtimeModifiedUpdates.append(seconds)
@@ -283,3 +291,86 @@ class StoreCreator(object):
             raise Exception("This update does not contain any modifications.")
 
         return SPARQLQuery
+
+
+# if __name__ == "__main__":
+#
+#     generalIndices = [[0], [50, 100], [(1000000, 4320000), (5000000, 432000)], [(None, None)], [None],
+#                       [(None, None)], ['combined', 'implicit'], ['repeated']]  # -> 2 x 2 x 3 = 12
+#     permutationsGeneralIndices = list(itertools.product(*generalIndices))
+#     snapshotModifiedIndices = [[0], [50], [(1000000, 4320000)], [(None, None)], [None], [(None, 5)],
+#                                ['combined', 'implicit'], ['repeated', 'related']]  # -> 2 x 3 x 2 = 12
+#     permutationsSnapshotModifiedIndices = list(itertools.product(*snapshotModifiedIndices))
+#     branchIndices = [[0], [50], [(1000000, 4320000)], [(None, None)], [3], [(None, None)],
+#                      ['combined', 'implicit'], ['repeated']]  # -> 3
+#     permutationsBranchIndices = list(itertools.product(*branchIndices))
+#
+#     permutationsIndices = permutationsGeneralIndices + permutationsSnapshotModifiedIndices + permutationsBranchIndices
+#     index = int(sys.argv[1])
+#
+#     if index < len(permutationsIndices):
+#         indices = permutationsIndices[index]
+#         print("indices ", indices)
+#         config = BearBConfiguration(seed=indices[0], closeness=indices[2][0], width=indices[2][1], snapshot=indices[3],
+#                                     triplesPerUpdate=indices[1], branch=indices[4], modifiedUpdate=indices[5],
+#                                     reference=indices[6], content=indices[7])
+#
+#         args = get_default_configuration()
+#         args['referenceStrategy'] = {'explicit': config.REFERENCE_EXPLICIT,
+#                                      'implicit': config.REFERENCE_IMPLICIT,
+#                                      'combined': config.REFERENCE_COMBINED}
+#         args['updateContentStrategy'] = {'repeated': config.CONTENT_REPEATED, 'related': config.CONTENT_RELATED}
+#
+#         if not os.path.isfile(config.revision_store_file_name):
+#             with create_app(args).test_client() as application:
+#                 for i in range(1):
+#                     print("Round ", i)
+#                     print("Current time ", datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02:00"))
+#                     createFile = not os.path.isfile(config.revision_store_file_name)
+#                     store = StoreCreator(application=application, config=config, createRevisionStoreFile=createFile,
+#                                          modificationsFolder=config.raw_change_data_dir,
+#                                          updateDataFile=config.updates_file_name,
+#                                          revisionStoreFileName=config.revision_store_file_name,
+#                                          ingestionResultsFileName=config.ingestion_results_file_name)
+#                     store.set_up_revision_store()
+#                     store.reset_revision_store()
+#
+#         subprocess.run(['python', 'StoreCreator.py', str(index+1)])
+
+if __name__ == "__main__":
+
+    generalIndices = [[0], [1000], [(1000000, 4320000), (5000000, 432000)], [(None, None)], [None],
+                      [(None, None)], ['combined', 'implicit'], ['repeated']]  # -> 2 x 2 x 2 = 8
+    permutationsGeneralIndices = list(itertools.product(*generalIndices))
+
+    permutationsIndices = permutationsGeneralIndices
+    index = int(sys.argv[1])
+
+    if index < len(permutationsIndices):
+        indices = permutationsIndices[index]
+        print("indices ", indices)
+        config = BearAConfiguration(seed=indices[0], closeness=indices[2][0], width=indices[2][1], snapshot=indices[3],
+                                    triplesPerUpdate=indices[1], branch=indices[4], modifiedUpdate=indices[5],
+                                    reference=indices[6], content=indices[7])
+
+        args = get_default_configuration()
+        args['referenceStrategy'] = {'explicit': config.REFERENCE_EXPLICIT,
+                                     'implicit': config.REFERENCE_IMPLICIT,
+                                     'combined': config.REFERENCE_COMBINED}
+        args['updateContentStrategy'] = {'repeated': config.CONTENT_REPEATED, 'related': config.CONTENT_RELATED}
+
+        if not os.path.isfile(config.revision_store_file_name):
+            with create_app(args).test_client() as application:
+                for i in range(1):
+                    print("Round ", i)
+                    print("Current time ", datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02:00"))
+                    createFile = not os.path.isfile(config.revision_store_file_name)
+                    store = StoreCreator(application=application, config=config, createRevisionStoreFile=createFile,
+                                         modificationsFolder=config.raw_change_data_dir,
+                                         updateDataFile=config.updates_file_name,
+                                         revisionStoreFileName=config.revision_store_file_name,
+                                         ingestionResultsFileName=config.ingestion_results_file_name)
+                    store.set_up_revision_store()
+                    store.reset_revision_store()
+
+        subprocess.run(['python', 'StoreCreator.py', str(index+1)])

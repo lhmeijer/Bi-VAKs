@@ -112,8 +112,8 @@ class UpdateGenerator(object):
 
         for i in range(1, self._config.NUMBER_OF_VERSIONS):
 
-            if i % 10 == 0:
-                print("Processed files up to file number {0}-{1}".format(str(i-1), str(i)))
+            if i % 1 == 0:
+                print("Processed files up to file number {0}-{1}".format(str(i), str(i+1)))
 
             addedFileName = 'data-added_{0}-{1}.nt.gz'.format(str(i), str(i+1))
             deletedFileName = 'data-deleted_{0}-{1}.nt.gz'.format(str(i), str(i+1))
@@ -157,11 +157,12 @@ class UpdateGenerator(object):
                     startDate, endDate = self._generate_start_and_end_date(doesContainQuery)
                     update = [str(nOfUpdates), '{0}-{1}'.format(str(i), str(i + 1)), '-'.join(inserted),
                               '-'.join(deleted), startDate, endDate]
-                    updates.append(update)
                     nOfUpdates += 1
 
-        with open(self._exportFileName, "w") as file:
-            file.write('\n'.join(','.join(update) for update in updates))
+                    with open(self._exportFileName, "a") as file:
+                        file.write(','.join(update) + '\n')
+                if nOfUpdates % 100 == 0:
+                    print(nOfUpdates)
 
         minimumSeconds = np.argmin(self._distribution)
         maximumSeconds = np.argmax(self._distribution)

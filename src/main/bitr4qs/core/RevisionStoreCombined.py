@@ -42,11 +42,10 @@ class RevisionStoreCombined(RevisionStoreImplicit):
         ORDER BY DESC(?branchIndex)
         LIMIT 1
         """
-        # Execute the SELECT query on the revision store
         result = self._revisionStore.execute_select_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'json')
 
-        if 'branchIndex' in result['results']['bindings']:
+        if len(result['results']['bindings']) > 0 and 'branchIndex' in result['results']['bindings'][0]:
             branchIndex = Literal(int(result['results']['bindings'][0]['branchIndex']['value']) + 1,
                                   datatype=XSD.nonNegativeInteger)
         else:
@@ -54,7 +53,7 @@ class RevisionStoreCombined(RevisionStoreImplicit):
 
         return branchIndex, None
 
-    def _transaction_revision(self, transactionRevisionA, transactionRevision, transactionRevisionB=None):
+    def _transaction_revision(self, transactionRevisionA, transactionRevisionID, transactionRevisionB=None):
 
         pairs = self._get_pairs_of_revision_numbers_and_branch_indices(transactionRevisionA, transactionRevisionB)
         revisionFilter = " || ".join(self._select_revision(pair) for pair in pairs)
@@ -65,7 +64,7 @@ class RevisionStoreCombined(RevisionStoreImplicit):
         OPTIONAL {{ ?revision :branchIndex ?branchIndex .}}
         FILTER ( {0} )
         FILTER ( {1} = ?revision )
-        ?revision ?p ?o . }}""".format(revisionFilter, transactionRevision.n3())
+        ?revision ?p ?o . }}""".format(revisionFilter, transactionRevisionID.n3())
         return '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery))
 
     def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str = None,
@@ -85,12 +84,12 @@ class RevisionStoreCombined(RevisionStoreImplicit):
 
         subString = """
         ?transactionRevision :revisionNumber ?revisionNumber .
-        OPTIONAL {{ ?transactionRevision :branchIndex ?branchIndex . }}
+        OPTIONAL {{ ?transactionRevision :branchIndex ?branchIndex }}
         FILTER ( {1} )
         ?transactionRevision :{0} ?revision.{2}
         MINUS {{
             ?otherTransactionRevision :revisionNumber ?otherRevisionNumber .
-            OPTIONAL {{ ?otherTransactionRevision :branchIndex ?otherBranchIndex . }}
+            OPTIONAL {{ ?otherTransactionRevision :branchIndex ?otherBranchIndex }}
             FILTER ( {3} )
             ?otherTransactionRevision :{0} ?other.
             ?other :preceding{4} ?revision.

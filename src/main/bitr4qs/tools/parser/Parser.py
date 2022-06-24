@@ -4,7 +4,7 @@ from src.main.bitr4qs.term.Quad import Quad
 from src.main.bitr4qs.term.Modification import Modification
 from src.main.bitr4qs.namespace import BITR4QS
 from rdflib.plugins.parsers.ntriples import W3CNTriplesParser
-from rdflib.term import URIRef
+from rdflib.term import URIRef, BNode
 from rdflib.namespace import RDF, RDFS
 import numpy as np
 
@@ -26,13 +26,19 @@ class TripleSink(object):
         return self._modification
 
     def triple(self, s, p, o):
-        self._subject = s
+        self.subject = s
         self._predicate = p
-        self._object = o
+        self.object = o
 
     @property
     def subject(self):
         return self._subject
+
+    @subject.setter
+    def subject(self, s):
+        if isinstance(s, BNode):
+            s = URIRef('http://example.org/bnode/{0}'.format(str(s)))
+        self._subject = s
 
     @property
     def predicate(self):
@@ -41,6 +47,12 @@ class TripleSink(object):
     @property
     def object(self):
         return self._object
+
+    @object.setter
+    def object(self, o):
+        if isinstance(o, BNode):
+            o = URIRef('http://example.org/bnode/{0}'.format(str(o)))
+        self._object = o
 
     @property
     def modification(self):

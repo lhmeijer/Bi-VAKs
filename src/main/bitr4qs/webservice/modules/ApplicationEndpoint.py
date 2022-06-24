@@ -65,10 +65,7 @@ def data_of_revision_store():
 
 @ApplicationEndpoint.route("/shutdown", methods=['GET'])
 def shutdown_application():
-    func = request.environ.get('werkzeug.server.shutdown')
-    if func is None:
-        raise RuntimeError('Not running with the Werkzeug Server')
-    func()
+    raise RuntimeError('Not running with the Werkzeug Server')
 
 # @ApplicationEndpoint.route("/revision/<path:revisionID>", methods=['GET'])
 # def get_revision(revisionID):

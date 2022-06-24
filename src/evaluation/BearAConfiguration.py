@@ -2,12 +2,12 @@ import os
 from datetime import datetime
 
 
-class BearBConfiguration(object):
+class BearAConfiguration(object):
 
-    raw_version_data_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'BEAR-B-raw',
-                                        'BEAR-B-alldata.IC.nt', '')
-    raw_change_data_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'BEAR-B-raw',
-                                       'BEAR-B-alldata.CB.nt', '')
+    raw_version_data_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'BEAR-A-raw',
+                                        'BEAR-A-alldata.IC.nt', '')
+    raw_change_data_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'BEAR-A-raw',
+                                       'BEAR-A-alldata.CB.nt', '')
 
     MAX_SECONDS = 31536000
     START_EFFECTIVE_DATE = '2015-01-01T00:00:00+00:00'
@@ -21,16 +21,16 @@ class BearBConfiguration(object):
     _snapshot_effective_dates = {'F': '2015-03-01T00:00:00+00:00', 'N': '2015-07-01T00:00:00+00:00'}
 
     QUERY_TYPE = 'p'    # po or p
-    QUERY_ATOM = 'VQ'   # VM, DM, VQ
-    NUMBER_OF_VERSIONS = 89
+    QUERY_ATOM = 'VM'   # VM, DM, VQ
+    NUMBER_OF_VERSIONS = 8
 
     _bear_b_results = {'VM': 'mat-{0}-queries'.format(QUERY_TYPE), 'DM': 'diff-{0}-queries'.format(QUERY_TYPE),
                        'VQ': 'ver-{0}-queries'.format(QUERY_TYPE)}
 
-    bear_results_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'BEAR-B-raw',
-                                    'BEAR-B-{0}'.format(_bear_b_results[QUERY_ATOM]), _bear_b_results[QUERY_ATOM])
+    bear_results_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'BEAR-A-raw',
+                                    'BEAR-A-{0}'.format(_bear_b_results[QUERY_ATOM]), _bear_b_results[QUERY_ATOM])
 
-    bear_queries_file_name = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'BEAR-B-raw', 'BEAR-B-queries',
+    bear_queries_file_name = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'BEAR-A-raw', 'BEAR-A-queries',
                                           '{0}-queries.nt'.format(QUERY_TYPE))
 
     BRANCH = "branch 87"
@@ -52,9 +52,9 @@ class BearBConfiguration(object):
         self.SEED = seed
 
         _updates = '_'.join((str(self.SEED), str(self.TRIPLES_PER_UPDATE), _closeness, _width))
-        self.updates_file_name = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'BEAR-B-updates',
+        self.updates_file_name = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'BEAR-A-updates',
                                               _updates + '.txt')
-        self.statistics_updates_file_name = os.path.join(os.path.dirname(__file__), '..', '..', 'results', 'BEAR-B',
+        self.statistics_updates_file_name = os.path.join(os.path.dirname(__file__), '..', '..', 'results', 'BEAR-A',
                                                          'statistics', 'updates_stats_' + _updates + '.json')
 
         _far_or_nearby, self.VERSIONS_TO_SNAPSHOT = snapshot
@@ -98,10 +98,10 @@ class BearBConfiguration(object):
                                        _reference, _repeated, _snapshots, _branches, _modified_updates))
 
         self.ingestion_results_file_name = os.path.join(
-            os.path.dirname(__file__), '..', '..', 'results', 'BEAR-B', 'ingestion-2', reference,
+            os.path.dirname(__file__), '..', '..', 'results', 'BEAR-A', 'ingestion', reference,
             '{0}.json'.format(_ingestion_results))
 
-        self.revision_store_file_name = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'BEAR-B-revisions',
+        self.revision_store_file_name = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'BEAR-A-revisions',
                                                      reference, _ingestion_results + '.nt')
 
         self.NUMBER_OF_QUERIES = numberOfQueries
@@ -109,19 +109,19 @@ class BearBConfiguration(object):
         _query_results = '_'.join((str(self.SEED), str(self.TRIPLES_PER_UPDATE), _closeness, _width, _reference,
                                    _fetching, _repeated, _snapshots, _branches, _modified_updates, _modifications,
                                    _retrieve, self.QUERY_ATOM, self.QUERY_TYPE))
-        self.query_results_file_name = os.path.join(os.path.dirname(__file__), '..', '..', 'results', 'BEAR-B', 'query',
+        self.query_results_file_name = os.path.join(os.path.dirname(__file__), '..', '..', 'results', 'BEAR-A', 'query',
                                                     self.QUERY_ATOM, reference, _query_results + '.txt')
 
         _figure_query_results = '_'.join((str(self.SEED), str(self.TRIPLES_PER_UPDATE), _closeness, _width, _fetching,
                                     _repeated, _snapshots, _branches, _modified_updates, _modifications,
                                     _retrieve, self.QUERY_ATOM, self.QUERY_TYPE))
-        self.figures_query_results = os.path.join(os.path.dirname(__file__), '..', '..', 'figures', 'BEAR-B', 'query',
+        self.figures_query_results = os.path.join(os.path.dirname(__file__), '..', '..', 'figures', 'BEAR-A', 'query',
                                                   self.QUERY_ATOM, _figure_query_results + '.png')
 
         _figure_ingestion_results = '_'.join((str(self.SEED), str(self.TRIPLES_PER_UPDATE), _closeness, _width,
                                               _repeated, _snapshots, _branches, _modified_updates))
 
-        self.figures_ingestion_results = os.path.join(os.path.dirname(__file__), '..', '..', 'figures', 'BEAR-B',
-                                                      'ingestion-2', _figure_ingestion_results + '.png')
+        self.figures_ingestion_results = os.path.join(os.path.dirname(__file__), '..', '..', 'figures', 'BEAR-A',
+                                                      'ingestion', _figure_ingestion_results + '.png')
 
 

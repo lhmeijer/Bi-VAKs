@@ -230,12 +230,6 @@ class BiTR4QsImplicit(BiTR4Qs):
     def revision_store(self):
         return RevisionStoreImplicit(self._config)
 
-    @staticmethod
-    def _valid_revisions_to_transaction_revision(transactionRevision, validRevisions):
-        for validRevision in validRevisions:
-            if 'Branch' in str(validRevision.identifier):
-                transactionRevision.add_valid_revision(validRevision.identifier)
-
 
 class BiTR4QsExplicit(BiTR4Qs):
 

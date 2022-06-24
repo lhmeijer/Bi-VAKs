@@ -82,6 +82,7 @@ class BranchTest(unittest.TestCase):
                                                  description='Add a new branch called ChocolateRecipes.'))
         self.assertEqual(response.status_code, 200)
         obj = json.loads(response.data.decode("utf-8"))
+        print('obj ', obj)
         self.assertEqual(obj['branchName'], "ChocolateRecipes")
         self.assertEqual(obj['revisionNumber'], response.headers['X-CurrentRevisionNumber'])
 
@@ -110,4 +111,3 @@ class BranchTest(unittest.TestCase):
         obj = json.loads(response.data.decode("utf-8"))
         self.assertEqual(obj['branchName'], "ChocolateRecipes")
         self.assertEqual(obj['branchedOffRevision'], "http://bi-tr4qs.org/vocab/Revision_49bvls3")
-        self.assertEqual(obj['revisionNumber'], response.headers['X-CurrentRevisionNumber'])

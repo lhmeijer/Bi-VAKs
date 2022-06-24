@@ -68,7 +68,7 @@ class EndPointInternalError(SPARQLException):
     Exception type for Internal Server Error responses. Usually HTTP response status code 500.
     """
 
-    message = "Endpoint returned code 500 and the service fails or refuses to execute the query."
+    message = "Endpoint returned code 500 and the service fails or refuses to execute the query-2."
 
 
 class QueryBadFormed(SPARQLException):
@@ -76,7 +76,7 @@ class QueryBadFormed(SPARQLException):
     Query Bad Formed exception. Usually HTTP response status code 400.
     """
 
-    message = "A bad request has been sent to the endpoint, probably the sparql query is bad formed"
+    message = "A bad request has been sent to the endpoint, probably the sparql query-2 is bad formed"
 
 
 class EndPointNotFound(SPARQLException):

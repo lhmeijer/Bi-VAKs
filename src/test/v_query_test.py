@@ -18,7 +18,7 @@ class VQueryTest(unittest.TestCase):
         SELECT ?cuisine
         WHERE { ?cuisine rdfs:label "Chinese"@en-gb . }
         """
-        response = app.get('/query', query_string=dict(query=query, queryAtomType='VQ'),
+        response = app.get('/query-2', query_string=dict(query=query, queryAtomType='VQ'),
                            headers=dict(accept="application/sparql-results+json"))
         self.assertEqual(response.status_code, 200)
 
@@ -36,7 +36,7 @@ class VQueryTest(unittest.TestCase):
         SELECT ?cuisine
         WHERE { ?cuisine rdfs:label "Chinese"@en-gb . }
         """
-        response = app.get('/query', query_string=dict(query=query, queryAtomType='VQ'),
+        response = app.get('/query-2', query_string=dict(query=query, queryAtomType='VQ'),
                            headers=dict(accept="application/sparql-results+json"))
         self.assertEqual(response.status_code, 200)
 

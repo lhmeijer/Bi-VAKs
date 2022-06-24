@@ -8,7 +8,7 @@ class TagTest(unittest.TestCase):
 
     def test_tag_from_main_branch_explicit(self):
         args = get_default_configuration()
-        args['referenceStrategy'] = {'explicit': True, 'implicit': False}
+        args['referenceStrategy'] = {'explicit': True, 'implicit': False, 'combined': False}
         app = create_app(args).test_client()
         response = app.post('/tag', data=dict(name='version 1', author='Jeroen Schipper',
                                               date='2021-07-01T00:00:00+00:00',
@@ -21,7 +21,7 @@ class TagTest(unittest.TestCase):
 
     def test_tag_from_another_branch_explicit(self):
         args = get_default_configuration()
-        args['referenceStrategy'] = {'explicit': True, 'implicit': False}
+        args['referenceStrategy'] = {'explicit': True, 'implicit': False, 'combined': False}
         app = create_app(args).test_client()
         response = app.post('/tag', data=dict(name='version 1', author='Sabine Jonker',
                                               date='2021-07-01T00:00:00+00:00', branch='SweetRecipes',
@@ -57,7 +57,6 @@ class TagTest(unittest.TestCase):
         self.assertEqual(obj['effectiveDate'], "2021-07-01T00:00:00+00:00")
         self.assertEqual(obj['tagName'], "version 1")
         self.assertEqual(obj['transactionRevision'], response.headers['X-CurrentRevision'])
-        self.assertEqual(obj['branchIndex'], "0")
         self.assertEqual(obj['revisionNumber'], response.headers['X-CurrentRevisionNumber'])
 
     def test_tag_from_another_branch_implicit(self):

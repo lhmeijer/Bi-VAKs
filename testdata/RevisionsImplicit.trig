@@ -1558,24 +1558,24 @@ recipes:ChickenAndEgg {
 :HeadRevision_1
   a :HeadRevision ;
   :precedingRevision :Revision_2xm1g03 ;
-  :branch :Branch_k301fkl ;
+  :branchIndex "1"^^xsd:nonNegativeInteger ;
   :revisionNumber "15"^^xsd:nonNegativeInteger ;
 .
 :HeadRevision_2
   a :HeadRevision ;
   :precedingRevision :Revision_dk1lbv3 ;
-  :branch :Branch_38ld2gh ;
+  :branchIndex "2"^^xsd:nonNegativeInteger ;
   :revisionNumber "16"^^xsd:nonNegativeInteger ;
 .
 :HeadRevision_3
   a :HeadRevision ;
   :precedingRevision :Revision_pqb91e3 ;
-  :branch :Branch_92pivn0 ;
+  :branchIndex "3"^^xsd:nonNegativeInteger ;
   :revisionNumber "16"^^xsd:nonNegativeInteger ;
 .
 :HeadRevision_4
   a :HeadRevision ;
   :precedingRevision :Revision_axz0pb4 ;
-  :branch :Branch_jhf06eg ;
+  :branchIndex "4"^^xsd:nonNegativeInteger ;
   :revisionNumber "10"^^xsd:nonNegativeInteger ;
 .

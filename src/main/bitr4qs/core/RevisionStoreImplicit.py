@@ -44,7 +44,7 @@ class RevisionStoreImplicit(RevisionStore):
         result = self._revisionStore.execute_select_query(
             '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'json')
 
-        if 'branchIndex' in result['results']['bindings']:
+        if len(result['results']['bindings']) > 0 and 'branchIndex' in result['results']['bindings'][0]:
             branchIndex = Literal(int(result['results']['bindings'][0]['branchIndex']['value']) + 1,
                                   datatype=XSD.nonNegativeInteger)
         else:
@@ -71,7 +71,7 @@ class RevisionStoreImplicit(RevisionStore):
                         ?branch :branchIndex ?branchIndexA. 
                         MINUS {{
                             ?otherBranch rdf:type :Branch .
-                            ?otherBranch :branchIndex branchIndexA .
+                            ?otherBranch :branchIndex ?branchIndexA .
                             ?otherBranch :precedingBranch ?branch .
                         }}
                         ?branch :branchedOffAt ?revision .
@@ -82,7 +82,8 @@ class RevisionStoreImplicit(RevisionStore):
                     }}
                 }}""".format(revisionA.n3(), revisionB.n3())
                 # Execute the SELECT query on the revision store
-                result = self._revisionStore.execute_select_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'json')
+                result = self._revisionStore.execute_select_query(
+                    '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'json')
                 revisionNumberB = int(result['results']['bindings'][0]['revisionNumberB']['value'])
                 if 'branchIndexB' in result['results']['bindings'][0]:
                     branchIndexB = int(result['results']['bindings'][0]['branchIndexB']['value'])
@@ -99,14 +100,15 @@ class RevisionStoreImplicit(RevisionStore):
                         ?branch :branchIndex ?branchIndexA . 
                         MINUS {{
                             ?otherBranch rdf:type :Branch .
-                            ?otherBranch :branchIndex branchIndexA .
+                            ?otherBranch :branchIndex ?branchIndexA .
                             ?otherBranch :precedingBranch ?branch .
                         }}
                         ?branch :branchedOffAt ?revision .
                     }}
                 }}""".format(revisionA.n3())
                 # Execute the SELECT query on the revision store
-                result = self._revisionStore.execute_select_query('\n'.join((self.prefixBiTR4Qs, SPARQLQuery)), 'json')
+                result = self._revisionStore.execute_select_query(
+                    '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery)), 'json')
                 revisionNumberB, branchIndexB = None, None
 
             revisionNumberA = int(result['results']['bindings'][0]['revisionNumberA']['value'])
@@ -142,7 +144,7 @@ class RevisionStoreImplicit(RevisionStore):
                 filterString = "( {2} = {0} && {3} <= {1} )".format(pair[1], pair[0], branchIndex, revisionNumber)
         return filterString
 
-    def _transaction_revision(self, transactionRevisionA, transactionRevision, transactionRevisionB=None):
+    def _transaction_revision(self, transactionRevisionA, transactionRevisionID, transactionRevisionB=None):
 
         pairs = self._get_pairs_of_revision_numbers_and_branch_indices(transactionRevisionA, transactionRevisionB)
         revisionFilter = " || ".join(self._select_revision(pair) for pair in pairs)
@@ -153,7 +155,7 @@ class RevisionStoreImplicit(RevisionStore):
         OPTIONAL {{ ?revision :branchIndex ?branchIndex . }}
         FILTER ( {0} )
         FILTER ( {1} = ?revision )
-        ?revision ?p ?o . }}""".format(revisionFilter, transactionRevision.n3())
+        ?revision ?p ?o . }}""".format(revisionFilter, transactionRevisionID.n3())
         return '\n'.join((self.prefixRDF, self.prefixBiTR4Qs, SPARQLQuery))
 
     def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str,
@@ -179,12 +181,12 @@ class RevisionStoreImplicit(RevisionStore):
         WHERE {{ 
             ?revision rdf:type :{2} .
             ?revision :revisionNumber ?revisionNumber .
-            ?revision :branchIndex ?branchIndex .
+            OPTIONAL {{ ?revision :branchIndex ?branchIndex }}
             FILTER ( {3} ){4}
             MINUS {{
                 ?other rdf:type :{2} .
                 ?other :revisionNumber ?otherRevisionNumber .
-                ?other :branchIndex ?otherBranchIndex .
+                OPTIONAL {{ ?other :branchIndex ?otherBranchIndex }}
                 FILTER ( {5} )
                 ?other :preceding{2} ?revision.
             }}
@@ -281,12 +283,12 @@ class RevisionStoreImplicit(RevisionStore):
                          ?revision rdf:type :Update .
                          ?revision :precedingUpdate ?precedingUpdate .
                          ?revision :revisionNumber ?revisionNumber .
-                         ?revision :branchIndex ?branchIndex .
+                         OPTIONAL {{ ?revision :branchIndex ?branchIndex }}
                          FILTER ( {1} ){2}
                         }}
                     }}
                 ?precedingUpdate :revisionNumber ?precedingRevisionNumber .
-                ?precedingUpdate :branchIndex ?precedingBranchIndex .
+                OPTIONAL {{ ?precedingUpdate :branchIndex ?precedingBranchIndex }}
                 FILTER ( {3} ){4}
                 OPTIONAL {{ ?precedingUpdate :precedingUpdate* ?revision }}
                 {5}{7}
@@ -298,7 +300,7 @@ class RevisionStoreImplicit(RevisionStore):
             updateSucceedingTimeString = self._update_time_string(date=date, variableName='?succeedingRevision')
 
             if self._config.sorted_modifications():
-                revisionNumbersConstruct = "\n?revision :revisionNumber ?revisionNumber ."
+                revisionNumbersConstruct = "\n?revision :revisionNumber ?otherRevisionNumber ."
 
             SPARQLQuery = """CONSTRUCT {{ {0}{6} }}
             WHERE {{
@@ -308,12 +310,12 @@ class RevisionStoreImplicit(RevisionStore):
                         ?succeedingRevision rdf:type :Update .
                         ?succeedingRevision :precedingUpdate ?revision .
                         ?succeedingRevision :revisionNumber ?revisionNumber .
-                        ?succeedingRevision :branchIndex ?branchIndex .
+                        OPTIONAL {{ ?succeedingRevision :branchIndex ?branchIndex }}
                         FILTER ( {1} ){2}
                     }}
                 }}
                 ?revision :revisionNumber ?otherRevisionNumber .
-                ?revision :branchIndex ?otherBranchIndex .
+                OPTIONAL {{ ?revision :branchIndex ?otherBranchIndex }}
                 FILTER ( {3} ){4}    
                 {5} }}""".format(construct, revisionFilter, updateSucceedingTimeString, otherFilter, updateTimeString,
                                  where, revisionNumbersConstruct)

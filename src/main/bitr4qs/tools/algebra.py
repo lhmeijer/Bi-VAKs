@@ -528,7 +528,7 @@ def translate(q):
     traverse(q.where, functools.partial(_findVars, res=VS))
     # print("VS ", VS)
 
-    # all query types have a where part
+    # all query-2 types have a where part
     M = translateGroupGraphPattern(q.where)
 
     aggregate = False
@@ -734,11 +734,11 @@ def translate_update(q, base=None, initNs=None):
 
 def translate_query(q, base=None, initNs=None):
     """
-    Translate a query-parsetree to a SPARQL Algebra Expression
+    Translate a query-2-parsetree to a SPARQL Algebra Expression
     Return a rdflib.plugins.sparql.sparql.Query object
     """
 
-    # We get in: (prologue, query)
+    # We get in: (prologue, query-2)
     # print('q ', q)
     prologue = translate_prologue(q[0], base, initNs)
 

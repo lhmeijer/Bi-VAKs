@@ -37,7 +37,6 @@ class VQuery(Query):
 
         # Get all tags from the revision graph also specified from a branch (ordered on transaction time)
         self._tags = revisionStore.tags_in_revision_graph(revisionA=self._headRevision.preceding_revision)
-        print("self._tags ", [tag.__dict__() for i, tag in self._tags.items()])
 
     def apply_query(self, revisionStore):
         """

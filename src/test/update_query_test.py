@@ -32,7 +32,7 @@ class UpdateQueryTest(unittest.TestCase):
           :RecipeRicottaDoughnuts rdfs:label "Ricotta doughnuts"@en-gb .
         }
         """
-        response = app.post('/update', data=dict(update=update, author='Tom de Vries', test='shouldBeTested',
+        response = app.post('/update', data=dict(update=update, author='Tom de Vries', test='',
                                                  startDate="2021-06-20T00:00:00+00:00",
                                                  endDate="2021-08-25T00:00:00+00:00",
                                                  description='Add recipe of ricotta doughnuts.'))
@@ -57,7 +57,7 @@ class UpdateQueryTest(unittest.TestCase):
           :RecipeChocolateFudgeBrownies rdfs:label "Chocolate fudge brownies"@en-gb .
         }
         """
-        response = app.post('/update', data=dict(update=update, author='Peter Schouten', test='yes',
+        response = app.post('/update', data=dict(update=update, author='Peter Schouten', test='',
                                                  startDate="2021-06-24T00:00:00+00:00",
                                                  endDate="2021-07-06T00:00:00+00:00",
                                                  description='Delete recipe of chocolate fudge brownies.'))
@@ -266,7 +266,7 @@ class UpdateQueryTest(unittest.TestCase):
           :RecipeRicottaDoughnuts rdfs:label "Ricotta doughnuts"@en-gb .
         }
         """
-        response = app.post('/update', data=dict(update=update, author='Tom de Vries', test='yes',
+        response = app.post('/update', data=dict(update=update, author='Tom de Vries', test='',
                                                  startDate="2021-06-20T00:00:00+00:00",
                                                  endDate="2021-08-25T00:00:00+00:00",
                                                  description='Add recipe of ricotta doughnuts.'))
@@ -291,7 +291,7 @@ class UpdateQueryTest(unittest.TestCase):
           :RecipeChocolateFudgeBrownies rdfs:label "Chocolate fudge brownies"@en-gb .
         }
         """
-        response = app.post('/update', data=dict(update=update, author='Peter Schouten', test='yes',
+        response = app.post('/update', data=dict(update=update, author='Peter Schouten', test='',
                                                  startDate="2021-06-24T00:00:00+00:00",
                                                  endDate="2021-07-06T00:00:00+00:00",
                                                  description='Delete recipe of chocolate fudge brownies.'))

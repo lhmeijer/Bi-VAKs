@@ -2,10 +2,17 @@ import json
 import re
 from rdflib import URIRef, Literal
 import numpy as np
-from .preprocess_BEAR_B import get_queries_from_nt_file
+from src.evaluation.preprocess_BEAR_B import get_queries_from_nt_file
 from datetime import datetime, timedelta
 from timeit import default_timer as timer
 from src.main.bitr4qs.term.TriplePattern import TriplePattern
+import subprocess
+import sys
+from src.evaluation.configuration import BearBConfiguration
+import os
+import itertools
+from src.main.bitr4qs.webservice.app import create_app
+from src.main.bitr4qs.configuration import get_default_configuration
 
 
 class Evaluator(object):
@@ -235,5 +242,56 @@ class Evaluator(object):
         return results
 
 
+if __name__ == "__main__":
 
+    generalIndices = [[0], [50, 100], [(1000000, 4320000), (5000000, 432000)], [(None, None)], [None], [(None, None)],
+                      ['implicit', 'combined'], ['repeated'], [('specific', 20)],
+                      [('aggregated', 'between'), ('sorted', 'initial')]]
+    permutationsGeneralIndices = list(itertools.product(*generalIndices))
+    snapshotModifiedIndices = [[0], [50], [(1000000, 4320000)], [(None, None)], [None], [(None, 5)],
+                               ['implicit', 'combined'], ['repeated', 'related'], [('specific', 20)],
+                               [('aggregated', 'between'), ('sorted', 'initial')]]  # -> 3 x 2 x 2 = 12
+    permutationsSnapshotModifiedIndices = list(itertools.product(*snapshotModifiedIndices))
+    branchIndices = [[0], [50], [(1000000, 4320000)], [(None, None)], [3], [(None, None)],
+                     ['implicit', 'combined', 'explicit'], ['repeated'], [('specific', 20)],
+                     [('aggregated', 'between'), ('sorted', 'initial')]]  # -> 3
+    permutationsBranchIndices = list(itertools.product(*branchIndices))
 
+    permutationsIndices = permutationsGeneralIndices + permutationsSnapshotModifiedIndices + permutationsBranchIndices
+    index = int(sys.argv[1])
+
+    if index < len(permutationsIndices):
+        indices = permutationsIndices[index]
+        print("indices ", indices)
+        config = BearBConfiguration(seed=indices[0], closeness=indices[2][0], width=indices[2][1], snapshot=indices[3],
+                                    triplesPerUpdate=indices[1], branch=indices[4], modifiedUpdate=indices[5],
+                                    reference=indices[6], fetching=indices[8][0], content=indices[7],
+                                    numberOfQueries=indices[8][1], modifications=indices[9][0], retrieve=indices[9][1])
+
+        args = get_default_configuration()
+        args['referenceStrategy'] = {'explicit': config.REFERENCE_EXPLICIT,
+                                     'implicit': config.REFERENCE_IMPLICIT,
+                                     'combined': config.REFERENCE_COMBINED}
+        args['fetchingStrategy'] = {'queryAllUpdates': config.FETCHING_ALL,
+                                    'querySpecificUpdates': config.FETCHING_SPECIFIC}
+        args['updateContentStrategy'] = {'repeated': config.CONTENT_REPEATED,
+                                         'related': config.CONTENT_RELATED}
+        args['modificationsStrategy'] = {'aggregated': config.MODIFICATIONS_AGGREGATED,
+                                         'sorted': config.MODIFICATIONS_SORTED}
+        args['retrievingStrategy'] = {'betweenUpdates': config.RETRIEVING_BETWEEN,
+                                      'fromInitialUpdate': config.RETRIEVING_INITIAL}
+
+        print(config.revision_store_file_name)
+        if os.path.isfile(config.revision_store_file_name) and not os.path.isfile(config.query_results_file_name):
+            with create_app(args).test_client() as application:
+                for i in range(5):
+                    print("Round ", i)
+                    print("Current time ", datetime.now().strftime("%Y-%m-%dT%H:%M:%S+02:00"))
+                    evaluator = Evaluator(config=config, application=application,
+                                          revisionStoreFileName=config.revision_store_file_name,
+                                          queryResultsFileName=config.query_results_file_name)
+                    evaluator.set_up_revision_store()
+                    evaluator.evaluate()
+                    evaluator.reset_revision_store()
+
+        subprocess.run(['python', 'Evaluator.py', str(index+1)])

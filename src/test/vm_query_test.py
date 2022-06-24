@@ -18,7 +18,7 @@ class VMQueryTest(unittest.TestCase):
         SELECT ?cuisine
         WHERE { ?cuisine rdfs:label "Chinese"@en-gb . }
         """
-        response = app.get('/query', query_string=dict(query=query, queryAtomType='VM',
+        response = app.get('/query-2', query_string=dict(query=query, queryAtomType='VM',
                                                        date="2021-07-01T00:00:00+00:00",
                                                        revision='http://bi-tr4qs.org/vocab/Revision_dk290vw'),
                            headers=dict(accept="application/sparql-results+json"))
@@ -40,7 +40,7 @@ class VMQueryTest(unittest.TestCase):
         SELECT ?cuisine
         WHERE { GRAPH :VegetableBible { ?cuisine rdfs:label "Courgette gratin"@en-gb . } }
         """
-        response = app.get('/query', query_string=dict(query=query, queryAtomType='VM',
+        response = app.get('/query-2', query_string=dict(query=query, queryAtomType='VM',
                                                        date="2021-07-10T00:00:00+00:00"),
                             headers=dict(accept="application/sparql-results+json"))
         self.assertEqual(response.status_code, 200)

@@ -8,13 +8,13 @@ class RevisionStoreExplicit(RevisionStore):
 
     typeStore = 'explicit'
 
-    def head_revision(self, branch: URIRef = None):
+    def head_revision(self, branch=None):
         """
         Function that returns the HEAD of the transaction revisions based on the given branch.
         :param branch: the given branch for which one would like to have the HEAD Revision.
         :return: an HEAD revision object containing all data of the HEAD Revision.
         """
-        branchString = "?revision :branch {0} .".format(branch.n3()) if branch else \
+        branchString = "?revision :branch {0} .".format(branch.identifier.n3()) if branch else \
             "FILTER NOT EXISTS { ?revision :branch ?branch . }"
 
         SPARQLQuery = """DESCRIBE ?revision
@@ -167,6 +167,7 @@ class RevisionStoreExplicit(RevisionStore):
         WHERE {{ {0} :precedingRevision* ?revision .{1}
         FILTER ( {2} = ?revision ) 
         ?revision ?p ?o . }}""".format(transactionRevisionA.n3(), earlyStop, transactionRevisionID.n3())
+        # print("SPARQLQuery ", SPARQLQuery)
         return '\n'.join((self.prefixBiTR4Qs, SPARQLQuery))
 
     def _valid_revisions_in_graph(self, revisionA: URIRef, revisionType: str, queryType: str,

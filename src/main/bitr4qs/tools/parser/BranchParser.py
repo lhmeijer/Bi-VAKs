@@ -17,7 +17,7 @@ class BranchParser(Parser):
             revision.branch_name = o
 
         elif str(p) == str(BITR4QS.branchedOffAt):
-            revision.branched_off_at = o
+            revision.branched_off_revision = o
 
         elif str(p) == str(BITR4QS.precedingBranch):
             revision.preceding_revision = o
